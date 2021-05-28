@@ -284,6 +284,8 @@ if __name__ == "__main__":
     for batchs in train_loader:
         for batch in batchs:
             to_device(batch, device)
+            print(np.array(batch[6][0]).shape)
+            a
             max_ = max(max_, np.max(batch[7]))
             min_ = min(min_, np.min(batch[7]))
             n_batch += 1

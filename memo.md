@@ -1,3 +1,29 @@
+# my_NAR-S2S-VC: 20210528~
+FastSpeech2のコードの一部を変更する形で, VCを実装していく.
+
+## 変更点
+- Encoder, DecoderのTransformerをConformerへ.: 20210528~
+    - espnet2のFastSpeech2はConformerを採用しているらしいので利用させてもらう.
+    - 例のごとく読みづらいったりゃありゃしないので, [こちら](https://github.com/sooftware/conformer/blob/main/conformer/model.py)からいただく.
+    - text embeddingなどは不要なことに注意.
+
+- Variance Predictorを, Converterへ.
+    - duration について
+        - paperでは, AR-modelを別に用意してattentionを利用...とやっているが, それこそが精度低下の
+        原因だったはず.
+        - なので, 何とかして, fastspeech2のやり方にのっとりたい.
+        - 今回, textは完全に同じというところを利用する.
+        - sourceとtargetで, durationのtargetが2つ手に入るはず.
+        - それを用いて, 各音素ごとに, melの特徴量をexpandしてつじつまを合わせる.
+        - 手法としては, 画像の圧縮拡大のものを利用しよう.
+  
+- 全重みがinitで初期化されるようにする.
+
+- (reduction factor): よくわからない. melのフレームを一回で数フレーム一気に出す話らしい. クオリティ出したいしいらないかも...?
+    - [tactron2では, 用いていないらしい](https://paperswithcode.com/method/tacotron-2) のでいったん不要か. 実行時間減少に寄与.
+
+
+
 # 読み解いていく.
 - 気になる点
     - `FastSpeech 2 - PyTorch Implementation`

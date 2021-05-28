@@ -5,10 +5,9 @@ import torch.nn as nn
 import numpy as np
 
 sys.path.append('.')
-import transformer.Constants as Constants
-from transformer.Layers import FFTBlock
 from text.symbols import symbols
-
+from transformer.Layers import FFTBlock
+import transformer.Constants as Constants
 
 def get_sinusoid_encoding_table(n_position, d_hid, padding_idx=None):
     """ Sinusoid position encoding table """
@@ -78,7 +77,7 @@ class Encoder(nn.Module):
 
         # FFTBlockをとにかく積み重ねる. このblockの詳細はその定義のところで.
         # Args:
-        #   d_model: またencoder_hidden. 
+        #   d_model: またencoder_hidden.
         #   n_head: head数. attentionの話かな.
         #   d_k = d_v: hidden//head. なにに使うんだ?
         #   d_inner: conv_filter_sizeらしい.
@@ -112,7 +111,7 @@ class Encoder(nn.Module):
           # 今回なら, x,z平面上の数字を, y軸方向にリピート.
           # 注意として, memory共有が行われている点に注意. このmaskを使うのは, MultiHeadAttention内.
           mask.unsqueeze(1).expand(-1, max_len, -1) = (batch, 149(max_seq_len), 149(max_seq_len))
-        """ 
+        """
         slf_attn_mask = mask.unsqueeze(1).expand(-1, max_len, -1)
 
         # -- Forward
@@ -134,7 +133,7 @@ class Encoder(nn.Module):
             enc_output = self.src_word_emb(src_seq) + self.position_enc[
                 :, :max_len, :
             ].expand(batch_size, -1, -1)
-        
+
         for enc_layer in self.layer_stack:
             # あとは流しに行く.
             enc_output, enc_slf_attn = enc_layer(
@@ -142,8 +141,6 @@ class Encoder(nn.Module):
             )
             if return_attns:
                 enc_slf_attn_list += [enc_slf_attn]
-
-            
 
         return enc_output
 
@@ -190,7 +187,7 @@ class Decoder(nn.Module):
     def forward(self, enc_seq, mask, return_attns=False):
         """
         Args:
-          enc_seq: variance_adaptorのoutputが入ってくる. 
+          enc_seq: variance_adaptorのoutputが入ってくる.
                    shape: (batch, max_seq(durationしたので700とか), hidden)
           mask: mel_masksが入ってくる. mel_lensがNoneでないとき.
           mel_lensは普通にNoneではないみたい.
@@ -261,7 +258,6 @@ class Decoder(nn.Module):
 if __name__ == "__main__":
     # Test
     import sys
-    import torch
     import yaml
     from torch.utils.data import DataLoader
 
@@ -301,7 +297,7 @@ if __name__ == "__main__":
             output = encoder(batch[3], src_masks)
             break  # testなので一回でやめておきます.
         break
-    
+
     """
     Examples:
       batchの入力に対するencoderの出力.
