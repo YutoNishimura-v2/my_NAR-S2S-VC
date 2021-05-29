@@ -28,16 +28,6 @@ class VarianceAdaptor(nn.Module):
         self.pitch_predictor = VariancePredictor(model_config)
         self.energy_predictor = VariancePredictor(model_config)
 
-        # default: pitch: feature: "phoneme_level"
-        self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
-            "feature"
-        ]
-        self.energy_feature_level = preprocess_config["preprocessing"]["energy"][
-            "feature"
-        ]
-        assert self.pitch_feature_level in ["phoneme_level", "frame_level"]
-        assert self.energy_feature_level in ["phoneme_level", "frame_level"]
-
         # default: variance_embedding: pitch_quantization: "linear"
         pitch_quantization = model_config["variance_embedding"]["pitch_quantization"]
         energy_quantization = model_config["variance_embedding"]["energy_quantization"]
@@ -86,10 +76,10 @@ class VarianceAdaptor(nn.Module):
 
         # pitchとenergyに関してはなんとembedding!
         self.pitch_embedding = nn.Embedding(
-            n_bins, model_config["transformer"]["encoder_hidden"]
+            n_bins, model_config["conformer"]["encoder_hidden"]
         )
         self.energy_embedding = nn.Embedding(
-            n_bins, model_config["transformer"]["encoder_hidden"]
+            n_bins, model_config["conformer"]["encoder_hidden"]
         )
 
     def get_pitch_embedding(self, x, target, mask, control):
@@ -193,19 +183,16 @@ class VarianceAdaptor(nn.Module):
         # まずは, durationを計算する.
         log_duration_prediction = self.duration_predictor(x, src_mask)
 
-        # pitchがphoneme, つまりframe_levelではない場合
-        if self.pitch_feature_level == "phoneme_level":
-            # get_pitch_embeddingはこのクラスの関数.
-            pitch_prediction, pitch_embedding = self.get_pitch_embedding(
-                x, pitch_target, src_mask, p_control
-            )
-            x = x + pitch_embedding
+        # get_pitch_embeddingはこのクラスの関数.
+        pitch_prediction, pitch_embedding = self.get_pitch_embedding(
+            x, pitch_target, src_mask, p_control
+        )
+        x = x + pitch_embedding
 
-        if self.energy_feature_level == "phoneme_level":
-            energy_prediction, energy_embedding = self.get_energy_embedding(
-                x, energy_target, src_mask, p_control
-            )
-            x = x + energy_embedding
+        energy_prediction, energy_embedding = self.get_energy_embedding(
+            x, energy_target, src_mask, p_control
+        )
+        x = x + energy_embedding
 
         # durationの正解データがあるのであれば, targetとともにreguratorへ.
         if duration_target is not None:
@@ -222,21 +209,6 @@ class VarianceAdaptor(nn.Module):
             # inferenceではmel_maskもないので, Noneとしてくる.
             mel_mask = get_mask_from_lengths(mel_len)
 
-        if self.pitch_feature_level == "frame_level":
-            # frame_levelなら, 一気に見るので, src_maskではなく, mel_maskを見てもらう.
-            # mel_maskじゃないと次元も合わないよね.
-            # 違いはそこだけ.
-            pitch_prediction, pitch_embedding = self.get_pitch_embedding(
-                x, pitch_target, mel_mask, p_control
-            )
-            # embbeddingのほうを足しておく.
-            x = x + pitch_embedding
-        if self.energy_feature_level == "frame_level":
-            energy_prediction, energy_embedding = self.get_energy_embedding(
-                x, energy_target, mel_mask, p_control
-            )
-            x = x + energy_embedding
-
         return (
             x,
             pitch_prediction,
@@ -249,7 +221,7 @@ class VarianceAdaptor(nn.Module):
 
 
 class LengthRegulator(nn.Module):
-    """ Length Regulator 
+    """ Length Regulator
     
     Examples:
       print(output.size())
@@ -328,14 +300,14 @@ class LengthRegulator(nn.Module):
 class VariancePredictor(nn.Module):
     """ Duration, Pitch and Energy Predictor
 
-    transformerでもない, ふっつーの変換層. 確かに大層な変換は必要なさそうではあるが.
+    ふっつーの変換層. 確かに大層な変換は必要なさそうではあるが.
     durationに関してはもっといい奴が必要そうな気はする.
     """
 
     def __init__(self, model_config):
         super(VariancePredictor, self).__init__()
 
-        self.input_size = model_config["transformer"]["encoder_hidden"]
+        self.input_size = model_config["conformer"]["encoder_hidden"]
         self.filter_size = model_config["variance_predictor"]["filter_size"]
         self.kernel = model_config["variance_predictor"]["kernel_size"]
         # ↓ここはhiddenと一致していないとね.

@@ -228,8 +228,6 @@ class Decoder(nn.Module):
               print(slf_attn_mask.size())
               >>> torch.Size([8, 911, 911])  # maskをmax_len分expandしただけ.
             """
-            print("hi")
-            print(max_len)
             max_len = min(max_len, self.max_seq_len)
 
             # -- Prepare masks

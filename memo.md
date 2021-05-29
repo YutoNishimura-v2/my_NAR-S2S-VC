@@ -2,10 +2,21 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 ## 変更点
-- Encoder, DecoderのTransformerをConformerへ.: 20210528~
+- Encoder, DecoderのTransformerをConformerへ.: 20210528~20210529
     - espnet2のFastSpeech2はConformerを採用しているらしいので利用させてもらう.
     - 例のごとく読みづらいったりゃありゃしないので, [こちら](https://github.com/sooftware/conformer/blob/main/conformer/model.py)からいただく.
     - text embeddingなどは不要なことに注意.
+
+    - paperには, `The attention dimension was set to 384` とあるが, 
+    Varianceのhiddenは256だし, このConformerの実装にはattentionだけ次元を変える
+    といった機能が付いていないみたい. 必要なら実装するが, そもそもattention部分
+    のみをさしているかも正確には怪しい(他のところでも, module名は特定して言っているので, おそらくここでもattentionのことをまさに言っているはずではある)
+
+    - 一応done.
+    - position encoding抜いたり, まぁ一部Conformerの中身も弄ったくらいで, とりあえず形は揃えたという感じ. 形だけはあっているので, 大きな問題は起きなさそうである.
+
+- data preparing の方式変更: 20210529~
+    - input, outputともにmelが必要ということを前提に用意していく.
 
 - Variance Predictorを, Converterへ.
     - duration について
@@ -16,6 +27,9 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
         - sourceとtargetで, durationのtargetが2つ手に入るはず.
         - それを用いて, 各音素ごとに, melの特徴量をexpandしてつじつまを合わせる.
         - 手法としては, 画像の圧縮拡大のものを利用しよう.
+
+    - 特筆すべき変更点
+        - frame levelの廃止.
   
 - 全重みがinitで初期化されるようにする.
 

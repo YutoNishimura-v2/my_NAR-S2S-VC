@@ -20,7 +20,6 @@ class FeedForwardModule(nn.Module):
         encoder_dim (int): Dimension of conformer encoder
         expansion_factor (int): Expansion factor of feed forward module.
         dropout_p (float): Ratio of dropout
-        device (torch.device): torch device (cuda or cpu)
 
     Inputs: inputs
         - **inputs** (batch, time, dim): Tensor contains input sequences
@@ -33,21 +32,19 @@ class FeedForwardModule(nn.Module):
             encoder_dim: int = 512,
             expansion_factor: int = 4,
             dropout_p: float = 0.1,
-            device: torch.device = 'cuda'
     ) -> None:
         super(FeedForwardModule, self).__init__()
-        self.device = device
         self.sequential = nn.Sequential(
             LayerNorm(encoder_dim),
-            Linear(encoder_dim, encoder_dim * expansion_factor, bias=True, multiple=0.5),
+            Linear(encoder_dim, encoder_dim * expansion_factor, bias=True, multiple=1.0),
             Swish(),
             nn.Dropout(p=dropout_p),
-            Linear(encoder_dim * expansion_factor, encoder_dim, bias=True, multiple=0.5),
+            Linear(encoder_dim * expansion_factor, encoder_dim, bias=True, multiple=1.0),
             nn.Dropout(p=dropout_p),
         )
 
     def forward(self, inputs: Tensor) -> Tensor:
-        return self.sequential(inputs.to(self.device))
+        return self.sequential(inputs)
 
 
 class RelativeMultiHeadAttention(nn.Module):
@@ -121,13 +118,13 @@ class RelativeMultiHeadAttention(nn.Module):
             mask = mask.unsqueeze(1)
             score.masked_fill_(mask, -1e9)
 
-        attn = F.softmax(score, -1)
-        attn = self.dropout(attn)
+        attn_map = F.softmax(score, -1)
+        attn = self.dropout(attn_map)
 
         context = torch.matmul(attn, value).transpose(1, 2)
         context = context.contiguous().view(batch_size, -1, self.d_model)
 
-        return self.out_proj(context)
+        return self.out_proj(context), attn_map
 
     def _relative_shift(self, pos_score: Tensor) -> Tensor:
         batch_size, num_heads, seq_length1, seq_length2 = pos_score.size()
@@ -152,7 +149,6 @@ class MultiHeadedSelfAttentionModule(nn.Module):
         d_model (int): The dimension of model
         num_heads (int): The number of attention heads.
         dropout_p (float): probability of dropout
-        device (torch.device): torch device (cuda or cpu)
 
     Inputs: inputs, mask
         - **inputs** (batch, time, dim): Tensor containing input vector
@@ -161,23 +157,24 @@ class MultiHeadedSelfAttentionModule(nn.Module):
     Returns:
         - **outputs** (batch, time, dim): Tensor produces by relative multi headed self attention module.
     """
-    def __init__(self, d_model: int, num_heads: int, dropout_p: float = 0.1, device: torch.device = 'cuda'):
+    def __init__(self, d_model: int, num_heads: int, dropout_p: float = 0.1):
         super(MultiHeadedSelfAttentionModule, self).__init__()
         self.positional_encoding = PositionalEncoding(d_model)
         self.layer_norm = LayerNorm(d_model)
         self.attention = RelativeMultiHeadAttention(d_model, num_heads, dropout_p)
         self.dropout = nn.Dropout(p=dropout_p)
-        self.device = device
 
     def forward(self, inputs: Tensor, mask: Optional[Tensor] = None):
         batch_size, seq_length, _ = inputs.size()
-        pos_embedding = self.positional_encoding(seq_length).to(self.device)
+        # positional_encodingでは, 毎回10000と十分大きい長さの余裕をとって,
+        # それをinputのlengthで切って使っている. いいと思う.
+        pos_embedding = self.positional_encoding(seq_length)
         pos_embedding = pos_embedding.repeat(batch_size, 1, 1)
 
         inputs = self.layer_norm(inputs)
-        outputs = self.attention(inputs, inputs, inputs, pos_embedding=pos_embedding, mask=mask)
+        outputs, attn = self.attention(inputs, inputs, inputs, pos_embedding=pos_embedding, mask=mask)
 
-        return self.dropout(outputs)
+        return self.dropout(outputs), attn
 
 
 class DepthwiseConv1d(nn.Module):
@@ -274,7 +271,6 @@ class ConformerConvModule(nn.Module):
         in_channels (int): Number of channels in the input
         kernel_size (int or tuple, optional): Size of the convolving kernel Default: 31
         dropout_p (float, optional): probability of dropout
-        device (torch.device): torch device (cuda or cpu)
 
     Inputs: inputs
         inputs (batch, time, dim): Tensor contains input sequences
@@ -288,13 +284,11 @@ class ConformerConvModule(nn.Module):
             kernel_size: int = 31,
             expansion_factor: int = 2,
             dropout_p: float = 0.1,
-            device: torch.device = 'cuda',
     ) -> None:
         super(ConformerConvModule, self).__init__()
         assert (kernel_size - 1) % 2 == 0, "kernel_size should be a odd number for 'SAME' padding"
         assert expansion_factor == 2, "Currently, Only Supports expansion_factor 2"
 
-        self.device = device
         self.sequential = nn.Sequential(
             LayerNorm(in_channels),
             Transpose(shape=(1, 2)),
@@ -308,7 +302,7 @@ class ConformerConvModule(nn.Module):
         )
 
     def forward(self, inputs: Tensor) -> Tensor:
-        return self.sequential(inputs.to(self.device)).transpose(1, 2)
+        return self.sequential(inputs).transpose(1, 2)
 
 
 class Conv2dSubampling(nn.Module):
