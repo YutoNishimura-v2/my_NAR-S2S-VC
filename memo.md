@@ -1,6 +1,9 @@
 # my_NAR-S2S-VC: 20210528~
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
+now: - nars2svc.pyの作成: 20210530~
+    - now: Decoderの, mel_mask=Noneの場合の動作確認中
+
 ## 変更点
 - Encoder, DecoderのTransformerをConformerへ.: 20210528~20210529
     - espnet2のFastSpeech2はConformerを採用しているらしいので利用させてもらう.
@@ -11,12 +14,29 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
     Varianceのhiddenは256だし, このConformerの実装にはattentionだけ次元を変える
     といった機能が付いていないみたい. 必要なら実装するが, そもそもattention部分
     のみをさしているかも正確には怪しい(他のところでも, module名は特定して言っているので, おそらくここでもattentionのことをまさに言っているはずではある)
+    - ちなみに, transformerでは. `conv_filter_size`というパラメタがあり,
+    FFTBlockの`PositionwiseFeedForward`にて, 1024までchannelを広げて戻してをやっている.
+    - これに相当するものは一応あるにはあるが, conformerの実装では対応していないみたい. また, やっぱりattentionと明言しているので別の部分では?でもattentionって次元を自分でかえる部分ないけどな...。
+    - 20210530: とりあえず放置.
 
     - 一応done.
     - position encoding抜いたり, まぁ一部Conformerの中身も弄ったくらいで, とりあえず形は揃えたという感じ. 形だけはあっているので, 大きな問題は起きなさそうである.
 
+
 - data preparing の方式変更: 20210529~
+    - 改造部分
+        - preprocessor.py: done
+        - dataset.py: 20210530~done: Inference用のdatasetは未改修.
+
+
     - input, outputともにmelが必要ということを前提に用意していく.
+
+    - mel, 正規化は未実装. 先生に聞いてみる.
+
+
+- nars2svc.pyの作成: 20210530~
+    - now: Decoderの, mel_mask=Noneの場合の動作確認中
+
 
 - Variance Predictorを, Converterへ.
     - duration について

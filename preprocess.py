@@ -1,3 +1,8 @@
+"""
+Examples:
+>>> python preprocess.py config/N2C/preprocess.yaml
+"""
+
 import argparse
 
 import yaml

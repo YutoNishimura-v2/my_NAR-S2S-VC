@@ -16,47 +16,47 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def to_device(data, device):
-    if len(data) == 12:
+    if len(data) == 12:  # train用.
         (
-            ids,
-            raw_texts,
-            speakers,
-            texts,
-            src_lens,
-            max_src_len,
-            mels,
-            mel_lens,
-            max_mel_len,
-            pitches,
-            energies,
-            durations,
+            s_ids,
+            t_ids,
+            s_mels,
+            s_mel_lens,
+            max_s_mel_len,
+            s_pitches,
+            s_energies,
+            t_mels,
+            t_mel_lens,
+            max_t_mel_len,
+            t_pitches,
+            t_energies,
         ) = data
 
-        speakers = torch.from_numpy(speakers).long().to(device)
-        texts = torch.from_numpy(texts).long().to(device)
-        src_lens = torch.from_numpy(src_lens).to(device)
-        mels = torch.from_numpy(mels).float().to(device)
-        mel_lens = torch.from_numpy(mel_lens).to(device)
-        pitches = torch.from_numpy(pitches).float().to(device)
-        energies = torch.from_numpy(energies).to(device)
-        durations = torch.from_numpy(durations).long().to(device)
+        s_mels = torch.from_numpy(s_mels).float().to(device)
+        s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
+        s_pitches = torch.from_numpy(s_pitches).float().to(device)
+        s_energies = torch.from_numpy(s_energies).to(device)
+        t_mels = torch.from_numpy(t_mels).float().to(device)
+        t_mel_lens = torch.from_numpy(t_mel_lens).to(device)
+        t_pitches = torch.from_numpy(t_pitches).float().to(device)
+        t_energies = torch.from_numpy(t_energies).to(device)
 
         return (
-            ids,
-            raw_texts,
-            speakers,
-            texts,
-            src_lens,
-            max_src_len,
-            mels,
-            mel_lens,
-            max_mel_len,
-            pitches,
-            energies,
-            durations,
+            s_ids,
+            t_ids,
+            s_mels,
+            s_mel_lens,
+            max_s_mel_len,
+            s_pitches,
+            s_energies,
+            t_mels,
+            t_mel_lens,
+            max_t_mel_len,
+            t_pitches,
+            t_energies,
         )
 
-    if len(data) == 6:
+    if len(data) == 6:  # infe用.
         (ids, raw_texts, speakers, texts, src_lens, max_src_len) = data
 
         speakers = torch.from_numpy(speakers).long().to(device)

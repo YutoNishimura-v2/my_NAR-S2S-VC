@@ -11,7 +11,7 @@ from pypinyin import pinyin, Style
 
 from utils.model import get_model, get_vocoder
 from utils.tools import to_device, synth_samples
-from dataset import TextDataset
+from dataset import SourceDataset
 from text import text_to_sequence, symbols
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -193,7 +193,7 @@ if __name__ == "__main__":
     # Preprocess texts
     if args.mode == "batch":
         # Get dataset
-        dataset = TextDataset(args.source, preprocess_config)
+        dataset = SourceDataset(args.source, preprocess_config)
         batchs = DataLoader(
             dataset,
             batch_size=8,

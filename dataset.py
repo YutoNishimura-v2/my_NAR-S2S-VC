@@ -1,103 +1,94 @@
 import json
-import math
 import os
 
 import numpy as np
+from numpy.lib.utils import source
 from torch.utils.data import Dataset
 
-from text import symbols, text_to_sequence
 from utils.tools import pad_1D, pad_2D
 
 
 class Dataset(Dataset):
-    """
-    Args:
-      filename: 'train.txt'で固定みたい.
-    """
     def __init__(
         self, filename, preprocess_config, train_config, sort=False, drop_last=False
     ):
-        # self.dataset_name = preprocess_config["dataset"]  # もしかしたら使ってないかも.
-        self.preprocessed_path = preprocess_config["path"]["preprocessed_path"]
-        self.cleaners = preprocess_config["preprocessing"]["text"]["text_cleaners"]
+        self.preprocessed_path = preprocess_config["path"]["preprocessed_path"]  # out_pathのこと.
         self.batch_size = train_config["optimizer"]["batch_size"]
-        self.symbol_to_id = {s: i for i, s in enumerate(symbols)}
 
         # processed_path直下にtrain.txtが作られているはず.
         # process_metaではsptitしているだけ.
-        self.basename, self.speaker, self.text, self.raw_text = self.process_meta(
+        self.basenames = self.process_meta(
             filename
         )
-        with open(os.path.join(self.preprocessed_path, "speakers.json")) as f:
-            self.speaker_map = json.load(f)
         self.sort = sort
         self.drop_last = drop_last
 
     def __len__(self):
-        return len(self.text)
+        return len(self.basenames[0])
 
     def __getitem__(self, idx):
         # 基本的には, あらかじめ計算しておいた, pitch, energy, duration, melをtextとともに用いる.
         # textは, symbol化済みなので, それをidに変換する.
-        basename = self.basename[idx]
-        speaker = self.speaker[idx]
-        speaker_id = self.speaker_map[speaker]
-        raw_text = self.raw_text[idx]
+        basenames = []
+        mels = []
+        pitchs = []
+        energys = []
+        for i, source_or_target in enumerate(["source", "target"]):
+            # i==0がsource.
+            basename = self.basenames[i][idx]
 
-        phone = np.array([self.symbol_to_id[t] for t in self.text[idx].replace("{", "").replace("}", "").split()])
-        mel_path = os.path.join(
-            self.preprocessed_path,
-            "mel",
-            "{}-mel-{}.npy".format(speaker, basename),
-        )
-        mel = np.load(mel_path)
-        pitch_path = os.path.join(
-            self.preprocessed_path,
-            "pitch",
-            "{}-pitch-{}.npy".format(speaker, basename),
-        )
-        pitch = np.load(pitch_path)
-        energy_path = os.path.join(
-            self.preprocessed_path,
-            "energy",
-            "{}-energy-{}.npy".format(speaker, basename),
-        )
-        energy = np.load(energy_path)
-        duration_path = os.path.join(
-            self.preprocessed_path,
-            "duration",
-            "{}-duration-{}.npy".format(speaker, basename),
-        )
-        duration = np.load(duration_path)
+            mel_path = os.path.join(
+                self.preprocessed_path,
+                source_or_target,
+                "mel",
+                "mel-{}.npy".format(basename),
+            )
+            mel = np.load(mel_path)
+            pitch_path = os.path.join(
+                self.preprocessed_path,
+                source_or_target,
+                "pitch",
+                "pitch-{}.npy".format(basename),
+            )
+            pitch = np.load(pitch_path)
+            energy_path = os.path.join(
+                self.preprocessed_path,
+                source_or_target,
+                "energy",
+                "energy-{}.npy".format(basename),
+            )
+            energy = np.load(energy_path)
+
+            basenames.append(basename)
+            mels.append(mel)
+            pitchs.append(pitch)
+            energys.append(energy)
 
         sample = {
-            "id": basename,
-            "speaker": speaker_id,
-            "text": phone,
-            "raw_text": raw_text,
-            "mel": mel,
-            "pitch": pitch,
-            "energy": energy,
-            "duration": duration,
+            "s_id": basenames[0],
+            "t_id": basenames[1],
+            "s_mel": mels[0],
+            "s_pitch": pitchs[0],
+            "s_energy": energys[0],
+            "t_mel": mels[1],
+            "t_pitch": pitchs[1],
+            "t_energy": energys[1],
         }
 
         return sample
 
     def process_meta(self, filename):
-        with open(
-            os.path.join(self.preprocessed_path, filename), "r", encoding="utf-8"
-        ) as f:
-            name = []
-            speaker = []
-            text = []
-            raw_text = []
-            for line in f.readlines():
-                n, s, t, r = line.strip("\n").split("|")
-                name.append(n)
-                speaker.append(s)
-                text.append(t)
-                raw_text.append(r)
-            return name, speaker, text, raw_text
+        names = []
+        for source_or_target in ["source", "target"]:
+            with open(
+                os.path.join(self.preprocessed_path, source_or_target, filename), "r", encoding="utf-8"
+            ) as f:
+                name = []
+                for line in f.readlines():
+                    n = line.strip("\n")
+                    name.append(n)
+                names.append(name)
+        return names
 
     def reprocess(self, data, idxs):
         """reporocess. ここではpaddingを行う.
@@ -105,42 +96,42 @@ class Dataset(Dataset):
         # もしソートされていたら, テキストサイズが大きい順でbatch_size個
         # でまとめられたidxsが入ってくる.
         # まずはそいつらのデータを取得.
-        ids = [data[idx]["id"] for idx in idxs]
-        speakers = [data[idx]["speaker"] for idx in idxs]
-        texts = [data[idx]["text"] for idx in idxs]
-        raw_texts = [data[idx]["raw_text"] for idx in idxs]
-        mels = [data[idx]["mel"] for idx in idxs]
-        pitches = [data[idx]["pitch"] for idx in idxs]
-        energies = [data[idx]["energy"] for idx in idxs]
-        durations = [data[idx]["duration"] for idx in idxs]
+        s_ids = [data[idx]["s_id"] for idx in idxs]
+        t_ids = [data[idx]["t_id"] for idx in idxs]
+        s_mels = [data[idx]["s_mel"] for idx in idxs]
+        s_pitches = [data[idx]["s_pitch"] for idx in idxs]
+        s_energies = [data[idx]["s_energy"] for idx in idxs]
+        t_mels = [data[idx]["t_mel"] for idx in idxs]
+        t_pitches = [data[idx]["t_pitch"] for idx in idxs]
+        t_energies = [data[idx]["t_energy"] for idx in idxs]
 
         # textとmelのlenを取得.
-        text_lens = np.array([text.shape[0] for text in texts])
-        mel_lens = np.array([mel.shape[0] for mel in mels])
+        s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
+        t_mel_lens = np.array([t_mel.shape[0] for t_mel in t_mels])
 
-        speakers = np.array(speakers)
         # padding. tools.pyにあり.
         # 与えられたtext内からmax_sizeを探し出して, padしてくれる.
-        texts = pad_1D(texts)
-        mels = pad_2D(mels)
-        pitches = pad_1D(pitches)
-        energies = pad_1D(energies)
-        durations = pad_1D(durations)
+        s_mels = pad_2D(s_mels)
+        s_pitches = pad_1D(s_pitches)
+        s_energies = pad_1D(s_energies)
+        t_mels = pad_2D(t_mels)
+        t_pitches = pad_1D(t_pitches)
+        t_energies = pad_1D(t_energies)
 
         # ついでにmaxの値も返す.
         return (
-            ids,
-            raw_texts,
-            speakers,
-            texts,
-            text_lens,
-            max(text_lens),
-            mels,
-            mel_lens,
-            max(mel_lens),
-            pitches,
-            energies,
-            durations,
+            s_ids,
+            t_ids,
+            s_mels,
+            s_mel_lens,
+            max(s_mel_lens),
+            s_pitches,
+            s_energies,
+            t_mels,
+            t_mel_lens,
+            max(t_mel_lens),
+            t_pitches,
+            t_energies,
         )
 
     def collate_fn(self, data):
@@ -158,7 +149,7 @@ class Dataset(Dataset):
         # なので, ここで届くdata_sizeは, self.batch_size * 4
 
         if self.sort:
-            len_arr = np.array([d["text"].shape[0] for d in data])
+            len_arr = np.array([d["s_mel"].shape[0] for d in data])
             # ↑textの長さたち. そりゃ, 1つ1つ長さは異なる.
             idx_arr = np.argsort(-len_arr)
             # 長い順に取り出す. 昇順なので, マイナス.
@@ -186,7 +177,7 @@ class Dataset(Dataset):
         return output
 
 
-class TextDataset(Dataset):
+class SourceDataset(Dataset):
     def __init__(self, filepath, preprocess_config):
         self.cleaners = preprocess_config["preprocessing"]["text"]["text_cleaners"]
 
@@ -251,10 +242,10 @@ if __name__ == "__main__":
     # JSUTをちゃんと読み込みましょう!
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     preprocess_config = yaml.load(
-        open("./config/JSUT/preprocess.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
+        open("./config/N2C/preprocess.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
     train_config = yaml.load(
-        open("./config/JSUT/train.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
+        open("./config/N2C/train.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
 
     train_dataset = Dataset(
@@ -284,10 +275,8 @@ if __name__ == "__main__":
     for batchs in train_loader:
         for batch in batchs:
             to_device(batch, device)
-            print(np.array(batch[6][0]).shape)
-            a
-            max_ = max(max_, np.max(batch[7]))
-            min_ = min(min_, np.min(batch[7]))
+            max_ = max(max_, np.max(batch[8]))
+            min_ = min(min_, np.min(batch[8]))
             n_batch += 1
     print(
         "Training set  with size {} is composed of {} batches.".format(
@@ -299,8 +288,8 @@ if __name__ == "__main__":
     for batchs in val_loader:
         for batch in batchs:
             to_device(batch, device)
-            max_ = max(max_, np.max(batch[7]))
-            min_ = min(min_, np.min(batch[7]))
+            max_ = max(max_, np.max(batch[8]))
+            min_ = min(min_, np.min(batch[8]))
             n_batch += 1
     print(
         "Validation set  with size {} is composed of {} batches.".format(

@@ -4,12 +4,12 @@
 
 基本的に, transformer/Models.pyを使う.
 """
-from conformer.Layers import ConformerBlock
 import sys
 
 import torch.nn as nn
 
 sys.path.append('.')
+from conformer.Layers import ConformerBlock
 
 
 class Encoder(nn.Module):
@@ -94,3 +94,17 @@ class Decoder(nn.Module):
                 dec_slf_attn_lst += [dec_slf_attn]
 
         return dec_output
+
+
+if __name__ == '__main__':
+    import yaml
+    import torch
+
+    model_config = yaml.load(
+        open("./config/N2C/model.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
+    )
+
+    decoder = Decoder(model_config)
+    x = torch.randn((2, 3, 4))
+    out = decoder(x)
+    print(out)
