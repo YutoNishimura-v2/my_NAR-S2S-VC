@@ -23,10 +23,16 @@ now: - nars2svc.pyの作成: 20210530~
     - position encoding抜いたり, まぁ一部Conformerの中身も弄ったくらいで, とりあえず形は揃えたという感じ. 形だけはあっているので, 大きな問題は起きなさそうである.
 
 
-- Vocoderについて, PGANの追加
+- Vocoderについて, PGANの追加: 最後.
     - hifi-GANを試したが, 高音部分がダメそう.
         - さすがにfine-tuningしたら大丈夫なのか? いまいちわからない.
     - vocoderがうんちだともはや何も意味がないので, 先にやりたい.
+
+    - vocoderはfinetuningをしたほうがよさそう. 精度を見て思いました.
+    - finetuningに使用する入力は, 十分学習させた後の, FastSpeech2の出力.
+        - それが一番最適だよね.
+        - その代わり, 真のmelをreconstructする能力は失うことに注意.
+    - finetuningさえすれば, 別にPWGANでなくても, hifi-GANで問題ない.
 
 
 - duration教師データ用意について: 20210604~
