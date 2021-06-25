@@ -1,6 +1,7 @@
 # original
 raw_data/
 pre_voice/
+preprocessed_data/
 TextGrid/
 
 # Byte-compiled / optimized / DLL files

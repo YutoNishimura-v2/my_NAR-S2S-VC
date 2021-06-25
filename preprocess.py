@@ -19,7 +19,7 @@ if __name__ == "__main__":
     config = yaml.load(open(args.config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
 
     # 音声に対する前処理
-    voice_preprocess(config)
+    # voice_preprocess(config)
     # melの用意とか
     preprocessor = Preprocessor(config)
     preprocessor.build_from_path()

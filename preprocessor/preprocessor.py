@@ -1,15 +1,12 @@
+import audio as Audio
 import os
 import random
 import json
-import sys
 
 import librosa
 import numpy as np
-# import pyworld as pw
+import pyworld as pw
 from sklearn.preprocessing import StandardScaler
-
-sys.path.append('.')
-import audio as Audio
 
 
 class Preprocessor:
@@ -86,9 +83,7 @@ class Preprocessor:
                     energy_scaler.partial_fit(energy.reshape((-1, 1)))
                 if len(mel) > 0:
                     for idx, scaler in enumerate(mel_scalers):
-                        print(mel[idx, :].shape)
-                        scaler.partial_fit(mel[idx, :])
-                        a
+                        scaler.partial_fit(mel[idx, :].reshape((-1, 1)))
 
                 n_frames += mel.shape[1]
 
@@ -114,7 +109,7 @@ class Preprocessor:
             energy_min, energy_max = self.normalize(
                 os.path.join(self.out_dir, source_or_target, "energy"), energy_mean, energy_std
             )
-            self.mel_normalize(
+            mel_means, mel_stds = self.mel_normalize(
                 os.path.join(self.out_dir, source_or_target, "mel"), mel_scalers
             )
 
@@ -136,6 +131,8 @@ class Preprocessor:
                         float(energy_mean),
                         float(energy_std),
                     ],
+                    "mel_means": mel_means,
+                    "mel_stds": mel_stds
                 }
                 f.write(json.dumps(stats))
 
@@ -243,9 +240,19 @@ class Preprocessor:
         return min_value, max_value
 
     def mel_normalize(self, in_dir, mel_scalers):
+        mel_means = []
+        mel_stds = []
+
+        for scaler in mel_scalers:
+            mel_means.append(scaler.mean_[0])
+            mel_stds.append(scaler.scale_[0])
+
         for filename in os.listdir(in_dir):
             filename = os.path.join(in_dir, filename)
             mel = np.load(filename)
-            print(mel.shape)
-            a
-            np.save(filename, values)
+            mel = mel.T  # 転置して保存していたので.
+            for idx, (mean, std) in enumerate(zip(mel_means, mel_stds)):
+                mel[idx, :] = (mel[idx, :] - mean) / std
+            np.save(filename, mel.T)
+
+        return mel_means, mel_stds

@@ -1,4 +1,5 @@
 import torch
+from torch._C import device
 import torch.nn.functional as F
 import numpy as np
 from scipy.signal import get_window
@@ -49,6 +50,8 @@ class STFT(torch.nn.Module):
         self.register_buffer("forward_basis", forward_basis.float())
         self.register_buffer("inverse_basis", inverse_basis.float())
 
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+
     def transform(self, input_data):
         num_batches = input_data.size(0)
         num_samples = input_data.size(1)
@@ -65,8 +68,8 @@ class STFT(torch.nn.Module):
         input_data = input_data.squeeze(1)
 
         forward_transform = F.conv1d(
-            input_data.cuda(),
-            torch.autograd.Variable(self.forward_basis, requires_grad=False).cuda(),
+            input_data.to(self.device),
+            torch.autograd.Variable(self.forward_basis, requires_grad=False).to(self.device),
             stride=self.hop_length,
             padding=0,
         ).cpu()
@@ -108,7 +111,7 @@ class STFT(torch.nn.Module):
             window_sum = torch.autograd.Variable(
                 torch.from_numpy(window_sum), requires_grad=False
             )
-            window_sum = window_sum.cuda() if magnitude.is_cuda else window_sum
+            window_sum = window_sum.to(self.device) if magnitude.is_cuda else window_sum
             inverse_transform[:, :, approx_nonzero_indices] /= window_sum[
                 approx_nonzero_indices
             ]
