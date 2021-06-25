@@ -9,6 +9,7 @@ import yaml
 
 from preprocessor.preprocessor import Preprocessor
 from preprocessor.n2c_voiceprocess import voice_preprocess
+from preprocessor.calc_duration import get_duration
 
 
 if __name__ == "__main__":
@@ -20,6 +21,10 @@ if __name__ == "__main__":
 
     # 音声に対する前処理
     # voice_preprocess(config)
+
     # melの用意とか
     preprocessor = Preprocessor(config)
     preprocessor.build_from_path()
+
+    # durationの用意
+    get_duration(config)

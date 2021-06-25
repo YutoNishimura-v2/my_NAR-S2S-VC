@@ -22,6 +22,8 @@ now: - nars2svc.pyの作成: 20210530~
 - preprocessor.py
     - build_from_path
         - melの正規化を行っている. 80次元あると思うが, 80個standardscalerを用意する. アホ.
+- calc_duration.py
+    - duration_prepareのノートブックでやったことを書き直しただけ.
 
 ## 変更点
 - Encoder, DecoderのTransformerをConformerへ.: 20210528~20210529
@@ -53,13 +55,12 @@ now: - nars2svc.pyの作成: 20210530~
         - その代わり, 真のmelをreconstructする能力は失うことに注意.
     - finetuningさえすれば, 別にPWGANでなくても, hifi-GANで問題ない.
 
-
-- duration教師データ用意について: 20210604~20210624: notebook形式ではdone.
+- duration教師データ用意について: 20210604~20210624
     - 先生に聞いたところ, 以下の2方針がよさそう.
     - melの次元を20に下げる
     - 前後の無声区間を削除する.
 
-- data preparing の方式変更: 20210529~
+- data preparing の方式変更: 20210529~20210626
     - 改造部分
         - preprocessor.py: done
         - dataset.py: 20210530~done: Inference用のdatasetは未改修.
@@ -69,7 +70,6 @@ now: - nars2svc.pyの作成: 20210530~
 
     - mel, 正規化は未実装. 先生に聞いてみる.
         - 80次元あるが, しょうがない, 次元ごとに正規化が正しい.
-
 
 - nars2svc.pyの作成: 20210530~
     - now: Decoderの, mel_mask=Noneの場合の動作確認中

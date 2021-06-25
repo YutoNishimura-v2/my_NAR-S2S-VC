@@ -47,7 +47,6 @@ class Preprocessor:
         os.makedirs((os.path.join(self.out_dir, "target", "pitch")), exist_ok=True)
         os.makedirs((os.path.join(self.out_dir, "source", "energy")), exist_ok=True)
         os.makedirs((os.path.join(self.out_dir, "target", "energy")), exist_ok=True)
-        os.makedirs((os.path.join(self.out_dir, "duration")), exist_ok=True)
 
         print("Processing Data ...")
 
