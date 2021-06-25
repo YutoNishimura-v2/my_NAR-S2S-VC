@@ -5,9 +5,7 @@ import sys
 
 import librosa
 import numpy as np
-from numpy.lib.index_tricks import _ix__dispatcher
-from numpy.lib.utils import source
-import pyworld as pw
+# import pyworld as pw
 from sklearn.preprocessing import StandardScaler
 
 sys.path.append('.')
@@ -17,12 +15,13 @@ import audio as Audio
 class Preprocessor:
     def __init__(self, config):
         self.config = config
-        self.source_in_dir = config["path"]["source_raw_path"]
-        self.target_in_dir = config["path"]["target_raw_path"]
+        self.source_in_dir = config["path"]["source_prevoice_path"]
+        self.target_in_dir = config["path"]["target_prevoice_path"]
         self.out_dir = config["path"]["preprocessed_path"]
         self.val_size = config["preprocessing"]["val_size"]
         self.sampling_rate = config["preprocessing"]["audio"]["sampling_rate"]
         self.hop_length = config["preprocessing"]["stft"]["hop_length"]
+        self.n_mel_channels = config["preprocessing"]["mel"]["n_mel_channels"]
 
         self.pitch_normalization = config["preprocessing"]["pitch"]["normalization"]
         self.energy_normalization = config["preprocessing"]["energy"]["normalization"]
@@ -51,6 +50,7 @@ class Preprocessor:
         os.makedirs((os.path.join(self.out_dir, "target", "pitch")), exist_ok=True)
         os.makedirs((os.path.join(self.out_dir, "source", "energy")), exist_ok=True)
         os.makedirs((os.path.join(self.out_dir, "target", "energy")), exist_ok=True)
+        os.makedirs((os.path.join(self.out_dir, "duration")), exist_ok=True)
 
         print("Processing Data ...")
 
@@ -62,7 +62,7 @@ class Preprocessor:
             n_frames = 0
             pitch_scaler = StandardScaler()
             energy_scaler = StandardScaler()
-            mel_scaler = StandardScaler()
+            mel_scalers = [StandardScaler() for _ in range(self.n_mel_channels)]
             source_or_target = ["source", "target"][i]
 
             for wav_name in os.listdir(input_dir):
@@ -70,6 +70,7 @@ class Preprocessor:
                     continue
 
                 basename = wav_name.split(".")[0]
+                # melとかenergyをここで計算.
                 ret = self.process_utterance(source_or_target, input_dir, basename)
                 if ret is None:
                     continue
@@ -83,6 +84,11 @@ class Preprocessor:
                     pitch_scaler.partial_fit(pitch.reshape((-1, 1)))
                 if len(energy) > 0:
                     energy_scaler.partial_fit(energy.reshape((-1, 1)))
+                if len(mel) > 0:
+                    for idx, scaler in enumerate(mel_scalers):
+                        print(mel[idx, :].shape)
+                        scaler.partial_fit(mel[idx, :])
+                        a
 
                 n_frames += mel.shape[1]
 
@@ -107,6 +113,9 @@ class Preprocessor:
             )
             energy_min, energy_max = self.normalize(
                 os.path.join(self.out_dir, source_or_target, "energy"), energy_mean, energy_std
+            )
+            self.mel_normalize(
+                os.path.join(self.out_dir, source_or_target, "mel"), mel_scalers
             )
 
             # Save files
@@ -233,3 +242,10 @@ class Preprocessor:
 
         return min_value, max_value
 
+    def mel_normalize(self, in_dir, mel_scalers):
+        for filename in os.listdir(in_dir):
+            filename = os.path.join(in_dir, filename)
+            mel = np.load(filename)
+            print(mel.shape)
+            a
+            np.save(filename, values)

@@ -4,6 +4,25 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 now: - nars2svc.pyの作成: 20210530~
     - now: Decoderの, mel_mask=Noneの場合の動作確認中
 
+
+## 必要なもの
+- pyworld用
+    - [C++のビルドツール](https://self-development.info/%E3%80%8Cmicrosoft-visual-c-14-0-or-greater-is-required-%E3%80%8D%E3%81%8C%E5%87%BA%E3%81%9F%E5%A0%B4%E5%90%88%E3%81%AE%E5%AF%BE%E5%87%A6%E6%96%B9%E6%B3%95/)
+    - その他pyworldのrequirements
+- pydub用
+    - [ffmpeg](https://opty-life.com/apps/ffmpeg-windows-install/)
+
+## 前処理の流れメモ
+- preprocess.pyを実行するだけで勝手にやってくれるようにする.
+    - このコードは, yamlを読み込んで, Preprocessorに渡して, build_from_pathを行う.
+    - (追加)その前に, 無音部分消去などの音声に対する前処理を行う関数を追加.
+
+- n2c_voiceprocess.py
+    - 詳細はそこに書いたが, サンプリング周波数を変更したりするやーつ.
+- preprocessor.py
+    - build_from_path
+        - melの正規化を行っている. 80次元あると思うが, 80個standardscalerを用意する. アホ.
+
 ## 変更点
 - Encoder, DecoderのTransformerをConformerへ.: 20210528~20210529
     - espnet2のFastSpeech2はConformerを採用しているらしいので利用させてもらう.

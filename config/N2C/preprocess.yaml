@@ -2,13 +2,15 @@ dataset: "N2C" # 適当でいいらしいね.
 
 path:
   source_raw_path: "./raw_data/N2C/nishimura"
+  source_prevoice_path: "./pre_voice/N2C/nishimura"
   target_raw_path: "./raw_data/N2C/cherry"
+  target_prevoice_path: "./pre_voice/N2C/cherry"
   preprocessed_path: "./preprocessed_data/N2C"  # out_dir. こっちはsource, targetで自動で分ける.
 
 preprocessing:
   val_size: 20 # 元は512
   audio:
-    sampling_rate: 22050
+    sampling_rate: 24000
     max_wav_value: 32768.0
   stft:
     filter_length: 1024
