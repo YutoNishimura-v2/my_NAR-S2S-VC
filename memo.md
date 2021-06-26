@@ -22,6 +22,7 @@ now: - nars2svc.pyの作成: 20210530~
 - preprocessor.py
     - build_from_path
         - melの正規化を行っている. 80次元あると思うが, 80個standardscalerを用意する. アホ.
+        - pitch, energyは元論文に依って, logをとってから正規化を行う.
 - calc_duration.py
     - duration_prepareのノートブックでやったことを書き直しただけ.
 
@@ -42,6 +43,9 @@ now: - nars2svc.pyの作成: 20210530~
 
     - 一応done.
     - position encoding抜いたり, まぁ一部Conformerの中身も弄ったくらいで, とりあえず形は揃えたという感じ. 形だけはあっているので, 大きな問題は起きなさそうである.
+
+    - 未実装
+        - attantionのdimentionを変える点
 
 
 - Vocoderについて, PGANの追加: 最後.

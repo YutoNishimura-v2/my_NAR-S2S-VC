@@ -195,6 +195,10 @@ class Preprocessor:
         # Compute mel-scale spectrogram and energy
         mel_spectrogram, energy = Audio.tools.get_mel_from_wav(wav, self.STFT)
 
+        # energyとpitchはここでlogをとる.
+        pitch = np.log(pitch+1e-6)
+        energy = np.log(energy+1e-6)
+
         # Save files
         pitch_filename = "pitch-{}.npy".format(basename)
         np.save(os.path.join(self.out_dir, source_or_target, "pitch", pitch_filename), pitch)

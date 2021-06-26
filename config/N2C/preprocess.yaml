@@ -8,10 +8,10 @@ path:
   preprocessed_path: "./preprocessed_data/N2C"  # out_dir. こっちはsource, targetで自動で分ける.
 
 preprocessing:
-  val_size: 20 # 元は512
+  val_size: 1 # 元は512
   audio:
     sampling_rate: 24000
-    max_wav_value: 32768.0
+    max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
   stft:
     filter_length: 1024
     hop_length: 256

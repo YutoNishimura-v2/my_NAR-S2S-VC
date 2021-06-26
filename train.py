@@ -104,11 +104,12 @@ def main(args, configs):
                     optimizer.zero_grad()
 
                 if step % log_step == 0:
-                    # ここは普通のlog. 
+                    # ここは普通のlog.
                     # log_textに追加し, summary_writerにも記載.
-                    losses = [l.item() for l in losses]
+                    losses = [loss.item() for loss in losses]
                     message1 = "Step {}/{}, ".format(step, total_step)
-                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Mel PostNet Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
+                    message2 = "Total Loss: {:.4f}, Mel Loss: {:.4f}, Mel PostNet Loss: {:.4f}, Pitch Loss: {:.4f}, \
+                        Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
                         *losses
                     )
 

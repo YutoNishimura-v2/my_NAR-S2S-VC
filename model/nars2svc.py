@@ -41,6 +41,7 @@ class NARS2SVC(nn.Module):
         max_s_mel_len,
         s_pitches,
         s_energies,
+        s_durations,
         t_mels=None,
         t_mel_lens=None,
         max_t_mel_len=None,
@@ -62,25 +63,28 @@ class NARS2SVC(nn.Module):
 
         output = self.encoder(s_mels, s_mel_masks)
 
-        # (
-        #     output,
-        #     p_predictions,
-        #     e_predictions,
-        #     log_d_predictions,
-        #     d_rounded,
-        #     mel_lens,
-        #     mel_masks,
-        # ) = self.variance_adaptor(
-        #     output,
-        #     s_mel_masks,
-        #     t_mel_masks,
-        #     max_t_mel_len,
-        #     t_pitches,
-        #     t_energies,
-        #     p_control,
-        #     e_control,
-        #     d_control,
-        # )
+        (
+            output,
+            p_predictions,
+            e_predictions,
+            log_d_predictions,
+            d_rounded,
+            t_mel_lens,
+            t_mel_masks,
+        ) = self.variance_adaptor(
+            output,
+            s_mel_masks,
+            s_pitches,
+            s_energies,
+            s_durations,
+            t_mel_masks,
+            max_t_mel_len,
+            t_pitches,
+            t_energies,
+            p_control,
+            e_control,
+            d_control,
+        )
 
         # ここまでのoutputは, (batch, mel_len+pad, hidden)となっている.
         # masksはtargetのもの.なければmel_lensから作成.
@@ -98,8 +102,8 @@ class NARS2SVC(nn.Module):
             e_predictions,
             log_d_predictions,
             d_rounded,
-            src_masks,
-            mel_masks,
-            src_lens,
-            mel_lens,
+            s_mel_masks,
+            t_mel_masks,
+            s_mel_lens,
+            t_mel_lens,
         )

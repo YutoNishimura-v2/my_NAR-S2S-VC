@@ -2,13 +2,12 @@ import json
 import os
 
 import numpy as np
-from numpy.lib.utils import source
 from torch.utils.data import Dataset
 
 from utils.tools import pad_1D, pad_2D
 
 
-class Dataset(Dataset):
+class TrainDataset(Dataset):
     def __init__(
         self, filename, preprocess_config, train_config, sort=False, drop_last=False
     ):
@@ -44,6 +43,7 @@ class Dataset(Dataset):
                 "mel-{}.npy".format(basename),
             )
             mel = np.load(mel_path)
+
             pitch_path = os.path.join(
                 self.preprocessed_path,
                 source_or_target,
@@ -51,6 +51,7 @@ class Dataset(Dataset):
                 "pitch-{}.npy".format(basename),
             )
             pitch = np.load(pitch_path)
+
             energy_path = os.path.join(
                 self.preprocessed_path,
                 source_or_target,
@@ -58,6 +59,15 @@ class Dataset(Dataset):
                 "energy-{}.npy".format(basename),
             )
             energy = np.load(energy_path)
+
+            if source_or_target == "source":
+                duration_path = os.path.join(
+                    self.preprocessed_path,
+                    source_or_target,
+                    "duration",
+                    "duration-{}.npy".format(basename),
+                )
+                duration = np.load(duration_path)
 
             basenames.append(basename)
             mels.append(mel)
@@ -70,6 +80,7 @@ class Dataset(Dataset):
             "s_mel": mels[0],
             "s_pitch": pitchs[0],
             "s_energy": energys[0],
+            "s_duration": duration,
             "t_mel": mels[1],
             "t_pitch": pitchs[1],
             "t_energy": energys[1],
@@ -101,6 +112,7 @@ class Dataset(Dataset):
         s_mels = [data[idx]["s_mel"] for idx in idxs]
         s_pitches = [data[idx]["s_pitch"] for idx in idxs]
         s_energies = [data[idx]["s_energy"] for idx in idxs]
+        s_durations = [data[idx]["s_duration"] for idx in idxs]
         t_mels = [data[idx]["t_mel"] for idx in idxs]
         t_pitches = [data[idx]["t_pitch"] for idx in idxs]
         t_energies = [data[idx]["t_energy"] for idx in idxs]
@@ -127,6 +139,7 @@ class Dataset(Dataset):
             max(s_mel_lens),
             s_pitches,
             s_energies,
+            s_durations,
             t_mels,
             t_mel_lens,
             max(t_mel_lens),
@@ -158,7 +171,7 @@ class Dataset(Dataset):
             idx_arr = np.arange(data_size)
             # ソートしないなら, batch_size分の配列を. そのまま読むって感じだね.
 
-        tail = idx_arr[len(idx_arr) - (len(idx_arr) % self.batch_size) :]
+        tail = idx_arr[len(idx_arr) - (len(idx_arr) % self.batch_size):]
         # ↑ self.batch_size = 8だとして, idx_arrのlenが22だとする.
         # この時, tailは, 22-6 = 16以降.
         idx_arr = idx_arr[: len(idx_arr) - (len(idx_arr) % self.batch_size)]
@@ -248,10 +261,10 @@ if __name__ == "__main__":
         open("./config/N2C/train.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
 
-    train_dataset = Dataset(
+    train_dataset = TrainDataset(
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True
     )
-    val_dataset = Dataset(
+    val_dataset = TrainDataset(
         "val.txt", preprocess_config, train_config, sort=False, drop_last=False
     )
     train_loader = DataLoader(
@@ -275,8 +288,8 @@ if __name__ == "__main__":
     for batchs in train_loader:
         for batch in batchs:
             to_device(batch, device)
-            max_ = max(max_, np.max(batch[8]))
-            min_ = min(min_, np.min(batch[8]))
+            max_ = max(max_, np.max(batch[9]))
+            min_ = min(min_, np.min(batch[9]))
             n_batch += 1
     print(
         "Training set  with size {} is composed of {} batches.".format(
@@ -288,8 +301,8 @@ if __name__ == "__main__":
     for batchs in val_loader:
         for batch in batchs:
             to_device(batch, device)
-            max_ = max(max_, np.max(batch[8]))
-            min_ = min(min_, np.min(batch[8]))
+            max_ = max(max_, np.max(batch[9]))
+            min_ = min(min_, np.min(batch[9]))
             n_batch += 1
     print(
         "Validation set  with size {} is composed of {} batches.".format(
