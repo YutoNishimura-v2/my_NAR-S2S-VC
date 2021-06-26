@@ -16,7 +16,7 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def to_device(data, device):
-    if len(data) == 12:  # train用.
+    if len(data) == 13:  # train用.
         (
             s_ids,
             t_ids,
@@ -25,6 +25,7 @@ def to_device(data, device):
             max_s_mel_len,
             s_pitches,
             s_energies,
+            s_durations,
             t_mels,
             t_mel_lens,
             max_t_mel_len,
@@ -36,6 +37,7 @@ def to_device(data, device):
         s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
         s_pitches = torch.from_numpy(s_pitches).float().to(device)
         s_energies = torch.from_numpy(s_energies).to(device)
+        s_durations = torch.from_numpy(s_durations).to(device)
         t_mels = torch.from_numpy(t_mels).float().to(device)
         t_mel_lens = torch.from_numpy(t_mel_lens).to(device)
         t_pitches = torch.from_numpy(t_pitches).float().to(device)
@@ -49,6 +51,7 @@ def to_device(data, device):
             max_s_mel_len,
             s_pitches,
             s_energies,
+            s_durations,
             t_mels,
             t_mel_lens,
             max_t_mel_len,
@@ -104,7 +107,7 @@ def get_mask_from_lengths(lengths, max_len=None):
     # max_len分の0, 1, 2, 3...のidxを取得.
     ids = torch.arange(0, max_len).unsqueeze(0).expand(batch_size, -1).to(device)
     # Examples:
-    #   lengths = [[3,3,3,3,3], [2,2,2,2,2], ...] # max_len分, そのテキスト値が引き延ばされる.    
+    #   lengths = [[3,3,3,3,3], [2,2,2,2,2], ...] # max_len分, そのテキスト値が引き延ばされる.
     mask = ids >= lengths.unsqueeze(1).expand(-1, max_len)
     # ここで得られるマスクは, 要するにpaddingされる前の, 0ではない部分のidxがTrueとなったmask.
     # フツーに, PADを特別な値にすればいい気はしなくもないが, それを共有する方が大変か.
@@ -121,6 +124,30 @@ def expand(values, durations):
 
 def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_config):
     """
+    Args:
+      targets:      s_ids,
+                    t_ids,
+                    s_mels,
+                    s_mel_lens,
+                    max(s_mel_lens),
+                    s_pitches,
+                    s_energies,
+                    s_durations,
+                    t_mels,
+                    t_mel_lens,
+                    max(t_mel_lens),
+                    t_pitches,
+                    t_energies,
+      predictions:  output,
+                    postnet_output,
+                    p_predictions,
+                    e_predictions,
+                    log_d_predictions,
+                    d_rounded,
+                    s_mel_masks,
+                    t_mel_masks,
+                    s_mel_lens,
+                    t_mel_lens,
     Examples:
     >>> fig, wav_reconstruction, wav_prediction, tag = synth_one_sample(
     >>>     batch,
@@ -134,24 +161,14 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     # batch[0][0]で, 後者がバッチのうちの0番目を指定している事に注意.
     # 基本targetのものを利用している.
     basename = targets[0][0]
-    src_len = predictions[8][0].item()  # textの長さ. これはtargets二も入っているけどね.
     mel_len = predictions[9][0].item()
-    mel_target = targets[6][0, :mel_len].detach().transpose(0, 1)
+    mel_target = targets[8][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
-    duration = targets[11][0, :src_len].detach().cpu().numpy()
-    if preprocess_config["preprocessing"]["pitch"]["feature"] == "phoneme_level":
-        pitch = targets[9][0, :src_len].detach().cpu().numpy()
-        pitch = expand(pitch, duration)  # durationずつpitch伸ばす例のアレ.
-    else:
-        pitch = targets[9][0, :mel_len].detach().cpu().numpy()
-    if preprocess_config["preprocessing"]["energy"]["feature"] == "phoneme_level":
-        energy = targets[10][0, :src_len].detach().cpu().numpy()
-        energy = expand(energy, duration)
-    else:
-        energy = targets[10][0, :mel_len].detach().cpu().numpy()
+    pitch = targets[11][0, :mel_len].detach().cpu().numpy()
+    energy = targets[12][0, :mel_len].detach().cpu().numpy()
 
     with open(
-        os.path.join(preprocess_config["path"]["preprocessed_path"], "stats.json")
+        os.path.join(preprocess_config["path"]["preprocessed_path"], "target", "stats.json")
     ) as f:
         stats = json.load(f)
         stats = stats["pitch"] + stats["energy"][:2]
@@ -214,7 +231,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
             stats = json.load(f)
             stats = stats["pitch"] + stats["energy"][:2]
 
-        fig = plot_mel(
+        fig = plot_mel(  # noqa: E841
             [
                 (mel_prediction.cpu().numpy(), pitch, energy),
             ],

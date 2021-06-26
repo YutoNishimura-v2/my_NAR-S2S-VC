@@ -1,20 +1,21 @@
-from conformer.Modules import (
-    ResidualConnectionModule,
-    LayerNorm,
-)
-from conformer.SubLayers import (
-    FeedForwardModule,
-    MultiHeadedSelfAttentionModule,
-    ConformerConvModule,
-)
 import sys
 from typing import Tuple
 
 import torch.nn as nn
 import torch
 from torch import Tensor
+import torch.nn.functional as F
 
 sys.path.append('.')
+from conformer.SubLayers import (
+    FeedForwardModule,
+    MultiHeadedSelfAttentionModule,
+    ConformerConvModule,
+)
+from conformer.Modules import (
+    ResidualConnectionModule,
+    LayerNorm,
+)
 
 
 class ConformerBlock(nn.Module):

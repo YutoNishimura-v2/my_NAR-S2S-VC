@@ -5,7 +5,8 @@ import torch
 import numpy as np
 
 import hifigan
-from model import FastSpeech2, ScheduledOptim
+from model.nars2svc import NARS2SVC
+from model.optimizer import ScheduledOptim
 
 
 def get_model(args, configs, device, train=False):
@@ -18,7 +19,7 @@ def get_model(args, configs, device, train=False):
     """
     (preprocess_config, model_config, train_config) = configs
 
-    model = FastSpeech2(preprocess_config, model_config).to(device)
+    model = NARS2SVC(preprocess_config, model_config).to(device)
     if args.restore_step:
         ckpt_path = os.path.join(
             train_config["path"]["ckpt_path"],
@@ -77,7 +78,7 @@ def get_vocoder(config, device):
         if speaker == "LJSpeech":
             ckpt = torch.load("hifigan/generator_LJSpeech.pth.tar")
         elif speaker == "universal":
-            ckpt = torch.load("hifigan/generator_universal.pth.tar")
+            ckpt = torch.load("hifigan/generator_universal.pth.tar", map_location=device)
         vocoder.load_state_dict(ckpt["generator"])
         vocoder.eval()
         vocoder.remove_weight_norm()

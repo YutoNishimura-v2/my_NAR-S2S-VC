@@ -10,6 +10,9 @@ cp path/to/JSUT/*/wavs/*.wav raw_data/JSUT/JSUT
 python retrieve_transcripts.py
 python3 preprocess.py config/JSUT/preprocess.yaml #this may take some time
 python train.py -p config/JSUT/preprocess.yaml -m config/JSUT/model.yaml -t config/JSUT/train.yaml
+
+python train.py -p config/N2C/preprocess.yaml -m config/N2C/model.yaml -t config/N2C/train.yaml
+
 ```
 # Synthesize Japanese
 grapheme input is not currently supported. You have to prepare phoneme sequence to synthesize

@@ -10,8 +10,8 @@ from tqdm import tqdm
 
 from utils.model import get_model, get_vocoder, get_param_num
 from utils.tools import to_device, log, synth_one_sample
-from model import FastSpeech2Loss
-from dataset import Dataset
+from model.loss import NARS2SVCLoss
+from dataset import TrainDataset
 
 from evaluate import evaluate
 
@@ -24,18 +24,18 @@ def main(args, configs):
     preprocess_config, model_config, train_config = configs
 
     # Get dataset
-    dataset = Dataset(
+    dataset = TrainDataset(
         "train.txt", preprocess_config, train_config, sort=True, drop_last=True
     )
     batch_size = train_config["optimizer"]["batch_size"]
-    group_size = 4  # Set this larger than 1 to enable sorting in Dataset
+    group_size = 1  # Set this larger than 1 to enable sorting in Dataset
     assert batch_size * group_size < len(dataset)
     loader = DataLoader(
         dataset,
         batch_size=batch_size * group_size,
         shuffle=True,
         collate_fn=dataset.collate_fn,
-        num_workers=20,
+        num_workers=4,
         pin_memory=True
     )
 
@@ -46,8 +46,8 @@ def main(args, configs):
     # 単純なパラメタ数を返す関数.
     num_param = get_param_num(model)
     # loss関数の用意.
-    Loss = FastSpeech2Loss(preprocess_config, model_config).to(device)
-    print("Number of FastSpeech2 Parameters:", num_param)
+    Loss = NARS2SVCLoss(preprocess_config, model_config).to(device)
+    print("Number of NARS2SVC Parameters:", num_param)
 
     # Load vocoder
     # evalモードにして読み込む. 用いる重みなどはハードコードされている.

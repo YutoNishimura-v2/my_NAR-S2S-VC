@@ -1,10 +1,9 @@
-from utils.tools import get_mask_from_lengths, pad
 import sys
-
 import torch
 import torch.nn as nn
 
 sys.path.append('.')
+from utils.tools import get_mask_from_lengths, pad
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -73,8 +72,8 @@ class VarianceAdaptor(nn.Module):
         energy += x
 
         # pitch, energyを計算
-        pitch_prediction = self.pitch_predictor(pitch) * p_control
-        energy_prediction = self.energy_predictor(energy) * e_control
+        pitch_prediction = self.pitch_predictor(pitch, mel_mask) * p_control
+        energy_prediction = self.energy_predictor(energy, mel_mask) * e_control
 
         # pitchを, また次元増やしてhiddenに足す.
         if pitch_target is not None:
@@ -185,7 +184,7 @@ class VariancePredictor(nn.Module):
     def __init__(self, model_config, mode="duration"):
         super(VariancePredictor, self).__init__()
 
-        assert mode in ["duraton", "pitch", "energy"]
+        assert mode in ["duration", "pitch", "energy"]
         self.input_size = model_config["conformer"]["encoder_hidden"]
         self.filter_size = model_config["variance_predictor"]["filter_size"]
         self.kernel = model_config["variance_predictor"][mode]["kernel_size"]
@@ -267,6 +266,8 @@ class Conv(nn.Module):
         )
 
     def forward(self, x):
+        if len(x.size()) == 2:
+            x = x.contiguous().view(x.size()[0], x.size()[1], 1)
         x = x.contiguous().transpose(1, 2)
         x = self.conv(x)
         x = x.contiguous().transpose(1, 2)
@@ -281,7 +282,6 @@ if __name__ == "__main__":
     import yaml
     from torch.utils.data import DataLoader
 
-    sys.path.append('.')
     from utils.tools import to_device
     from dataset import TrainDataset
     from model.nars2svc import NARS2SVC
@@ -298,7 +298,7 @@ if __name__ == "__main__":
     )
 
     train_dataset = TrainDataset(
-        "train.txt", preprocess_config, train_config, sort=True, drop_last=True
+        "train.txt", preprocess_config, train_config, sort=True, drop_last=False
     )
 
     train_loader = DataLoader(

@@ -126,6 +126,7 @@ class TrainDataset(Dataset):
         s_mels = pad_2D(s_mels)
         s_pitches = pad_1D(s_pitches)
         s_energies = pad_1D(s_energies)
+        s_durations = pad_1D(s_durations)
         t_mels = pad_2D(t_mels)
         t_pitches = pad_1D(t_pitches)
         t_energies = pad_1D(t_energies)

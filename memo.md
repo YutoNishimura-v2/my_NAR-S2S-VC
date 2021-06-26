@@ -1,9 +1,14 @@
 # my_NAR-S2S-VC: 20210528~
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
-now: - nars2svc.pyの作成: 20210530~
-    - now: Decoderの, mel_mask=Noneの場合の動作確認中
-
+- todo
+    - trainの動作確認
+    - vocoder_inferする前に, melの正規化を解除する必要あり.
+    - attention dimentionについて確認
+    - inference周り
+    - 重み初期化周り
+    - 他データセットへの対応
+    - パラメタを論文と合わせる
 
 ## 必要なもの
 - pyworld用
@@ -75,11 +80,11 @@ now: - nars2svc.pyの作成: 20210530~
     - mel, 正規化は未実装. 先生に聞いてみる.
         - 80次元あるが, しょうがない, 次元ごとに正規化が正しい.
 
-- nars2svc.pyの作成: 20210530~
+- nars2svc.pyの作成: 20210530~20210626
     - now: Decoderの, mel_mask=Noneの場合の動作確認中
 
 
-- Variance Predictorを, Converterへ.
+- Variance Predictorを, Converterへ.: ~20210626
     - duration について
         - paperでは, AR-modelを別に用意してattentionを利用...とやっているが, それこそが精度低下の
         原因だったはず.
@@ -99,13 +104,19 @@ now: - nars2svc.pyの作成: 20210530~
             - これに関して, durationは結局0未満を許さないようにした. なので従来通りのコードで特に問題はなさそう. 当然動作確認は必須だが.
 
     - 特筆すべき変更点
-        - frame levelの廃止.
+        - phoneme levelの廃止
+        - 今回は, すべてframeレベルに注意.
+        - ここでやっていることは, maskをどちらでとるか.
+            - また, maskは, melをbatchにするためにpaddingが必要なので,
+            - そのためのmask.
   
 - 全重みがinitで初期化されるようにする.
 
 - (reduction factor): よくわからない. melのフレームを一回で数フレーム一気に出す話らしい. クオリティ出したいしいらないかも...?
     - [tactron2では, 用いていないらしい](https://paperswithcode.com/method/tacotron-2) のでいったん不要か. 実行時間減少に寄与.
 
+- inference関連の整備: 20210626~
+    - inference.pyを動くようにしないと.
 
 
 # 読み解いていく.

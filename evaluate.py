@@ -1,15 +1,13 @@
 import argparse
-import os
 
 import torch
 import yaml
-import torch.nn as nn
 from torch.utils.data import DataLoader
 
-from utils.model import get_model, get_vocoder
+from utils.model import get_model
 from utils.tools import to_device, log, synth_one_sample
-from model import FastSpeech2Loss
-from dataset import Dataset
+from model.loss import NARS2SVCLoss
+from dataset import TrainDataset
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -19,7 +17,7 @@ def evaluate(model, step, configs, logger=None, vocoder=None):
     preprocess_config, model_config, train_config = configs
 
     # Get dataset
-    dataset = Dataset(
+    dataset = TrainDataset(
         "val.txt", preprocess_config, train_config, sort=False, drop_last=False
     )
     batch_size = train_config["optimizer"]["batch_size"]
@@ -31,7 +29,7 @@ def evaluate(model, step, configs, logger=None, vocoder=None):
     )
 
     # Get loss function
-    Loss = FastSpeech2Loss(preprocess_config, model_config).to(device)
+    Loss = NARS2SVCLoss(preprocess_config, model_config).to(device)
 
     # Evaluation
     loss_sums = [0 for _ in range(6)]
@@ -50,8 +48,9 @@ def evaluate(model, step, configs, logger=None, vocoder=None):
 
     loss_means = [loss_sum / len(dataset) for loss_sum in loss_sums]
 
-    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, Mel PostNet Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
-        *([step] + [l for l in loss_means])
+    message = "Validation Step {}, Total Loss: {:.4f}, Mel Loss: {:.4f}, \
+        Mel PostNet Loss: {:.4f}, Pitch Loss: {:.4f}, Energy Loss: {:.4f}, Duration Loss: {:.4f}".format(
+        *([step] + [loss for loss in loss_means])
     )
 
     if logger is not None:

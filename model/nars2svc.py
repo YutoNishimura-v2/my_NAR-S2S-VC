@@ -1,10 +1,6 @@
-import os
-import json
 import sys
 
-import torch
 import torch.nn as nn
-import torch.nn.functional as F
 
 sys.path.append('.')
 from conformer.Models import Encoder, Decoder
@@ -22,7 +18,7 @@ class NARS2SVC(nn.Module):
         self.model_config = model_config
 
         self.encoder = Encoder(model_config)
-        self.variance_adaptor = VarianceAdaptor(preprocess_config, model_config)
+        self.variance_adaptor = VarianceAdaptor(model_config)
         self.decoder = Decoder(model_config)
         self.mel_linear_1 = nn.Linear(
             preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
@@ -61,7 +57,7 @@ class NARS2SVC(nn.Module):
 
         output = self.mel_linear_1(s_mels)
 
-        output = self.encoder(s_mels, s_mel_masks)
+        output = self.encoder(output, s_mel_masks)
 
         (
             output,
@@ -88,7 +84,7 @@ class NARS2SVC(nn.Module):
 
         # ここまでのoutputは, (batch, mel_len+pad, hidden)となっている.
         # masksはtargetのもの.なければmel_lensから作成.
-        output, t_mel_masks = self.decoder(output, t_mel_masks)
+        output = self.decoder(output, t_mel_masks)
         # ここは, hiddenの次元をmelのchannel数にあわせる. ここでは256→80
         output = self.mel_linear_2(output)
 

@@ -2,29 +2,23 @@ import torch
 import torch.nn as nn
 
 
-class FastSpeech2Loss(nn.Module):
+class NARS2SVCLoss(nn.Module):
     """ FastSpeech2 Loss """
 
     def __init__(self, preprocess_config, model_config):
-        super(FastSpeech2Loss, self).__init__()
-        self.pitch_feature_level = preprocess_config["preprocessing"]["pitch"][
-            "feature"
-        ]
-        self.energy_feature_level = preprocess_config["preprocessing"]["energy"][
-            "feature"
-        ]
+        super(NARS2SVCLoss, self).__init__()
         self.mse_loss = nn.MSELoss()
         self.mae_loss = nn.L1Loss()
 
     def forward(self, inputs, predictions):
         (
+            duration_targets,
             mel_targets,
             _,
             _,
             pitch_targets,
             energy_targets,
-            duration_targets,
-        ) = inputs[6:]
+        ) = inputs[7:]
         (
             mel_predictions,
             postnet_mel_predictions,
@@ -48,19 +42,11 @@ class FastSpeech2Loss(nn.Module):
         energy_targets.requires_grad = False
         mel_targets.requires_grad = False
 
-        if self.pitch_feature_level == "phoneme_level":
-            pitch_predictions = pitch_predictions.masked_select(src_masks)
-            pitch_targets = pitch_targets.masked_select(src_masks)
-        elif self.pitch_feature_level == "frame_level":
-            pitch_predictions = pitch_predictions.masked_select(mel_masks)
-            pitch_targets = pitch_targets.masked_select(mel_masks)
+        pitch_predictions = pitch_predictions.masked_select(mel_masks)
+        pitch_targets = pitch_targets.masked_select(mel_masks)
 
-        if self.energy_feature_level == "phoneme_level":
-            energy_predictions = energy_predictions.masked_select(src_masks)
-            energy_targets = energy_targets.masked_select(src_masks)
-        if self.energy_feature_level == "frame_level":
-            energy_predictions = energy_predictions.masked_select(mel_masks)
-            energy_targets = energy_targets.masked_select(mel_masks)
+        energy_predictions = energy_predictions.masked_select(mel_masks)
+        energy_targets = energy_targets.masked_select(mel_masks)
 
         log_duration_predictions = log_duration_predictions.masked_select(src_masks)
         log_duration_targets = log_duration_targets.masked_select(src_masks)
