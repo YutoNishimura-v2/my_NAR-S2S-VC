@@ -9,7 +9,6 @@ dependencies:
   - pyyaml
   - matplotlib
   - scipy
-  - sklearn
   - scikit-learn
   - tqdm
   - tensorboard
