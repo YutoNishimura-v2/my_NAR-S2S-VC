@@ -15,6 +15,15 @@ from pydub import AudioSegment
 from pydub.silence import split_on_silence
 
 
+def load_and_save(input_path, output_path, sr):
+    """
+    sr以外, つまり, monoと16bitなのは固定.
+    """
+    for wav_path in glob(opth.join(input_path, "*.wav")):
+        y, sr = librosa.core.load(wav_path, sr=sr, mono=True)  # 22050Hz、モノラルで読み込み
+        sf.write(opth.join(output_path, opth.basename(wav_path)), y, sr, subtype="PCM_16")
+
+
 def change_sr(config):
     sr = config["preprocessing"]["audio"]["sampling_rate"]
     source_raw_path = config["path"]["source_raw_path"]
@@ -22,13 +31,18 @@ def change_sr(config):
     target_raw_path = config["path"]["target_raw_path"]
     target_prevoice_path = config["path"]["target_prevoice_path"]
 
-    for sourse_wav_path in glob(opth.join(source_raw_path, "*.wav")):
-        y, sr = librosa.core.load(sourse_wav_path, sr=sr, mono=True)  # 22050Hz、モノラルで読み込み
-        sf.write(opth.join(source_prevoice_path, opth.basename(sourse_wav_path)), y, sr, subtype="PCM_16")
+    load_and_save(source_raw_path, source_prevoice_path, sr)
+    load_and_save(target_raw_path, target_prevoice_path, sr)
 
-    for target_wav_path in glob(opth.join(target_raw_path, "*.wav")):
-        y, sr = librosa.core.load(target_wav_path, sr=sr, mono=True)  # 22050Hz、モノラルで読み込み
-        sf.write(opth.join(target_prevoice_path, opth.basename(target_wav_path)), y, sr, subtype="PCM_16")
+
+def delete_novoice_from_path(input_path, output_path):
+    for input_path in glob(opth.join(input_path, "*.wav")):
+        audio = AudioSegment.from_wav(input_path)
+        chunks = split_on_silence(audio, min_silence_len=50, silence_thresh=-100, keep_silence=10)
+        audio_cut = AudioSegment.empty()
+        for chunk in chunks:
+            audio_cut += chunk
+        audio_cut.export(opth.join(output_path, opth.basename(input_path)), format="wav")
 
 
 def delete_novoice(config):
@@ -36,21 +50,8 @@ def delete_novoice(config):
     source_prevoice_path = config["path"]["source_prevoice_path"]
     target_prevoice_path = config["path"]["target_prevoice_path"]
 
-    for sourse_wav_path in glob(opth.join(source_prevoice_path, "*.wav")):
-        audio = AudioSegment.from_wav(sourse_wav_path)
-        chunks = split_on_silence(audio, min_silence_len=50, silence_thresh=-100, keep_silence=10)
-        audio_cut = AudioSegment.empty()
-        for chunk in chunks:
-            audio_cut += chunk
-        audio_cut.export(sourse_wav_path, format="wav")
-
-    for target_wav_path in glob(opth.join(target_prevoice_path, "*.wav")):
-        audio = AudioSegment.from_wav(target_wav_path)
-        chunks = split_on_silence(audio, min_silence_len=50, silence_thresh=-100, keep_silence=10)
-        audio_cut = AudioSegment.empty()
-        for chunk in chunks:
-            audio_cut += chunk
-        audio_cut.export(target_wav_path, format="wav")
+    delete_novoice_from_path(source_prevoice_path, source_prevoice_path)
+    delete_novoice_from_path(target_prevoice_path, target_prevoice_path)
 
 
 def voice_preprocess(config):

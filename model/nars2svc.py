@@ -37,7 +37,7 @@ class NARS2SVC(nn.Module):
         max_s_mel_len,
         s_pitches,
         s_energies,
-        s_durations,
+        s_durations=None,
         t_mels=None,
         t_mel_lens=None,
         max_t_mel_len=None,

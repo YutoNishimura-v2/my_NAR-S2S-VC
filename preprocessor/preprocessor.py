@@ -1,4 +1,3 @@
-import audio as Audio
 import os
 import random
 import json
@@ -7,6 +6,8 @@ import librosa
 import numpy as np
 import pyworld as pw
 from sklearn.preprocessing import StandardScaler
+
+import audio as Audio
 
 
 class Preprocessor:
@@ -67,7 +68,8 @@ class Preprocessor:
 
                 basename = wav_name.split(".")[0]
                 # melとかenergyをここで計算.
-                ret = self.process_utterance(source_or_target, input_dir, basename)
+                ret = process_utterance(input_dir, os.path.join(self.out_dir, source_or_target), basename,
+                                        self.sampling_rate, self.hop_length, self.STFT)
                 if ret is None:
                     continue
                 else:
@@ -101,15 +103,22 @@ class Preprocessor:
             else:
                 energy_mean = 0
                 energy_std = 1
+            # melのも.
+            mel_means = []
+            mel_stds = []
 
-            pitch_min, pitch_max = self.normalize(
+            for scaler in mel_scalers:
+                mel_means.append(scaler.mean_[0])
+                mel_stds.append(scaler.scale_[0])
+
+            pitch_min, pitch_max = normalize(
                 os.path.join(self.out_dir, source_or_target, "pitch"), pitch_mean, pitch_std
             )
-            energy_min, energy_max = self.normalize(
+            energy_min, energy_max = normalize(
                 os.path.join(self.out_dir, source_or_target, "energy"), energy_mean, energy_std
             )
-            mel_means, mel_stds = self.mel_normalize(
-                os.path.join(self.out_dir, source_or_target, "mel"), mel_scalers
+            mel_normalize(
+                os.path.join(self.out_dir, source_or_target, "mel"), mel_means, mel_stds
             )
 
             # Save files
@@ -170,92 +179,81 @@ class Preprocessor:
         np.sortをした際にtargetとsourceが想定通りの対応関係になるような対称的な命名にしましょう.
         """)
 
-    def process_utterance(self, source_or_target, input_dir, basename):
-        """
-        Args:
-          idx: source, targetの識別子. idx==0ならsource.
-        """
-        wav_path = os.path.join(input_dir, "{}.wav".format(basename))
+def process_utterance(input_dir, out_dir, basename, 
+                      sampling_rate, hop_length, STFT):
+    wav_path = os.path.join(input_dir, "{}.wav".format(basename))
 
-        # Read and trim wav files
-        # TextGridがないせいで, 最初と最後切り取りが出来ていないことにも注意.
-        wav, _ = librosa.load(wav_path, sr=self.sampling_rate)
+    # Read and trim wav files
+    # TextGridがないせいで, 最初と最後切り取りが出来ていないことにも注意.
+    wav, _ = librosa.load(wav_path, sr=sampling_rate)
 
-        # Compute fundamental frequency
-        pitch, t = pw.dio(
-            wav.astype(np.float64),
-            self.sampling_rate,
-            frame_period=self.hop_length / self.sampling_rate * 1000,
-        )
-        pitch = pw.stonemask(wav.astype(np.float64), pitch, t, self.sampling_rate)
+    # Compute fundamental frequency
+    pitch, t = pw.dio(
+        wav.astype(np.float64),
+        sampling_rate,
+        frame_period=hop_length / sampling_rate * 1000,
+    )
+    pitch = pw.stonemask(wav.astype(np.float64), pitch, t, sampling_rate)
 
-        if np.sum(pitch != 0) <= 1:
-            return None
+    if np.sum(pitch != 0) <= 1:
+        return None
 
-        # Compute mel-scale spectrogram and energy
-        mel_spectrogram, energy = Audio.tools.get_mel_from_wav(wav, self.STFT)
+    # Compute mel-scale spectrogram and energy
+    mel_spectrogram, energy = Audio.tools.get_mel_from_wav(wav, STFT)
 
-        # energyとpitchはここでlogをとる.
-        pitch = np.log(pitch+1e-6)
-        energy = np.log(energy+1e-6)
+    # energyとpitchはここでlogをとる.
+    pitch = np.log(pitch+1e-6)
+    energy = np.log(energy+1e-6)
 
-        # Save files
-        pitch_filename = "pitch-{}.npy".format(basename)
-        np.save(os.path.join(self.out_dir, source_or_target, "pitch", pitch_filename), pitch)
+    # Save files
+    pitch_filename = "pitch-{}.npy".format(basename)
+    np.save(os.path.join(out_dir, "pitch", pitch_filename), pitch)
 
-        energy_filename = "energy-{}.npy".format(basename)
-        np.save(os.path.join(self.out_dir, source_or_target, "energy", energy_filename), energy)
+    energy_filename = "energy-{}.npy".format(basename)
+    np.save(os.path.join(out_dir, "energy", energy_filename), energy)
 
-        mel_filename = "mel-{}.npy".format(basename)
-        np.save(
-            os.path.join(self.out_dir, source_or_target, "mel", mel_filename),
-            mel_spectrogram.T,
-        )
+    mel_filename = "mel-{}.npy".format(basename)
+    np.save(
+        os.path.join(out_dir, "mel", mel_filename),
+        mel_spectrogram.T,
+    )
 
-        return (
-            basename,
-            self.remove_outlier(pitch),
-            self.remove_outlier(energy),
-            mel_spectrogram,
-        )
+    return (
+        basename,
+        remove_outlier(pitch),
+        remove_outlier(energy),
+        mel_spectrogram,
+    )
 
-    def remove_outlier(self, values):
-        values = np.array(values)
-        p25 = np.percentile(values, 25)
-        p75 = np.percentile(values, 75)
-        lower = p25 - 1.5 * (p75 - p25)
-        upper = p75 + 1.5 * (p75 - p25)
-        normal_indices = np.logical_and(values > lower, values < upper)
 
-        return values[normal_indices]
+def remove_outlier(values):
+    values = np.array(values)
+    p25 = np.percentile(values, 25)
+    p75 = np.percentile(values, 75)
+    lower = p25 - 1.5 * (p75 - p25)
+    upper = p75 + 1.5 * (p75 - p25)
+    normal_indices = np.logical_and(values > lower, values < upper)
 
-    def normalize(self, in_dir, mean, std):
-        max_value = np.finfo(np.float64).min
-        min_value = np.finfo(np.float64).max
-        for filename in os.listdir(in_dir):
-            filename = os.path.join(in_dir, filename)
-            values = (np.load(filename) - mean) / std
-            np.save(filename, values)
+    return values[normal_indices]
 
-            max_value = max(max_value, max(values))
-            min_value = min(min_value, min(values))
+def normalize(in_dir, mean, std):
+    max_value = np.finfo(np.float64).min
+    min_value = np.finfo(np.float64).max
+    for filename in os.listdir(in_dir):
+        filename = os.path.join(in_dir, filename)
+        values = (np.load(filename) - mean) / std
+        np.save(filename, values)
 
-        return min_value, max_value
+        max_value = max(max_value, max(values))
+        min_value = min(min_value, min(values))
 
-    def mel_normalize(self, in_dir, mel_scalers):
-        mel_means = []
-        mel_stds = []
+    return min_value, max_value
 
-        for scaler in mel_scalers:
-            mel_means.append(scaler.mean_[0])
-            mel_stds.append(scaler.scale_[0])
-
-        for filename in os.listdir(in_dir):
-            filename = os.path.join(in_dir, filename)
-            mel = np.load(filename)
-            mel = mel.T  # 転置して保存していたので.
-            for idx, (mean, std) in enumerate(zip(mel_means, mel_stds)):
-                mel[idx, :] = (mel[idx, :] - mean) / std
-            np.save(filename, mel.T)
-
-        return mel_means, mel_stds
+def mel_normalize(in_dir, mel_means, mel_stds):
+    for filename in os.listdir(in_dir):
+        filename = os.path.join(in_dir, filename)
+        mel = np.load(filename)
+        mel = mel.T  # 転置して保存していたので.
+        for idx, (mean, std) in enumerate(zip(mel_means, mel_stds)):
+            mel[idx, :] = (mel[idx, :] - mean) / std
+        np.save(filename, mel.T)

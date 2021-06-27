@@ -13,6 +13,7 @@ from utils.model import get_model, get_vocoder
 from utils.tools import to_device, synth_samples
 from dataset import SourceDataset
 from text import text_to_sequence, symbols
+from preprocessor.inference_preprocessor import inference_preprocess
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -84,7 +85,7 @@ def preprocess_mandarin(text, preprocess_config):
     return np.array(sequence)
 
 
-def synthesize(model, step, configs, vocoder, batchs, control_values):
+def synthesize(model, configs, vocoder, batchs, control_values):
     preprocess_config, model_config, train_config = configs
     pitch_control, energy_control, duration_control = control_values
 
@@ -93,7 +94,7 @@ def synthesize(model, step, configs, vocoder, batchs, control_values):
         with torch.no_grad():
             # Forward
             output = model(
-                *(batch[2:]),
+                *(batch[1:]),
                 p_control=pitch_control,
                 e_control=energy_control,
                 d_control=duration_control
@@ -118,17 +119,16 @@ if __name__ == "__main__":
         help="何step目の訓練済み重みを用いて推論したいかです. データセット名は, configで指定するのでここでは数字だけを入れます."
     )
     parser.add_argument(
-        "--mode",
-        type=str,
-        choices=["batch", "single"],
-        required=True,
-        help="Synthesize a whole dataset or a single sentence",
-    )
-    parser.add_argument(
-        "--source",
+        "--input_path",
         type=str,
         default=None,
-        help="path to a source file with format like train.txt and val.txt, for batch mode only",
+        help="音声の入ったフォルダへのパス",
+    )
+    parser.add_argument(
+        "--output",
+        type=str,
+        default=None,
+        help="吐き出したい場所へのパス",
     )
     parser.add_argument(
         "-p",
@@ -178,10 +178,10 @@ if __name__ == "__main__":
     vocoder = get_vocoder(model_config, device)
 
     # preprocess
-    
+    inference_preprocess(args.input_path, args.output_path, preprocess_config)
 
     # Get dataset
-    dataset = SourceDataset(args.source, preprocess_config)
+    dataset = SourceDataset("inference.txt", args.output_path)
     batchs = DataLoader(
         dataset,
         batch_size=8,
@@ -190,4 +190,4 @@ if __name__ == "__main__":
 
     control_values = args.pitch_control, args.energy_control, args.duration_control
 
-    synthesize(model, args.restore_step, configs, vocoder, batchs, control_values)
+    synthesize(model, configs, vocoder, batchs, control_values)

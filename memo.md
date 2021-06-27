@@ -5,12 +5,8 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
     - trainの動作確認
     - attention dimentionについて確認
     - inference周り
-        - 前処理のinferance対応
-            - 生データ(ノイズだけきれいになっている, trainの入力データの状態)
-            - こいつをフォルダに置いておくだけで出せるようにしてほしい.
-            - configからだと, それができない....。
-            - configで渡すのは便利だが, configで必要な情報だけを渡すように変更して, inferenceでも耐えるようにしたい.
-        - datasetの作成
+        - あとはsynth_samplesだけ
+
     - 重み初期化周り
     - 他データセットへの対応
     - パラメタを論文と合わせる
@@ -35,6 +31,9 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
     - condaでもrequirementsを書くことが出来るらしいので, それでやってみる.
     - [参考](https://qiita.com/yubessy/items/2dd43551aa8308dc7eca)
         - この人みたいに, frozenを利用した方が良さそう.
+
+
+    - RTX3090で使うには, CUDA10.2だとだめらしい.
 
 ## 前処理の流れメモ
 - preprocess.pyを実行するだけで勝手にやってくれるようにする.
@@ -136,6 +135,7 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - inference関連の整備: 20210626~
     - inference.pyを動くようにしないと.
+    - 結構変えているので注意.
 
 
 # 読み解いていく.

@@ -60,13 +60,14 @@ def to_device(data, device):
         )
 
     if len(data) == 6:  # infe用.
-        (ids, raw_texts, speakers, texts, src_lens, max_src_len) = data
+        (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies) = data
 
-        speakers = torch.from_numpy(speakers).long().to(device)
-        texts = torch.from_numpy(texts).long().to(device)
-        src_lens = torch.from_numpy(src_lens).to(device)
+        s_mels = torch.from_numpy(s_mels).float().to(device)
+        s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
+        s_pitches = torch.from_numpy(s_pitches).float().to(device)
+        s_energies = torch.from_numpy(s_energies).to(device)
 
-        return (ids, raw_texts, speakers, texts, src_lens, max_src_len)
+        return (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies)
 
 
 def log(

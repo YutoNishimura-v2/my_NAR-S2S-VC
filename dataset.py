@@ -191,64 +191,111 @@ class TrainDataset(Dataset):
 
 
 class SourceDataset(Dataset):
-    def __init__(self, filepath, preprocess_config):
+    def __init__(self, filename, filepath, sort=True, drop_last=False):
         """
         Args:
           filepath: 処理したい音声の直上フォルダを指定.
+        ここに, mel, energy, pitchのフォルダがある.
+        また, basenameの名前も保管されている.
         """
-        self.basename, self.speaker, self.text, self.raw_text = self.process_meta(
-            filepath
-        )
+        self.preprocessed_path = filepath
+        self.basename = self.process_meta(filename)
+        self.sort = sort
+        self.drop_last = drop_last
 
     def __len__(self):
-        return len(self.text)
+        return len(self.basename)
 
     def __getitem__(self, idx):
         basename = self.basename[idx]
-        speaker = self.speaker[idx]
-        speaker_id = self.speaker_map[speaker]
-        raw_text = self.raw_text[idx]
-        phone = np.array(text_to_sequence(self.text[idx], self.cleaners))
 
-        return (basename, speaker_id, phone, raw_text)
+        mel_path = os.path.join(
+            self.preprocessed_path,
+            "mel",
+            "mel-{}.npy".format(basename),
+        )
+        mel = np.load(mel_path)
+
+        pitch_path = os.path.join(
+            self.preprocessed_path,
+            "pitch",
+            "pitch-{}.npy".format(basename),
+        )
+        pitch = np.load(pitch_path)
+
+        energy_path = os.path.join(
+            self.preprocessed_path,
+            "energy",
+            "energy-{}.npy".format(basename),
+        )
+        energy = np.load(energy_path)
+
+        sample = {
+            "id": basename,
+            "s_mel": mel,
+            "s_pitch": pitch,
+            "s_energy": energy,
+        }
+
+        return sample
 
     def process_meta(self, filename):
         names = []
-        for source_or_target in ["source", "target"]:
-            with open(
-                os.path.join(self.preprocessed_path, source_or_target, filename), "r", encoding="utf-8"
-            ) as f:
-                name = []
-                for line in f.readlines():
-                    n = line.strip("\n")
-                    name.append(n)
-                names.append(name)
+        with open(
+            os.path.join(self.preprocessed_path, filename), "r", encoding="utf-8"
+        ) as f:
+            name = []
+            for line in f.readlines():
+                n = line.strip("\n")
+                name.append(n)
+            names.append(name)
         return names
 
-    def process_meta(self, filename):
-        with open(filename, "r", encoding="utf-8") as f:
-            name = []
-            speaker = []
-            text = []
-            raw_text = []
-            for line in f.readlines():
-                n, s, t, r = line.strip("\n").split("|")
-                name.append(n)
-                speaker.append(s)
-                text.append(t)
-                raw_text.append(r)
-            return name, speaker, text, raw_text
+    def reprocess(self, data, idxs):
+        ids = [data[idx]["id"] for idx in idxs]
+        s_mels = [data[idx]["s_mel"] for idx in idxs]
+        s_pitches = [data[idx]["s_pitch"] for idx in idxs]
+        s_energies = [data[idx]["s_energy"] for idx in idxs]
+
+        # textとmelのlenを取得.
+        s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
+
+        # padding. tools.pyにあり.
+        # 与えられたtext内からmax_sizeを探し出して, padしてくれる.
+        s_mels = pad_2D(s_mels)
+        s_pitches = pad_1D(s_pitches)
+        s_energies = pad_1D(s_energies)
+
+        # ついでにmaxの値も返す.
+        return (
+            ids,
+            s_mels,
+            s_mel_lens,
+            max(s_mel_lens),
+            s_pitches,
+            s_energies,
+        )
 
     def collate_fn(self, data):
-        ids = [d[0] for d in data]
-        speakers = np.array([d[1] for d in data])
-        texts = [d[2] for d in data]
-        raw_texts = [d[3] for d in data]
-        text_lens = np.array([text.shape[0] for text in texts])
+        data_size = len(data)
 
-        texts = pad_1D(texts)
+        if self.sort:
+            len_arr = np.array([d["s_mel"].shape[0] for d in data])
+            idx_arr = np.argsort(-len_arr)
+        else:
+            idx_arr = np.arange(data_size)
 
-        return ids, raw_texts, speakers, texts, text_lens, max(text_lens)
+        tail = idx_arr[len(idx_arr) - (len(idx_arr) % self.batch_size):]
+        idx_arr = idx_arr[: len(idx_arr) - (len(idx_arr) % self.batch_size)]
+        idx_arr = idx_arr.reshape((-1, self.batch_size)).tolist()
+        if not self.drop_last and len(tail) > 0:
+            idx_arr += [tail.tolist()]
+
+        output = list()
+        for idx in idx_arr:
+            output.append(self.reprocess(data, idx))
+
+        return output
 
 
 if __name__ == "__main__":
