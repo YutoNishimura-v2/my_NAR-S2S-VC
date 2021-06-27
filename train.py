@@ -55,7 +55,7 @@ def main(args, configs):
 
     # Init logger
     for p in train_config["path"].values():
-        os.makedirs(p, exist_ok=True)  # 天才か?
+        os.makedirs(p, exist_ok=True)  # ここでresultフォルダも作成されている.
     train_log_path = os.path.join(train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)

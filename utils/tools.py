@@ -122,6 +122,20 @@ def expand(values, durations):
     return np.array(out)
 
 
+def mel_denormalize(mel, preprocess_config):
+    # melの正規化を元に戻す.
+    with open(
+        os.path.join(preprocess_config["path"]["preprocessed_path"], "target", "stats.json")
+    ) as f:
+        stats = json.load(f)
+        means = stats["mel_means"]
+        stds = stats["mel_stds"]
+    for idx, (mean, std) in enumerate(zip(means, stds)):
+        mel[idx, :] = mel[idx, :] * std + mean
+
+    return mel
+
+
 def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_config):
     """
     Args:
@@ -166,6 +180,9 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
     pitch = targets[11][0, :mel_len].detach().cpu().numpy()
     energy = targets[12][0, :mel_len].detach().cpu().numpy()
+
+    mel_target = mel_denormalize(mel_target, preprocess_config)
+    mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
 
     with open(
         os.path.join(preprocess_config["path"]["preprocessed_path"], "target", "stats.json")

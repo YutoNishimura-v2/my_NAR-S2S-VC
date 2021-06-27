@@ -13,6 +13,8 @@ python train.py -p config/JSUT/preprocess.yaml -m config/JSUT/model.yaml -t conf
 
 python train.py -p config/N2C/preprocess.yaml -m config/N2C/model.yaml -t config/N2C/train.yaml
 
+tensorboard dev upload --logdir 'c:\Users\midor\Desktop\VC\my_NAR-S2S-VC\output\log\N2C\train'
+
 ```
 # Synthesize Japanese
 grapheme input is not currently supported. You have to prepare phoneme sequence to synthesize
