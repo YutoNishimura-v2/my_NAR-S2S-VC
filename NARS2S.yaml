@@ -1,0 +1,25 @@
+name: NARS2S
+dependencies:
+  - python=3.8.10
+  - pytorch
+  - torchvision
+  - autopep8
+  - flake8
+  - mypy
+  - pyyaml
+  - matplotlib
+  - scipy
+  - sklearn
+  - scikit-learn
+  - tqdm
+  - tensorboard
+pip:
+  - librosa
+  - fastdtw
+  - soundfile
+  - pydub
+  - argparse
+  - cython
+  - pysoundfile
+  - pyworld
+  - torch-tb-profiler

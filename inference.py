@@ -111,7 +111,12 @@ def synthesize(model, step, configs, vocoder, batchs, control_values):
 if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--restore_step", type=int, required=True)
+    parser.add_argument(
+        "--restore_step", 
+        type=int, 
+        required=True,
+        help="何step目の訓練済み重みを用いて推論したいかです. データセット名は, configで指定するのでここでは数字だけを入れます."
+    )
     parser.add_argument(
         "--mode",
         type=str,
@@ -124,18 +129,6 @@ if __name__ == "__main__":
         type=str,
         default=None,
         help="path to a source file with format like train.txt and val.txt, for batch mode only",
-    )
-    parser.add_argument(
-        "--text",
-        type=str,
-        default=None,
-        help="raw text to synthesize, for single-sentence mode only",
-    )
-    parser.add_argument(
-        "--speaker_id",
-        type=int,
-        default=0,
-        help="speaker ID for multi-speaker synthesis, for single-sentence mode only",
     )
     parser.add_argument(
         "-p",
@@ -170,18 +163,12 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    # Check source texts
-    if args.mode == "batch":
-        assert args.source is not None and args.text is None
-    if args.mode == "single":
-        assert args.source is None and args.text is not None
-
     # Read Config
     preprocess_config = yaml.load(
-        open(args.preprocess_config, "r"), Loader=yaml.FullLoader
+        open(args.preprocess_config, "r", encoding="utf-8"), Loader=yaml.FullLoader
     )
-    model_config = yaml.load(open(args.model_config, "r"), Loader=yaml.FullLoader)
-    train_config = yaml.load(open(args.train_config, "r"), Loader=yaml.FullLoader)
+    model_config = yaml.load(open(args.model_config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
+    train_config = yaml.load(open(args.train_config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
     configs = (preprocess_config, model_config, train_config)
 
     # Get model
@@ -190,28 +177,16 @@ if __name__ == "__main__":
     # Load vocoder
     vocoder = get_vocoder(model_config, device)
 
-    # Preprocess texts
-    if args.mode == "batch":
-        # Get dataset
-        dataset = SourceDataset(args.source, preprocess_config)
-        batchs = DataLoader(
-            dataset,
-            batch_size=8,
-            collate_fn=dataset.collate_fn,
-        )
-    symbol_to_id = {s: i for i, s in enumerate(symbols)}
-    if args.mode == "single":
-        ids = raw_texts = [args.text[:100]]
-        speakers = np.array([args.speaker_id])
-        if preprocess_config["preprocessing"]["text"]["language"] == "en":
-            texts = np.array([preprocess_english(args.text, preprocess_config)])
-        elif preprocess_config["preprocessing"]["text"]["language"] == "zh":
-            texts = np.array([preprocess_mandarin(args.text, preprocess_config)])
-        elif preprocess_config["preprocessing"]["text"]["language"] == "ja":
-            texts = np.array([[symbol_to_id[t] for t in args.text.replace("{", "").replace("}", "").split()]])
-        text_lens = np.array([len(texts[0])])
-        print(text_lens)
-        batchs = [(ids, raw_texts, speakers, texts, text_lens, max(text_lens))]
+    # preprocess
+    
+
+    # Get dataset
+    dataset = SourceDataset(args.source, preprocess_config)
+    batchs = DataLoader(
+        dataset,
+        batch_size=8,
+        collate_fn=dataset.collate_fn,
+    )
 
     control_values = args.pitch_control, args.energy_control, args.duration_control
 

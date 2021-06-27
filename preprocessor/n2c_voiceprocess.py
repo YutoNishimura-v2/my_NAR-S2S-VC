@@ -5,11 +5,11 @@
 1. 音声のサンプリング数を24000へ変更.
 2. 無音区間の削除, 結合
 """
-import soundfile as sf
 from glob import glob
 import os.path as opth
 import os
 
+import soundfile as sf
 import librosa
 from pydub import AudioSegment
 from pydub.silence import split_on_silence

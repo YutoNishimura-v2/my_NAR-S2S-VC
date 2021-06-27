@@ -1,4 +1,3 @@
-import json
 import os
 
 import numpy as np
@@ -193,17 +192,13 @@ class TrainDataset(Dataset):
 
 class SourceDataset(Dataset):
     def __init__(self, filepath, preprocess_config):
-        self.cleaners = preprocess_config["preprocessing"]["text"]["text_cleaners"]
-
+        """
+        Args:
+          filepath: 処理したい音声の直上フォルダを指定.
+        """
         self.basename, self.speaker, self.text, self.raw_text = self.process_meta(
             filepath
         )
-        with open(
-            os.path.join(
-                preprocess_config["path"]["preprocessed_path"], "speakers.json"
-            )
-        ) as f:
-            self.speaker_map = json.load(f)
 
     def __len__(self):
         return len(self.text)
@@ -216,6 +211,19 @@ class SourceDataset(Dataset):
         phone = np.array(text_to_sequence(self.text[idx], self.cleaners))
 
         return (basename, speaker_id, phone, raw_text)
+
+    def process_meta(self, filename):
+        names = []
+        for source_or_target in ["source", "target"]:
+            with open(
+                os.path.join(self.preprocessed_path, source_or_target, filename), "r", encoding="utf-8"
+            ) as f:
+                name = []
+                for line in f.readlines():
+                    n = line.strip("\n")
+                    name.append(n)
+                names.append(name)
+        return names
 
     def process_meta(self, filename):
         with open(filename, "r", encoding="utf-8") as f:

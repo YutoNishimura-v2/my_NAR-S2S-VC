@@ -12,7 +12,6 @@ from utils.model import get_model, get_vocoder, get_param_num
 from utils.tools import to_device, log, synth_one_sample
 from model.loss import NARS2SVCLoss
 from dataset import TrainDataset
-
 from evaluate import evaluate
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")

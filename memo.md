@@ -3,9 +3,14 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
     - trainの動作確認
-    - vocoder_inferする前に, melの正規化を解除する必要あり.
     - attention dimentionについて確認
     - inference周り
+        - 前処理のinferance対応
+            - 生データ(ノイズだけきれいになっている, trainの入力データの状態)
+            - こいつをフォルダに置いておくだけで出せるようにしてほしい.
+            - configからだと, それができない....。
+            - configで渡すのは便利だが, configで必要な情報だけを渡すように変更して, inferenceでも耐えるようにしたい.
+        - datasetの作成
     - 重み初期化周り
     - 他データセットへの対応
     - パラメタを論文と合わせる
@@ -16,6 +21,20 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
     - その他pyworldのrequirements
 - pydub用
     - [ffmpeg](https://opty-life.com/apps/ffmpeg-windows-install/)
+
+- すぐにいろんな環境で使えるように(あとはバージョン管理がめんどくさい)ので, pipenvを使いこなしたい...。
+    - まずはtorchのinstallをするが, 一筋縄ではいかない模様.
+    - torch: `https://download.pytorch.org/whl/cu102/torch-1.9.0%2Bcu102-cp37-cp37m-win_amd64.whl` 
+        - おそらくこれは, `cuda10.2`の, `torch==1.9.0`で, `python 3.7`という意味っぽい. 最後のpythonが分からなかったが, cp39でダメだったのがこれだと行けたのでたぶんそう
+    - torchvision: `https://download.pytorch.org/whl/cu102/torchvision-0.10.0%2Bcu102-cp37-cp37m-win_amd64.whl`
+        - 間違ってずっと%2Bcuのついていないものをinstallしてた.
+        - **一度↑こうやってミスってしまったら, キャッシュを消しに行こう!!**
+            - `%LOCALAPPDATA%\pipenv\pipenv\Cache`: キャッシュの場所
+
+    - pipenvは問題あり&installに時間かかるのでやっぱりなしで.
+    - condaでもrequirementsを書くことが出来るらしいので, それでやってみる.
+    - [参考](https://qiita.com/yubessy/items/2dd43551aa8308dc7eca)
+        - この人みたいに, frozenを利用した方が良さそう.
 
 ## 前処理の流れメモ
 - preprocess.pyを実行するだけで勝手にやってくれるようにする.
