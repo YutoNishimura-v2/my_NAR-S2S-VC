@@ -2,6 +2,7 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
+    - yaml書き直し
     - trainの動作確認
     - attention dimentionについて確認
     - inference周り
