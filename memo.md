@@ -3,7 +3,6 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
     - yaml書き直し
-    - trainの動作確認
     - attention dimentionについて確認
     - inference周り
         - あとはsynth_samplesだけ
@@ -35,6 +34,9 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 
     - RTX3090で使うには, CUDA10.2だとだめらしい.
+
+    - tensorboardを使うには, 自動installされる[torch-tb-profilerを消さなきゃダメ](https://stackoverflow.com/questions/68049028/tensorboard-loading-forever-not-loading-in-vs-code-nor-in-terminal)
+        - そんでもって, vscodeの機能では開かないので, cmdに`tensorboard --logdir $path`とする必要あり.
 
 ## 前処理の流れメモ
 - preprocess.pyを実行するだけで勝手にやってくれるようにする.

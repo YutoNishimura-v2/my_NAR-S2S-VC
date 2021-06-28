@@ -133,6 +133,5 @@ dependencies:
     - resampy==0.2.2
     - soundfile==0.10.3.post1
     - tensorboard-data-server==0.6.1
-    - torch-tb-profiler==0.2.0
     - types-pyyaml==5.4.3
 prefix: C:\Users\midor\Anaconda3\envs\NARS2S
