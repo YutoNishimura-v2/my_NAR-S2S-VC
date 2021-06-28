@@ -175,7 +175,7 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     # さすがにbatch一つ目のデータを利用.
     # batch[0][0]で, 後者がバッチのうちの0番目を指定している事に注意.
     # 基本targetのものを利用している.
-    basename = targets[0][0]
+    basename = targets[1][0]
     mel_len = predictions[9][0].item()
     mel_target = targets[8][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
