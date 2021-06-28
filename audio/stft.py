@@ -1,5 +1,4 @@
 import torch
-from torch._C import device
 import torch.nn.functional as F
 import numpy as np
 from scipy.signal import get_window
@@ -119,8 +118,8 @@ class STFT(torch.nn.Module):
             # scale by hop ratio
             inverse_transform *= float(self.filter_length) / self.hop_length
 
-        inverse_transform = inverse_transform[:, :, int(self.filter_length / 2) :]
-        inverse_transform = inverse_transform[:, :, : -int(self.filter_length / 2) :]
+        inverse_transform = inverse_transform[:, :, int(self.filter_length / 2):]
+        inverse_transform = inverse_transform[:, :, : -int(self.filter_length / 2):]
 
         return inverse_transform
 

@@ -70,20 +70,22 @@ class RelativeMultiHeadAttention(nn.Module):
     def __init__(
             self,
             d_model: int = 512,
+            d_attention: int = 512,
             num_heads: int = 16,
             dropout_p: float = 0.1,
     ):
         super(RelativeMultiHeadAttention, self).__init__()
         assert d_model % num_heads == 0, "d_model % num_heads should be zero."
         self.d_model = d_model
+        self.d_attention = d_attention
         self.d_head = int(d_model / num_heads)
         self.num_heads = num_heads
         self.sqrt_dim = math.sqrt(d_model)
 
-        self.query_proj = Linear(d_model, d_model)
-        self.key_proj = Linear(d_model, d_model)
-        self.value_proj = Linear(d_model, d_model)
-        self.pos_proj = Linear(d_model, d_model, bias=False)
+        self.query_proj = Linear(d_model, d_attention)
+        self.key_proj = Linear(d_model, d_attention)
+        self.value_proj = Linear(d_model, d_attention)
+        self.pos_proj = Linear(d_model, d_attention, bias=False)
 
         self.dropout = nn.Dropout(p=dropout_p)
         self.u_bias = nn.Parameter(torch.Tensor(self.num_heads, self.d_head))
@@ -91,7 +93,7 @@ class RelativeMultiHeadAttention(nn.Module):
         torch.nn.init.xavier_uniform_(self.u_bias)
         torch.nn.init.xavier_uniform_(self.v_bias)
 
-        self.out_proj = Linear(d_model, d_model)
+        self.out_proj = Linear(d_attention, d_model)
 
     def forward(
             self,
@@ -100,7 +102,7 @@ class RelativeMultiHeadAttention(nn.Module):
             value: Tensor,
             pos_embedding: Tensor,
             mask: Optional[Tensor] = None,
-    ) -> Tensor:
+    ) -> Tuple[Tensor, Tensor]:
         batch_size = value.size(0)
 
         query = self.query_proj(query).view(batch_size, -1, self.num_heads, self.d_head)
@@ -157,11 +159,11 @@ class MultiHeadedSelfAttentionModule(nn.Module):
     Returns:
         - **outputs** (batch, time, dim): Tensor produces by relative multi headed self attention module.
     """
-    def __init__(self, d_model: int, num_heads: int, dropout_p: float = 0.1):
+    def __init__(self, d_model: int, d_attention: int, num_heads: int, dropout_p: float = 0.1):
         super(MultiHeadedSelfAttentionModule, self).__init__()
         self.positional_encoding = PositionalEncoding(d_model)
         self.layer_norm = LayerNorm(d_model)
-        self.attention = RelativeMultiHeadAttention(d_model, num_heads, dropout_p)
+        self.attention = RelativeMultiHeadAttention(d_model, d_attention, num_heads, dropout_p)
         self.dropout = nn.Dropout(p=dropout_p)
 
     def forward(self, inputs: Tensor, mask: Optional[Tensor] = None):

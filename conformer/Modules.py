@@ -1,4 +1,5 @@
 import math
+from typing import Tuple
 
 import torch
 import torch.nn as nn
@@ -12,14 +13,15 @@ class ResidualConnectionModule(nn.Module):
     outputs = (module(inputs) x module_factor + inputs x input_factor)
     """
 
-    def __init__(self, module: nn.Module, module_factor: float = 1.0, input_factor: float = 1.0, attention: bool = False):
+    def __init__(self, module: nn.Module, module_factor: float = 1.0,
+                 input_factor: float = 1.0, attention: bool = False):
         super(ResidualConnectionModule, self).__init__()
         self.module = module
         self.module_factor = module_factor
         self.input_factor = input_factor
         self.attention = attention
 
-    def forward(self, inputs: Tensor, mask: Tensor = None) -> Tensor:
+    def forward(self, inputs: Tensor, mask: Tensor = None) -> Tuple[Tensor, Tensor]:
         if self.attention is True:
             output, attn = self.module(inputs, mask)
             return (output * self.module_factor) + (inputs * self.input_factor), attn
@@ -48,7 +50,7 @@ class Linear(nn.Module):
     """
     Wrapper class of torch.nn.Linear
     Weight initialize by xavier initialization and bias initialize to zeros.
-    
+
     """
 
     def __init__(self, in_features: int, out_features: int, bias: bool = True, multiple=1.0) -> None:
@@ -108,6 +110,7 @@ class PositionalEncoding(nn.Module):
         pe[:, 1::2] = torch.cos(position * div_term)
         pe = pe.unsqueeze(0)
         self.register_buffer('pe', pe)
+        self.pe = pe
 
     def forward(self, length: int) -> Tensor:
         return self.pe[:, :length]

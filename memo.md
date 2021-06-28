@@ -2,14 +2,9 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
-    - yaml書き直し
-    - attention dimentionについて確認
-    - inference周り
-        - あとはsynth_samplesだけ
-
-    - 重み初期化周り
-    - 他データセットへの対応
-    - パラメタを論文と合わせる
+    - JSSSとJSUTの準備
+        - 男性→女性を学習させたいな...JSVTもやるか...?
+    - hifi-ganの準備
 
 ## 必要なもの
 - pyworld用
@@ -70,11 +65,14 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
     - 一応done.
     - position encoding抜いたり, まぁ一部Conformerの中身も弄ったくらいで, とりあえず形は揃えたという感じ. 形だけはあっているので, 大きな問題は起きなさそうである.
 
-    - 未実装
-        - attantionのdimentionを変える点
 
+    - 20210628~20210628
+    - attantionのdimentionを変える点
+        - 先生とかに聞いたところ, 理由はなぞ.
+        - ただ, attentionだけ次元変えるのが良さそう(Encoderまとめてでもいいが...。)
+        - attentionだけ次元を変えられるように改造します.
 
-- Vocoderについて, PGANの追加: 最後.
+- Vocoderについて, PGANの追加: 最後: 20210628~
     - hifi-GANを試したが, 高音部分がダメそう.
         - さすがにfine-tuningしたら大丈夫なのか? いまいちわからない.
     - vocoderがうんちだともはや何も意味がないので, 先にやりたい.
@@ -131,12 +129,12 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
             - また, maskは, melをbatchにするためにpaddingが必要なので,
             - そのためのmask.
   
-- 全重みがinitで初期化されるようにする.
+- 全重みがinitで初期化されるようにする: pytorchでは, linearなどと作った時点でHeで初期化されている.
 
 - (reduction factor): よくわからない. melのフレームを一回で数フレーム一気に出す話らしい. クオリティ出したいしいらないかも...?
     - [tactron2では, 用いていないらしい](https://paperswithcode.com/method/tacotron-2) のでいったん不要か. 実行時間減少に寄与.
 
-- inference関連の整備: 20210626~
+- inference関連の整備: 20210626~20210628
     - inference.pyを動くようにしないと.
     - 結構変えているので注意.
 

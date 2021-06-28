@@ -179,7 +179,8 @@ class Preprocessor:
         np.sortをした際にtargetとsourceが想定通りの対応関係になるような対称的な命名にしましょう.
         """)
 
-def process_utterance(input_dir, out_dir, basename, 
+
+def process_utterance(input_dir, out_dir, basename,
                       sampling_rate, hop_length, STFT):
     wav_path = os.path.join(input_dir, "{}.wav".format(basename))
 
@@ -236,6 +237,7 @@ def remove_outlier(values):
 
     return values[normal_indices]
 
+
 def normalize(in_dir, mean, std):
     max_value = np.finfo(np.float64).min
     min_value = np.finfo(np.float64).max
@@ -248,6 +250,7 @@ def normalize(in_dir, mean, std):
         min_value = min(min_value, min(values))
 
     return min_value, max_value
+
 
 def mel_normalize(in_dir, mel_means, mel_stds):
     for filename in os.listdir(in_dir):

@@ -224,32 +224,23 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
 
 
 def synth_samples(targets, predictions, vocoder, model_config, preprocess_config, path):
-
     basenames = targets[0]
     for i in range(len(predictions[0])):
         basename = basenames[i]
-        src_len = predictions[8][i].item()
         mel_len = predictions[9][i].item()
         mel_prediction = predictions[1][i, :mel_len].detach().transpose(0, 1)
-        duration = predictions[5][i, :src_len].detach().cpu().numpy()
-        if preprocess_config["preprocessing"]["pitch"]["feature"] == "phoneme_level":
-            pitch = predictions[2][i, :src_len].detach().cpu().numpy()
-            pitch = expand(pitch, duration)
-        else:
-            pitch = predictions[2][i, :mel_len].detach().cpu().numpy()
-        if preprocess_config["preprocessing"]["energy"]["feature"] == "phoneme_level":
-            energy = predictions[3][i, :src_len].detach().cpu().numpy()
-            energy = expand(energy, duration)
-        else:
-            energy = predictions[3][i, :mel_len].detach().cpu().numpy()
+        pitch = predictions[2][i, :mel_len].detach().cpu().numpy()
+        energy = predictions[3][i, :mel_len].detach().cpu().numpy()
+
+        mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
 
         with open(
-            os.path.join(preprocess_config["path"]["preprocessed_path"], "stats.json")
+            os.path.join(preprocess_config["path"]["preprocessed_path"], "target", "stats.json")
         ) as f:
             stats = json.load(f)
             stats = stats["pitch"] + stats["energy"][:2]
 
-        fig = plot_mel(  # noqa: E841
+        fig = plot_mel(  # NOQA
             [
                 (mel_prediction.cpu().numpy(), pitch, energy),
             ],

@@ -5,6 +5,7 @@ conformer:
   decoder_layer: 4
   decoder_head: 2
   decoder_hidden: 256
+  attention_dim: 384
 
   # conv_filter_size: 1024
   conv_kernel_size: 7

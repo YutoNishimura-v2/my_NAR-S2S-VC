@@ -56,6 +56,7 @@ class ConformerBlock(nn.Module):
     def __init__(
             self,
             encoder_dim: int = 512,
+            attention_dim: int = 512,
             num_attention_heads: int = 8,
             feed_forward_expansion_factor: int = 4,
             conv_expansion_factor: int = 2,
@@ -82,6 +83,7 @@ class ConformerBlock(nn.Module):
         self.attention = ResidualConnectionModule(
             module=MultiHeadedSelfAttentionModule(
                 d_model=encoder_dim,
+                d_attention=attention_dim,
                 num_heads=num_attention_heads,
                 dropout_p=attention_dropout_p,
             ),
