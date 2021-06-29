@@ -1,0 +1,31 @@
+conformer:
+  encoder_layer: 4
+  encoder_head: 2
+  encoder_hidden: 256
+  decoder_layer: 4
+  decoder_head: 2
+  decoder_hidden: 256
+  attention_dim: 384
+
+  # conv_filter_size: 1024
+  conv_kernel_size: 7
+
+  ff_expansion_factor: 4
+  conv_expansion_factor: 2
+
+  ff_dropout: 0.2
+  attention_dropout: 0.2
+  conv_dropout: 0.2
+
+variance_predictor:
+  filter_size: 256
+  dropout: 0.5
+  duration:
+    kernel_size: 3
+    layer_num: 2
+  energy:
+    kernel_size: 3
+    layer_num: 2
+  pitch:
+    kernel_size: 5
+    layer_num: 5
