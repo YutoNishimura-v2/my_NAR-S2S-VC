@@ -26,7 +26,7 @@ class VarianceAdaptor(nn.Module):
         self.pitch_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])  # predictをhiddenに.
         self.energy_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])
         self.energy_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])
-        
+
         self.stop_gradient_flow = model_config["variance_predictor"]["pitch"]["stop_gradient_flow"]
 
     def forward(
