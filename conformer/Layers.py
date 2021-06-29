@@ -178,7 +178,6 @@ class PostNet(nn.Module):
                     stride=1,
                     padding=int((postnet_kernel_size - 1) / 2),
                     dilation=1,
-                    w_init_gain="tanh",
                 ),
                 nn.BatchNorm1d(postnet_embedding_dim),
             )
@@ -194,7 +193,6 @@ class PostNet(nn.Module):
                         stride=1,
                         padding=int((postnet_kernel_size - 1) / 2),
                         dilation=1,
-                        w_init_gain="tanh",
                     ),
                     nn.BatchNorm1d(postnet_embedding_dim),
                 )
@@ -209,7 +207,6 @@ class PostNet(nn.Module):
                     stride=1,
                     padding=int((postnet_kernel_size - 1) / 2),
                     dilation=1,
-                    w_init_gain="linear",
                 ),
                 nn.BatchNorm1d(n_mel_channels),
             )
