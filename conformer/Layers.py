@@ -128,7 +128,6 @@ class ConvNorm(torch.nn.Module):
         padding=None,
         dilation=1,
         bias=True,
-        w_init_gain="linear",
     ):
         super(ConvNorm, self).__init__()
 
@@ -225,17 +224,3 @@ class PostNet(nn.Module):
 
         x = x.contiguous().transpose(1, 2)
         return x
-
-
-if __name__ == '__main__':
-    import torch
-
-    device = 'cuda'
-    model = ConformerBlock()
-    x = torch.randn((2, 3, 512))
-    mask = torch.BoolTensor([[1, 1, 0], [1, 0, 0]])
-    _, max_len, _ = x.size()
-    mask = mask.unsqueeze(1).expand(-1, max_len, -1)
-    model.to(device)
-    out, _ = model(x.to(device), mask.to(device))
-    print(out.size())

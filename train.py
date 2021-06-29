@@ -1,5 +1,6 @@
 import argparse
 import os
+import shutil
 
 import torch
 import yaml
@@ -206,5 +207,10 @@ if __name__ == "__main__":
     model_config = yaml.load(open(args.model_config, "r", encoding='utf-8'), Loader=yaml.FullLoader)
     train_config = yaml.load(open(args.train_config, "r", encoding='utf-8'), Loader=yaml.FullLoader)
     configs = (preprocess_config, model_config, train_config)
+
+    # 訓練時のパラメタを忘れないように, 保存するフォルダに落としておく.
+    shutil.copyfile(args.preprocess_config, train_config["path"]["log_path"])
+    shutil.copyfile(args.model_config, train_config["path"]["log_path"])
+    shutil.copyfile(args.train_config, train_config["path"]["log_path"])
 
     main(args, configs)

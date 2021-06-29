@@ -73,6 +73,16 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
         - ただ, attentionだけ次元変えるのが良さそう(Encoderまとめてでもいいが...。)
         - attentionだけ次元を変えられるように改造します.
 
+    - 20210629~
+    - pitrchからencoderへのgradient flowをなくしたい.
+        - やっぱり過学習したので.
+        - [lossで一部のrequires_gradをfalseにすれば良さそう](https://stackoverflow.com/questions/57945356/how-can-i-disable-gradient-updates-for-some-modules-in-autograd-backpropagation)
+        - この手法だと, まず, requires_gradは計算前に設定しないと, もう意味がない.
+        - つまり, energyの計算とそれ以外で別に行う必要があるが, それは計算無駄すぎる気がする.
+
+        - ほかの手法として, やはりdetachしてしまうというのがある. pitchに足すencoderからの入力を
+        detachしてしまえば, そこから後ろへはながれないはず.
+
 - Vocoderについて, PGANの追加: 最後: 20210628~
     - hifi-GANを試したが, 高音部分がダメそう.
         - さすがにfine-tuningしたら大丈夫なのか? いまいちわからない.

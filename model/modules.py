@@ -26,6 +26,8 @@ class VarianceAdaptor(nn.Module):
         self.pitch_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])  # predictをhiddenに.
         self.energy_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])
         self.energy_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])
+        
+        self.stop_gradient_flow = model_config["variance_predictor"]["pitch"]["stop_gradient_flow"]
 
     def forward(
         self,
@@ -68,7 +70,11 @@ class VarianceAdaptor(nn.Module):
             # inferenceではmel_maskもないので, Noneとしてくる.
             mel_mask = get_mask_from_lengths(mel_len)
 
-        pitch += x
+        if self.stop_gradient_flow is True:
+            x_detached = x.detach()
+            pitch += x_detached
+        else:
+            pitch += x
         energy += x
 
         # pitch, energyを計算
