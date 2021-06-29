@@ -27,7 +27,9 @@ class VarianceAdaptor(nn.Module):
         self.energy_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])
         self.energy_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])
 
-        self.stop_gradient_flow = model_config["variance_predictor"]["pitch"]["stop_gradient_flow"]
+        self.pitch_stop_gradient_flow = model_config["variance_predictor"]["pitch"]["stop_gradient_flow"]
+        self.energy_stop_gradient_flow = model_config["variance_predictor"]["energy"]["stop_gradient_flow"]
+        self.duration_stop_gradient_flow = model_config["variance_predictor"]["duration"]["stop_gradient_flow"]
 
     def forward(
         self,
@@ -45,7 +47,11 @@ class VarianceAdaptor(nn.Module):
         d_control=1.0,
     ):
         # まずは, durationを計算する.
-        log_duration_prediction = self.duration_predictor(x, src_mask)
+        if self.duration_stop_gradient_flow is True:
+            x_detached_d = x.detach()
+            log_duration_prediction = self.duration_predictor(x_detached_d, src_mask)
+        else:
+            log_duration_prediction = self.duration_predictor(x, src_mask)
 
         # convして, 次元を合わせる
         pitch_conv = self.pitch_conv1d_1(src_pitch)
@@ -70,12 +76,17 @@ class VarianceAdaptor(nn.Module):
             # inferenceではmel_maskもないので, Noneとしてくる.
             mel_mask = get_mask_from_lengths(mel_len)
 
-        if self.stop_gradient_flow is True:
-            x_detached = x.detach()
-            pitch += x_detached
+        if self.pitch_stop_gradient_flow is True:
+            x_detached_p = x.detach()
+            pitch += x_detached_p
         else:
             pitch += x
-        energy += x
+
+        if self.energy_stop_gradient_flow is True:
+            x_detached_e = x.detach()
+            pitch += x_detached_e
+        else:
+            energy += x
 
         # pitch, energyを計算
         pitch_prediction = self.pitch_predictor(pitch, mel_mask) * p_control
