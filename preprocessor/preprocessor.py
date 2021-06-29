@@ -21,9 +21,6 @@ class Preprocessor:
         self.hop_length = config["preprocessing"]["stft"]["hop_length"]
         self.n_mel_channels = config["preprocessing"]["mel"]["n_mel_channels"]
 
-        self.pitch_normalization = config["preprocessing"]["pitch"]["normalization"]
-        self.energy_normalization = config["preprocessing"]["energy"]["normalization"]
-
         self.STFT = Audio.stft.TacotronSTFT(
             config["preprocessing"]["stft"]["filter_length"],
             config["preprocessing"]["stft"]["hop_length"],
@@ -90,19 +87,11 @@ class Preprocessor:
 
             print("Computing statistic quantities ...")
             # Perform normalization if necessary
-            if self.pitch_normalization:
-                pitch_mean = pitch_scaler.mean_[0]
-                pitch_std = pitch_scaler.scale_[0]
-            else:
-                # A numerical trick to avoid normalization...
-                pitch_mean = 0
-                pitch_std = 1
-            if self.energy_normalization:
-                energy_mean = energy_scaler.mean_[0]
-                energy_std = energy_scaler.scale_[0]
-            else:
-                energy_mean = 0
-                energy_std = 1
+            pitch_mean = pitch_scaler.mean_[0]
+            pitch_std = pitch_scaler.scale_[0]
+            energy_mean = energy_scaler.mean_[0]
+            energy_std = energy_scaler.scale_[0]
+
             # melのも.
             mel_means = []
             mel_stds = []
