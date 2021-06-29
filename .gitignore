@@ -1,6 +1,8 @@
 # original
 raw_data/
 pre_voice/
+test_input/
+test_output/
 preprocessed_data/
 TextGrid/
 
