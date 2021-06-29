@@ -24,3 +24,19 @@
         - 40,000iterできれいな音声に!
         - 一方で, durationとenergyは過学習気味.
         - この2つに関しても, 層を深くしてgradient_flowをstopしてみる.
+
+- NARS2S_3回目
+    - date: 20210630
+    - output_folder_name: JSUT_2_JSSS_2
+    - dataset: JSUT_JSSS
+    - options
+        - pitch
+            - stop_gradient_flow = True
+        - energy
+            - stop_gradient_flow = True
+            - layer = 5
+        - duration
+            - stop_gradient_flow = True
+            - layer = 5
+    
+    - memo
