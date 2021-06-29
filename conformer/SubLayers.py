@@ -78,7 +78,7 @@ class RelativeMultiHeadAttention(nn.Module):
         assert d_model % num_heads == 0, "d_model % num_heads should be zero."
         self.d_model = d_model
         self.d_attention = d_attention
-        self.d_head = int(d_model / num_heads)
+        self.d_head = int(d_attention / num_heads)
         self.num_heads = num_heads
         self.sqrt_dim = math.sqrt(d_model)
 
