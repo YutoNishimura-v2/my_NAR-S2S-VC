@@ -62,6 +62,7 @@ class Decoder(nn.Module):
         super().__init__()
 
         d_model = config["conformer"]["decoder_hidden"]
+        d_attention = config["conformer"]["attention_dim"]
         n_head = config["conformer"]["decoder_head"]
         ff_expansion = config["conformer"]["ff_expansion_factor"]  # paper: 4
         conv_expansion = config["conformer"]["conv_expansion_factor"]  # paper: 2
@@ -74,7 +75,7 @@ class Decoder(nn.Module):
         self.layer_stack = nn.ModuleList(
             [
                 ConformerBlock(
-                    d_model, n_head, ff_expansion, conv_expansion, ff_dropout,
+                    d_model, d_attention, n_head, ff_expansion, conv_expansion, ff_dropout,
                     attention_dropout, conv_dropout, kernel_size
                 )
                 for _ in range(n_layers)

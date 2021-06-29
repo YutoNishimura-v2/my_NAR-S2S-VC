@@ -2,9 +2,7 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
-    - JSSSとJSUTの準備
-        - 男性→女性を学習させたいな...JSVTもやるか...?
-    - hifi-ganの準備
+    - hifi-gan用に, melを保存してくれるようなinferenceのコードを作成.
 
 ## 必要なもの
 - pyworld用
