@@ -1,5 +1,6 @@
 import os
 import json
+import shutil
 
 import torch
 import torch.nn.functional as F
@@ -13,6 +14,15 @@ matplotlib.use("Agg")
 
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def save_configs(args, train_config):
+    shutil.copyfile(args.preprocess_config, os.path.join(train_config["path"]["log_path"],
+                                                         os.path.basename(args.preprocess_config)))
+    shutil.copyfile(args.model_config, os.path.join(train_config["path"]["log_path"],
+                                                    os.path.basename(args.model_config)))
+    shutil.copyfile(args.train_config, os.path.join(train_config["path"]["log_path"],
+                                                    os.path.basename(args.train_config)))
 
 
 def to_device(data, device):

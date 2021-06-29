@@ -10,7 +10,7 @@ from torch.utils.tensorboard import SummaryWriter
 from tqdm import tqdm
 
 from utils.model import get_model, get_vocoder, get_param_num
-from utils.tools import to_device, log, synth_one_sample
+from utils.tools import save_configs, to_device, log, synth_one_sample
 from model.loss import NARS2SVCLoss
 from dataset import TrainDataset
 from evaluate import evaluate
@@ -56,6 +56,8 @@ def main(args, configs):
     # Init logger
     for p in train_config["path"].values():
         os.makedirs(p, exist_ok=True)  # ここでresultフォルダも作成されている.
+    save_configs(args, train_config)  # configを保存する.
+
     train_log_path = os.path.join(train_config["path"]["log_path"], "train")
     val_log_path = os.path.join(train_config["path"]["log_path"], "val")
     os.makedirs(train_log_path, exist_ok=True)
@@ -209,11 +211,5 @@ if __name__ == "__main__":
     configs = (preprocess_config, model_config, train_config)
 
     # 訓練時のパラメタを忘れないように, 保存するフォルダに落としておく.
-    shutil.copyfile(args.preprocess_config, os.path.join(train_config["path"]["log_path"],
-                                                         os.path.basename(args.preprocess_config)))
-    shutil.copyfile(args.model_config, os.path.join(train_config["path"]["log_path"],
-                                                    os.path.basename(args.model_config)))
-    shutil.copyfile(args.train_config, os.path.join(train_config["path"]["log_path"],
-                                                    os.path.basename(args.train_config)))
 
     main(args, configs)
