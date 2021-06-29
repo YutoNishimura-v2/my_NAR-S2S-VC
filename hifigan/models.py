@@ -1,9 +1,10 @@
 import torch
-import torch.nn.functional as F
 import torch.nn as nn
-from torch.nn import Conv1d, ConvTranspose1d, AvgPool1d, Conv2d
-from torch.nn.utils import weight_norm, remove_weight_norm, spectral_norm
-from utils import init_weights, get_padding
+import torch.nn.functional as F
+from torch.nn import AvgPool1d, Conv1d, Conv2d, ConvTranspose1d
+from torch.nn.utils import remove_weight_norm, spectral_norm, weight_norm
+
+from .utils import get_padding, init_weights
 
 LRELU_SLOPE = 0.1
 

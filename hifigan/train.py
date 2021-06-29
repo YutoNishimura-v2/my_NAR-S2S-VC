@@ -13,13 +13,13 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
-from env import AttrDict, build_env
-from meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
-from models import (Generator, MultiPeriodDiscriminator,
-                    MultiScaleDiscriminator, discriminator_loss, feature_loss,
-                    generator_loss)
-from utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
-                   scan_checkpoint)
+from .env import AttrDict, build_env
+from .meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
+from .models import (Generator, MultiPeriodDiscriminator,
+                     MultiScaleDiscriminator, discriminator_loss, feature_loss,
+                     generator_loss)
+from .utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
+                    scan_checkpoint)
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
