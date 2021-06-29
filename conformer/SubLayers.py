@@ -124,7 +124,7 @@ class RelativeMultiHeadAttention(nn.Module):
         attn = self.dropout(attn_map)
 
         context = torch.matmul(attn, value).transpose(1, 2)
-        context = context.contiguous().view(batch_size, -1, self.d_model)
+        context = context.contiguous().view(batch_size, -1, self.d_attention)
 
         return self.out_proj(context), attn_map
 
