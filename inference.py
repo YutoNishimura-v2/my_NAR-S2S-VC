@@ -102,7 +102,7 @@ if __name__ == "__main__":
     model = get_model(args, configs, device, train=False)
 
     # Load vocoder
-    vocoder = get_vocoder(model_config, device)
+    vocoder = get_vocoder(device)
 
     # preprocess
     inference_preprocess(args.input_path, args.output_path, preprocess_config)

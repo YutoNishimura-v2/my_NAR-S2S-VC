@@ -3,14 +3,12 @@ inference専用のpreprocesing
 
 input_pathとoutput_pathを指定したらあとは勝手にやってほしい. preprocessのconfigもやね.
 """
-import os 
+import os
 import json
-
-from matplotlib.pyplot import inferno
 
 import audio as Audio
 from preprocessor.n2c_voiceprocess import load_and_save, delete_novoice_from_path
-from preprocessor.preprocessor import process_utterance, remove_outlier, normalize, mel_normalize
+from preprocessor.preprocessor import process_utterance, normalize, mel_normalize
 
 
 def inference_preprocess(input_path, output_path, preprocess_config):
@@ -87,7 +85,7 @@ def inference_preprocess(input_path, output_path, preprocess_config):
     mel_normalize(os.path.join(output_path, "mel"), mel_means, mel_stds)
 
     print(
-        "{} Data Total time: {} hours {} minutes".format(
+        "Data Total time: {} hours {} minutes".format(
             n_frames * hop_length / sr // 3600,
             n_frames * hop_length / sr % 3600 / 60
         )

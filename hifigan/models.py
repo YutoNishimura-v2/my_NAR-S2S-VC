@@ -103,10 +103,10 @@ class ResBlock(torch.nn.Module):
         return x
 
     def remove_weight_norm(self):
-        for l in self.convs1:
-            remove_weight_norm(l)
-        for l in self.convs2:
-            remove_weight_norm(l)
+        for l_ in self.convs1:
+            remove_weight_norm(l_)
+        for l_ in self.convs2:
+            remove_weight_norm(l_)
 
 
 class Generator(torch.nn.Module):
@@ -168,9 +168,9 @@ class Generator(torch.nn.Module):
         # https://pytorch.org/docs/stable/generated/torch.nn.utils.remove_weight_norm.html
         # weight_norm, 確かにtrainには不要かな.
         print("Removing weight norm...")
-        for l in self.ups:
-            remove_weight_norm(l)
-        for l in self.resblocks:
-            l.remove_weight_norm()
+        for l_ in self.ups:
+            remove_weight_norm(l_)
+        for l_ in self.resblocks:
+            l_.remove_weight_norm()
         remove_weight_norm(self.conv_pre)
         remove_weight_norm(self.conv_post)

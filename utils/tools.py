@@ -208,13 +208,11 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
         wav_reconstruction = vocoder_infer(
             mel_target.unsqueeze(0),
             vocoder,
-            model_config,
             preprocess_config,
         )[0]
         wav_prediction = vocoder_infer(
             mel_prediction.unsqueeze(0),
             vocoder,
-            model_config,
             preprocess_config,
         )[0]
     else:
@@ -255,7 +253,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
     mel_predictions = predictions[1].transpose(1, 2)
     lengths = predictions[9] * preprocess_config["preprocessing"]["stft"]["hop_length"]
     wav_predictions = vocoder_infer(
-        mel_predictions, vocoder, model_config, preprocess_config, lengths=lengths
+        mel_predictions, vocoder, preprocess_config, lengths=lengths
     )
 
     sampling_rate = preprocess_config["preprocessing"]["audio"]["sampling_rate"]
