@@ -45,6 +45,9 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 - calc_duration.py
     - duration_prepareのノートブックでやったことを書き直しただけ.
 
+- 本来は, 句読点まで一致した読み合わせのペアを, JSUTとJSSSから選ぶ必要があるが, 
+ここでの目的は, 僕の汚いズレた発音も含めてtrainingできるようにすることなので, あえて句読点の違う汚いデータも入れてみる.
+
 ## 変更点
 - Encoder, DecoderのTransformerをConformerへ.: 20210528~20210529
     - espnet2のFastSpeech2はConformerを採用しているらしいので利用させてもらう.
