@@ -30,5 +30,5 @@ variance_predictor:
     stop_gradient_flow: False
   pitch:
     kernel_size: 5
-    layer_num: 5
+    layer_num: 8
     stop_gradient_flow: True

@@ -68,6 +68,7 @@
         
         - pitch
             - pitchはこれでよさそう.
+            - 実験的に, layer=8にしてみる.
 
 - NARS2S_4回目
     - date: 20210630
@@ -76,6 +77,7 @@
     - options
         - pitch
             - stop_gradient_flow = True
+            - layer = 8
         - energy
             - stop_gradient_flow = False
             - layer = 5
