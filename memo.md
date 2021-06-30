@@ -2,7 +2,9 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
-    - hifi-gan用に, melを保存してくれるようなinferenceのコードを作成.
+    - synth_samplesで, mel_denormalizeをする.
+        - transposeをしているので, どっちがどっちか分からないので、実行時確認.
+    - inference_melでも, transposeが必要か不必要か, hifi-ganに入れてみてから確認していく.
 
 ## 必要なもの
 - pyworld用
@@ -150,6 +152,16 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 - inference関連の整備: 20210626~20210628
     - inference.pyを動くようにしないと.
     - 結構変えているので注意.
+
+    - higi-ganをtrainする用に, 訓練済みモデルを使用して出力したmelを用意したい.
+        - ただ, 無音区間の削除なども行ってしまっているため,単純に未知データ用のinferenceを適用してしまうと, ズレる.
+        - なので, 想定としては, 
+        - input_path: 既にNARS2Sをtrainするのに使ったmel, energy等々があると思うので、そのpathを指定する.
+        - output_pathは適当.
+        - configもちゃんと実行したいmodelのconfigを指定してあげる.
+        - ファイル名はmelと音声で一致していると, hifiに渡すときスムーズ.
+            - JSSSとJSUTではそうなっているが, N2Cではそうなっていない.
+            - それはまぁ適当なスクリプトでも入れてあげればいい.
 
 
 # 読み解いていく.
