@@ -23,11 +23,11 @@ variance_predictor:
   duration:
     kernel_size: 5
     layer_num: 5
-    stop_gradient_flow: True
+    stop_gradient_flow: False
   energy:
     kernel_size: 5
     layer_num: 5
-    stop_gradient_flow: True
+    stop_gradient_flow: False
   pitch:
     kernel_size: 5
     layer_num: 5
