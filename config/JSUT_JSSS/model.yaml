@@ -1,10 +1,10 @@
 conformer:
   encoder_layer: 4
   encoder_head: 2
-  encoder_hidden: 384
+  encoder_hidden: 256
   decoder_layer: 4
   decoder_head: 2
-  decoder_hidden: 384
+  decoder_hidden: 256
   attention_dim: 384
 
   # conv_filter_size: 1024
@@ -18,7 +18,7 @@ conformer:
   conv_dropout: 0.2
 
 variance_predictor:
-  filter_size: 384
+  filter_size: 256
   dropout: 0.5
   duration:
     kernel_size: 5

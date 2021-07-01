@@ -221,3 +221,27 @@
         - decoder_hidden = 384
         - attention_dim = 384 
         - filter_size: 384
+    
+    - memo
+        - mel以外: 変わらず
+        - mel: 思い切り過学習
+    
+    - next
+        - これで終わり. どちらもbestで行く.
+
+- NARS2S_8回目
+    - date: 20210701
+    - output_folder_name: JSUT_2_JSSS_7
+    - dataset: JSUT_JSSS
+    - options
+        - pitch
+            - stop_gradient_flow = True
+            - layer = 5
+        - energy
+            - stop_gradient_flow = False
+            - layer = 5
+        - duration
+            - stop_gradient_flow = True
+            - layer = 5
+
+        - annotation = 384
