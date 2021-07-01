@@ -137,3 +137,47 @@
         - duration
             - stop_gradient_flow = True
             - layer = 2
+
+    - memo
+        - pitch
+            - がっつり過学習. ダメみたいですね
+        - energy
+            - (一個前と比べて)変化なし.
+        - duration
+            - 同様にtrain_val張り付きくん.
+        - mel
+            - 変わらず.
+
+    - next
+        - すべてbestパラメタで, encoderとattention dimをいじりたい.
+        - pitch
+            - 誤差ではあるが, JSUT_2_JSSS
+            - stop_gradient_flow = True
+            - layer = 5
+        - energy
+            - JSUT_2_JSSS_3
+            - stop_gradient_flow = False
+            - layer = 5
+        - duration
+            - JSUT_2_JSSS_2
+            - stop_gradient_flow = True
+            - layer = 5
+        
+        - attention_dim = 256 
+            - 次は, encoder=attention=384
+
+- NARS2S_5回目
+    - date: 20210701
+    - output_folder_name: JSUT_2_JSSS_5
+    - dataset: JSUT_JSSS
+    - options
+        - pitch
+            - stop_gradient_flow = True
+            - layer = 5
+        - energy
+            - stop_gradient_flow = False
+            - layer = 5
+        - duration
+            - stop_gradient_flow = True
+            - layer = 5
+        - attention_dim = 256 

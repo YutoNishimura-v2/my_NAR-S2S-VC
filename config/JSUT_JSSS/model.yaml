@@ -5,7 +5,7 @@ conformer:
   decoder_layer: 4
   decoder_head: 2
   decoder_hidden: 256
-  attention_dim: 384
+  attention_dim: 256
 
   # conv_filter_size: 1024
   conv_kernel_size: 7
@@ -21,14 +21,14 @@ variance_predictor:
   filter_size: 256
   dropout: 0.5
   duration:
-    kernel_size: 3
-    layer_num: 2
+    kernel_size: 5
+    layer_num: 5
     stop_gradient_flow: True
   energy:
     kernel_size: 5
-    layer_num: 8
+    layer_num: 5
     stop_gradient_flow: False
   pitch:
-    kernel_size: 3
-    layer_num: 2
-    stop_gradient_flow: False
+    kernel_size: 5
+    layer_num: 5
+    stop_gradient_flow: True
