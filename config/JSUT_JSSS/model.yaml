@@ -18,7 +18,7 @@ conformer:
   conv_dropout: 0.2
 
 variance_predictor:
-  filter_size: 256
+  filter_size: 384
   dropout: 0.5
   duration:
     kernel_size: 5

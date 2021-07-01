@@ -220,3 +220,4 @@
         - encoder_hidden = 384
         - decoder_hidden = 384
         - attention_dim = 384 
+        - filter_size: 384
