@@ -84,3 +84,56 @@
         - duration
             - stop_gradient_flow = False
             - layer = 5
+
+    - memo
+        - pitch
+            - ほぼ変わらず. ほんとにほんと少しだけvalもtrainも小さい.
+            - スピード無視ならこれでいいかな?
+        
+        - energy
+            - layer2, flowありと, train一緒, val低いという最高の結果. いいね.
+        
+        - duration
+            - layer2, flowありと, train若干まし, val同じという少しマシな結果.
+            - layer2, flowなしなら同じval, trainもvalと同じ
+            - まぁ過学習しない方が良さそう.
+        
+        - mel
+            - まあ何もいじってないからそりゃ変わらない.
+
+    - next
+        - 最終学習. 決定版でいいかな. 今までのbestで行く.
+        - 現段階のbest
+            - pitch
+                - stop_gradient_flow = True
+                - layer = 8
+            - energy
+                - stop_gradient_flow = False
+                - layer = 5
+            - duration
+                - stop_gradient_flow = True
+                - layer = 5
+        - ほかに気になるパラメタ
+            - pitch
+                - gradient_flow = True, layer = 2ならどうだろうか
+            - energy
+                - gradient_flow = False, layer = 8 としたら?
+            - duration
+                - gradient_flow = False, layer = 2なら?
+
+            - あとは, attention_dimを落とした場合, encoder全体を384にした場合など気になる.
+
+- NARS2S_5回目
+    - date: 20210701
+    - output_folder_name: JSUT_2_JSSS_4
+    - dataset: JSUT_JSSS
+    - options
+        - pitch
+            - stop_gradient_flow = False
+            - layer = 2
+        - energy
+            - stop_gradient_flow = False
+            - layer = 8
+        - duration
+            - stop_gradient_flow = True
+            - layer = 2
