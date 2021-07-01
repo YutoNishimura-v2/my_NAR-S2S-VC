@@ -166,7 +166,7 @@
         - attention_dim = 256 
             - 次は, encoder=attention=384
 
-- NARS2S_5回目
+- NARS2S_6回目
     - date: 20210701
     - output_folder_name: JSUT_2_JSSS_5
     - dataset: JSUT_JSSS
@@ -181,3 +181,42 @@
             - stop_gradient_flow = True
             - layer = 5
         - attention_dim = 256 
+
+    - memo
+        - それぞれ, best時のものと比べる
+        - pitch
+            - びっくりするほど一致.
+            - 変化なし.
+        - energy
+            - 同じく.
+        - duration
+            - 同じく.
+        - mel
+            - 変わらん....
+
+        - attentionの次元, 増やすだけ無駄だったかもしれん.
+            - データ量が増えるとまた違うかも.
+            - 増えた時用のために, 大きめにしておくのはあり.
+
+    - next
+        - pitchたちはそのまま
+        - encoderも384にしてみる.
+
+- NARS2S_7回目
+    - date: 20210701
+    - output_folder_name: JSUT_2_JSSS_6
+    - dataset: JSUT_JSSS
+    - options
+        - pitch
+            - stop_gradient_flow = True
+            - layer = 5
+        - energy
+            - stop_gradient_flow = False
+            - layer = 5
+        - duration
+            - stop_gradient_flow = True
+            - layer = 5
+
+        - encoder_hidden = 384
+        - decoder_hidden = 384
+        - attention_dim = 384 
