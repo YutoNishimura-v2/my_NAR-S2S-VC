@@ -6,6 +6,7 @@ import torch
 import yaml
 from torch.utils.data import DataLoader
 import numpy as np
+from yaml import loader
 
 from utils.model import get_model, get_vocoder
 from utils.tools import to_device, synth_samples, mel_denormalize
@@ -15,51 +16,53 @@ from preprocessor.inference_preprocessor import inference_preprocess
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
-def synthesize(model, configs, vocoder, batchs, control_values, output_path):
+def synthesize(model, configs, vocoder, loader, control_values, output_path):
     preprocess_config, model_config, _ = configs
     pitch_control, energy_control, duration_control = control_values
 
-    for batch in batchs:
-        batch = to_device(batch, device)
-        with torch.no_grad():
-            # Forward
-            output = model(
-                *(batch[1:]),
-                p_control=pitch_control,
-                e_control=energy_control,
-                d_control=duration_control
-            )
-            synth_samples(
-                batch,
-                output,
-                vocoder,
-                model_config,
-                preprocess_config,
-                output_path
-            )
+    for batchs in loader:
+        for batch in batchs:
+            batch = to_device(batch, device)
+            with torch.no_grad():
+                # Forward
+                output = model(
+                    *(batch[1:]),
+                    p_control=pitch_control,
+                    e_control=energy_control,
+                    d_control=duration_control
+                )
+                synth_samples(
+                    batch,
+                    output,
+                    vocoder,
+                    model_config,
+                    preprocess_config,
+                    output_path
+                )
 
 
-def inference_mel(model, configs, batchs, control_values, output_path):
+def inference_mel(model, configs, loader, control_values, output_path):
     preprocess_config, _, _ = configs
     pitch_control, energy_control, duration_control = control_values
 
-    for batch in batchs:
-        batch = to_device(batch, device)
-        with torch.no_grad():
-            # Forward
-            output = model(
-                *(batch[1:]),
-                p_control=pitch_control,
-                e_control=energy_control,
-                d_control=duration_control
-            )
-            mel_predictions = output[1].transpose(1, 2)  # (batch, dim, time)へ.
-            basenames = batch[0]
-            for i, mel in enumerate(mel_predictions):
-                mel = mel_denormalize(mel, preprocess_config)
-                mel = mel.cpu().numpy()
-                # vocoderとしてのinputは, dim, timeが想定されているみたい.
-                np.save(os.path.join(output_path, "mels", basenames[i]), mel)
+    for batchs in loader:
+        for batch in batchs:
+            batch = to_device(batch, device)
+            with torch.no_grad():
+                # Forward
+                output = model(
+                    *(batch[1:]),
+                    p_control=pitch_control,
+                    e_control=energy_control,
+                    d_control=duration_control
+                )
+                mel_predictions = output[1].transpose(1, 2)  # (batch, dim, time)へ.
+                basenames = batch[0]
+                for i, mel in enumerate(mel_predictions):
+                    mel = mel_denormalize(mel, preprocess_config)
+                    mel = mel.cpu().numpy()
+                    # vocoderとしてのinputは, dim, timeが想定されているみたい.
+                    np.save(os.path.join(output_path, "mels", basenames[i]), mel)
 
 
 if __name__ == "__main__":
@@ -160,7 +163,7 @@ if __name__ == "__main__":
 
         dataset = SourceDataset("inference.txt", args.input_path, train_config)
 
-    batchs = DataLoader(
+    dataloader = DataLoader(
         dataset,
         batch_size=8,
         collate_fn=dataset.collate_fn,
@@ -169,6 +172,6 @@ if __name__ == "__main__":
     control_values = args.pitch_control, args.energy_control, args.duration_control
 
     if args.get_mel_for_hifigan is not True:
-        synthesize(model, configs, vocoder, batchs, control_values, args.output_path)
+        synthesize(model, configs, vocoder, dataloader, control_values, args.output_path)
     else:
-        inference_mel(model, configs, batchs, control_values, args.output_path)
+        inference_mel(model, configs, dataloader, control_values, args.output_path)
