@@ -240,16 +240,14 @@ class SourceDataset(Dataset):
         return sample
 
     def process_meta(self, filename):
-        names = []
+        name = []
         with open(
             os.path.join(self.preprocessed_path, filename), "r", encoding="utf-8"
         ) as f:
-            name = []
             for line in f.readlines():
                 n = line.strip("\n")
                 name.append(n)
-            names.append(name)
-        return names
+        return name
 
     def reprocess(self, data, idxs):
         ids = [data[idx]["id"] for idx in idxs]
