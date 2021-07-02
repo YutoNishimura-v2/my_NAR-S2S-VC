@@ -259,7 +259,8 @@
     - output_folder_name: JSUT_2_JSSS_1
     - dataset: JSUT_JSSSで, source: JSUT
     - options
-        - finetuning
+        - training
     
     - memo
-    
+        - 設定が違うので, trainingからする必要あり...。
+        - `python train.py --input_mel_path ../output/mel_for_hifi-gan/JSUT_2_JSSS --input_wav_path ../pre_voice/JSUT_JSSS/JSSS --checkpoint_path ./output/JSUT_2_JSSS_1 --config ./configs/config_JSUT_JSSS.json`
