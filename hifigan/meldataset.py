@@ -74,12 +74,12 @@ def mel_spectrogram(y, n_fft, num_mels, sampling_rate, hop_size, win_size, fmin,
 
 
 def get_dataset_filelist(a):
-    with open(os.path.join(a.input_path, "train.txt"), 'r', encoding='utf-8') as fi:
-        training_files = [os.path.join(a.input_path, "wavs", x + '.wav')
+    with open(os.path.join(a.input_mel_path, "train.txt"), 'r', encoding='utf-8') as fi:
+        training_files = [os.path.join(a.input_wav_path, x + '.wav')
                           for x in fi.read().split('\n') if len(x) > 0]
 
-    with open(os.path.join(a.input_path, "val.txt"), 'r', encoding='utf-8') as fi:
-        validation_files = [os.path.join(a.input_path, "wavs", x + '.wav')
+    with open(os.path.join(a.input_mel_path, "val.txt"), 'r', encoding='utf-8') as fi:
+        validation_files = [os.path.join(a.input_wav_path, x + '.wav')
                             for x in fi.read().split('\n') if len(x) > 0]
 
     return training_files, validation_files

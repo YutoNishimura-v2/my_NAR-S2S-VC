@@ -1,12 +1,13 @@
 # HiFi-GAN: Generative Adversarial Networks for Efficient and High Fidelity Speech Synthesis
 
 ## 想定
-- input_path
-    - wavs: ここにwavをためる
-    - mels: 対応するmelを入れる.
-    - train.txt
-    - val.txt
-    - config.json
+- 既に存在しているフォルダを指すことにする.
+    - input_mel_path
+        - mels: NARS2Sで推論したmelを出力したフォルダ.
+        - train.txt
+        - val.txt
+    - input_wav_path
+        - *.wav: pre_voiceに入った, 変換先wav.
 
 - output_path
     - (finetuningに用いる最初の重みを投入する)

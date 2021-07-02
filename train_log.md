@@ -253,3 +253,13 @@
 
 - inference
     - `python inference.py --restore_step 40000 --input_path ./preprocessed_data/JSUT_JSSS/source --output_path ./output/mel_for_hifi-gan/JSUT_2_JSSS -p ./output/log/JSUT_2_JSSS_7/preprocess.yaml -m ./output/log/JSUT_2_JSSS_7/model.yaml -t ./output/log/JSUT_2_JSSS_7/train.yaml --get_mel_for_hifigan`
+
+- Hifi-gan_1回目
+    - date: 20210703
+    - output_folder_name: JSUT_2_JSSS_1
+    - dataset: JSUT_JSSSで, source: JSUT
+    - options
+        - finetuning
+    
+    - memo
+    

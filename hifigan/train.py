@@ -103,7 +103,7 @@ def train(rank, a, h):
     trainset = MelDataset(training_filelist, h.segment_size, h.n_fft, h.num_mels,
                           h.hop_size, h.win_size, h.sampling_rate, h.fmin, h.fmax, n_cache_reuse=0,
                           shuffle=False if h.num_gpus > 1 else True, fmax_loss=h.fmax_for_loss, device=device,
-                          fine_tuning=a.fine_tuning, base_mels_path=os.path.join(a.input_path, 'mels'))
+                          fine_tuning=a.fine_tuning, base_mels_path=os.path.join(a.input_mel_path, 'mels'))
 
     train_sampler = DistributedSampler(trainset) if h.num_gpus > 1 else None
 
@@ -117,7 +117,7 @@ def train(rank, a, h):
         validset = MelDataset(validation_filelist, h.segment_size, h.n_fft, h.num_mels,
                               h.hop_size, h.win_size, h.sampling_rate, h.fmin, h.fmax, False, False, n_cache_reuse=0,
                               fmax_loss=h.fmax_for_loss, device=device, fine_tuning=a.fine_tuning,
-                              base_mels_path=os.path.join(a.input_path, 'mels'))
+                              base_mels_path=os.path.join(a.input_mel_path, 'mels'))
         validation_loader = DataLoader(validset, num_workers=1, shuffle=False,
                                        sampler=None,
                                        batch_size=1,
@@ -257,7 +257,8 @@ def main():
     parser = argparse.ArgumentParser()
 
     parser.add_argument('--group_name', default=None)
-    parser.add_argument('--input_path', default=None)
+    parser.add_argument('--input_mel_path', default=None)
+    parser.add_argument('--input_wav_path', default=None)
     parser.add_argument('--checkpoint_path', default='cp_hifigan')
     parser.add_argument('--config', default='')
     parser.add_argument('--training_epochs', default=3100, type=int)
