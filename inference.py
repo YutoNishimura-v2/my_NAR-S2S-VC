@@ -78,7 +78,7 @@ if __name__ == "__main__":
         help="音声の入ったフォルダへのパス",
     )
     parser.add_argument(
-        "--output",
+        "--output_path",
         type=str,
         default=None,
         help="吐き出したい場所へのパス",
