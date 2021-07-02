@@ -139,7 +139,7 @@ if __name__ == "__main__":
         # preprocess
         inference_preprocess(args.input_path, args.output_path, preprocess_config)
         # Get dataset
-        dataset = SourceDataset("inference.txt", args.output_path)
+        dataset = SourceDataset("inference.txt", args.output_path, train_config)
     else:
         # for hifi-gan
         # input_path: 例: ./preprocessed_data/JSUT_JSSS/JSSS
@@ -158,7 +158,7 @@ if __name__ == "__main__":
         shutil.copy(os.path.join(args.input_path, "train.txt"), args.output_path)
         shutil.copy(os.path.join(args.input_path, "val.txt"), args.output_path)
 
-        dataset = SourceDataset("inference.txt", args.input_path)
+        dataset = SourceDataset("inference.txt", args.input_path, train_config)
 
     batchs = DataLoader(
         dataset,

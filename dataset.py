@@ -191,13 +191,15 @@ class TrainDataset(Dataset):
 
 
 class SourceDataset(Dataset):
-    def __init__(self, filename, filepath, sort=True, drop_last=False):
+    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False):
         """
         Args:
           filepath: 処理したい音声の直上フォルダを指定.
         ここに, mel, energy, pitchのフォルダがある.
         また, basenameの名前も保管されている.
         """
+        self.batch_size = train_config["optimizer"]["batch_size"]
+
         self.preprocessed_path = filepath
         self.basename = self.process_meta(filename)
         self.sort = sort
