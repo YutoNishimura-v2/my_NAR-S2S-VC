@@ -260,6 +260,7 @@
     - dataset: JSUT_JSSSで, source: JSUT
     - options
         - training
+        - batch_size = 12: 謎のエラーとして出るから注意.
     
     - memo
         - 設定が違うので, trainingからする必要あり...。

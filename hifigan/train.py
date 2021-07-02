@@ -13,12 +13,12 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
-from .env import AttrDict, build_env
-from .meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
-from .models import (Generator, MultiPeriodDiscriminator,
+from env import AttrDict, build_env
+from meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
+from models import (Generator, MultiPeriodDiscriminator,
                      MultiScaleDiscriminator, discriminator_loss, feature_loss,
                      generator_loss)
-from .utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
+from utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
                     scan_checkpoint)
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -141,6 +141,8 @@ def train(rank, a, h):
             if rank == 0:
                 start_b = time.time()
             x, y, _, y_mel = batch
+            print(y.size())
+            print(y_mel.size())
             x = torch.autograd.Variable(x.to(device, non_blocking=True))
             y = torch.autograd.Variable(y.to(device, non_blocking=True))
             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
