@@ -6,7 +6,6 @@ import torch
 import yaml
 from torch.utils.data import DataLoader
 import numpy as np
-from yaml import loader
 
 from utils.model import get_model, get_vocoder
 from utils.tools import to_device, synth_samples, mel_denormalize
@@ -162,6 +161,8 @@ if __name__ == "__main__":
         shutil.copy(os.path.join(args.input_path, "val.txt"), args.output_path)
 
         dataset = SourceDataset("inference.txt", args.input_path, train_config)
+
+        os.makedirs(os.path.join(args.output_path, "mels"), exist_ok=True)
 
     dataloader = DataLoader(
         dataset,
