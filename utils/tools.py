@@ -133,18 +133,26 @@ def expand(values, durations):
     return np.array(out)
 
 
-def mel_denormalize(mel, preprocess_config):
+def mel_denormalize(mels: torch.Tensor, preprocess_config):
     # melの正規化を元に戻す.
+
+    mel_dim = mels.dim()
+    if mel_dim == 2:
+        # (dim, time)
+        mels = mels.unsqueeze(0)
+
+    assert mels.size()[1] == preprocess_config["preprocessing"]["mel"]["n_mel_channels"]
     with open(
         os.path.join(preprocess_config["path"]["preprocessed_path"], "target", "stats.json")
     ) as f:
         stats = json.load(f)
         means = stats["mel_means"]
         stds = stats["mel_stds"]
-    for idx, (mean, std) in enumerate(zip(means, stds)):
-        mel[idx, :] = mel[idx, :] * std + mean
 
-    return mel
+    for idx, (mean, std) in enumerate(zip(means, stds)):
+        mels[:, idx, :] = mels[:, idx, :] * std + mean
+
+    return mels[0] if mel_dim == 2 else mels
 
 
 def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_config):
@@ -187,6 +195,7 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     # 基本targetのものを利用している.
     basename = targets[1][0]
     mel_len = predictions[9][0].item()
+    # melたちは, (time, dim)のように, 最後がmel_channel数.
     mel_target = targets[8][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
     pitch = targets[11][0, :mel_len].detach().cpu().numpy()
@@ -261,6 +270,8 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
     from .model import vocoder_infer
 
     mel_predictions = predictions[1].transpose(1, 2)
+    # これで, (batch, dim, time)になっている.
+    mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
     lengths = predictions[9] * preprocess_config["preprocessing"]["stft"]["hop_length"]
     wav_predictions = vocoder_infer(
         mel_predictions, vocoder, preprocess_config, lengths=lengths

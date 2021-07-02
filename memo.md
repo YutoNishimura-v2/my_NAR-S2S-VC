@@ -2,9 +2,7 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
-    - synth_samplesで, mel_denormalizeをする.
-        - transposeをしているので, どっちがどっちか分からないので、実行時確認.
-    - inference_melでも, transposeが必要か不必要か, hifi-ganに入れてみてから確認していく.
+    - hifi-ganのtrain
 
 ## 必要なもの
 - pyworld用

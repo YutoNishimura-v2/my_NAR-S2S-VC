@@ -245,3 +245,11 @@
             - layer = 5
 
         - annotation = 384
+
+    - memo
+        - ok.
+        - 40,000 stepが一番よさそう.
+        - さっそく, melを作成しに行く.
+
+- inference
+    - `python inference.py --restore_step 40000 --input_path ./preprocessed_data/JSUT_JSSS/source --output_path ./output/mel_for_hifi-gan/JSUT_2_JSSS -p ./output/log/JSUT_2_JSSS_7/preprocess.yaml -m ./output/log/JSUT_2_JSSS_7/model.yaml -t ./output/log/JSUT_2_JSSS_7/train.yaml --get_mel_for_hifigan`
