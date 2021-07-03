@@ -61,7 +61,6 @@ def train(rank, a, h):
         device = torch.device('cuda:{:d}'.format(rank))
     else:
         device = 'cpu'
-
     generator = Generator(h).to(device)
     mpd = MultiPeriodDiscriminator().to(device)
     msd = MultiScaleDiscriminator().to(device)
@@ -144,6 +143,7 @@ def train(rank, a, h):
         if h.num_gpus > 1:
             train_sampler.set_epoch(epoch)
         for _, batch in enumerate(train_loader):
+            print("dataloader load: ", time.time()-start)
             if rank == 0:
                 start_b = time.time()
             x, y, _, y_mel = batch
@@ -151,9 +151,15 @@ def train(rank, a, h):
             y = torch.autograd.Variable(y.to(device, non_blocking=True))
             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
             y = y.unsqueeze(1)
+            print("variable load: ", time.time()-start_b)
+            start_b = time.time()
             y_g_hat = generator(x)
+            print("generator: ", time.time()-start_b)
+            start_b = time.time()
             y_g_hat_mel = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
                                                  h.win_size, h.fmin, h.fmax_for_loss)
+            print("mel load: ", time.time()-start_b)
+            start_b = time.time()
 
             # MPD: multi period descriminator
             y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
@@ -169,6 +175,9 @@ def train(rank, a, h):
             optim_d.step()
             scheduler_d.step()
             optim_d.zero_grad()
+
+            print("loss time: ", time.time()-start_b)
+            start_b = time.time()
 
             # Generator
 
@@ -224,12 +233,18 @@ def train(rank, a, h):
                     with torch.no_grad():
                         for j, batch in enumerate(validation_loader):
                             # validationはbatch_size=1で固定.
+                            print("val dataloader load: ", time.time()-start_b)
+                            start_b = time.time()
                             x, y, _, y_mel = batch
                             y_g_hat = generator(x.to(device))
+                            print("val generator: ", time.time()-start_b)
+                            start_b = time.time()
                             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
                             y_g_hat_mel = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
                                                                  h.sampling_rate, h.hop_size, h.win_size,
                                                                  h.fmin, h.fmax_for_loss, max_audio_len=y.size()[1])
+                            print("val mel load: ", time.time()-start_b)
+                            start_b = time.time()
                             val_err_tot += F.l1_loss(y_mel, y_g_hat_mel).item()
 
                             if j <= 4:

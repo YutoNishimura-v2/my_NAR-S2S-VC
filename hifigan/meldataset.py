@@ -100,7 +100,7 @@ def mel_spectrogram_nars2s(y, n_fft, num_mels, sampling_rate, hop_size, win_size
         fmax
     )
 
-    mel = get_mel_from_wav(y, STFT, max_audio_len)
+    mel = get_mel_from_wav(y, STFT, max_audio_len).to(y.device)
 
     return mel.unsqueeze(0) if mel.dim() == 2 else mel
 
