@@ -56,10 +56,12 @@ def inference_mel(model, configs, loader, control_values, output_path):
                     d_control=duration_control
                 )
                 mel_predictions = output[1].transpose(1, 2)  # (batch, dim, time)へ.
+                mel_lens = output[9].item()
                 basenames = batch[0]
                 for i, mel in enumerate(mel_predictions):
                     mel = mel_denormalize(mel, preprocess_config)
                     mel = mel.cpu().numpy()
+                    mel = mel[:, :mel_lens[i]]
                     # vocoderとしてのinputは, dim, timeが想定されているみたい.
                     np.save(os.path.join(output_path, "mels", basenames[i]), mel)
 

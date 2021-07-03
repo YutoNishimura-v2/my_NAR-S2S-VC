@@ -145,6 +145,8 @@ class MelDataset(torch.utils.data.Dataset):
                 mel_start = random.randint(0, mel.size(2) - frames_per_seg - 1)
                 mel = mel[:, :, mel_start:mel_start + frames_per_seg]
                 audio = audio[:, mel_start * self.hop_size:(mel_start + frames_per_seg) * self.hop_size]
+                print(mel_start)
+                print(self.hop_size)
                 print(mel_start * self.hop_size)
                 print((mel_start + frames_per_seg) * self.hop_size)
             else:
