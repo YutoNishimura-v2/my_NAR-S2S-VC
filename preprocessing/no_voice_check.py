@@ -12,13 +12,13 @@ import yaml
 sys.path.append('.')
 
 from utils.utils import get_mels, plot_mels
-from preprocessor.n2c_voiceprocess import delete_novoice_from_path
+from preprocessing.n2c_voiceprocess import delete_novoice_from_path
 
 
 # ここだけ指定してください
 ########################
 config_base_path = "./config/JSUT_JSSS"
-shuffle = False
+shuffle = True
 ########################
 
 preprocess_config = yaml.load(open(os.path.join(config_base_path, "preprocess.yaml"),
@@ -62,10 +62,10 @@ t_mels_cut = get_mels(t_wav_paths, 80, preprocess_config)
 
 for i in range(len(s_mels)):
     plot_mels([s_mels[i], s_mels_cut[i]], [source_input_paths[i], s_wav_paths[i]],
-              preprocess_config["preprocessing"]["audio"]["sampling_rate"])
+              preprocess_config["preprocessing"]["audio"]["sampling_rate"], sharex=False)
 
 for i in range(len(t_mels)):
     plot_mels([t_mels[i], t_mels_cut[i]], [target_input_paths[i], t_wav_paths[i]],
-              preprocess_config["preprocessing"]["audio"]["sampling_rate"])
+              preprocess_config["preprocessing"]["audio"]["sampling_rate"], sharex=False)
 
 shutil.rmtree(tmp_dir)

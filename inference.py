@@ -10,7 +10,7 @@ import numpy as np
 from utils.model import get_model, get_vocoder
 from utils.tools import to_device, synth_samples, mel_denormalize
 from dataset import SourceDataset
-from preprocessor.inference_preprocessor import inference_preprocess
+from preprocessing.inference_preprocessor import inference_preprocess
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 

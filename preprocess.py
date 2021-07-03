@@ -8,9 +8,9 @@ import argparse
 
 import yaml
 
-from preprocessor.preprocessor import Preprocessor
-from preprocessor.n2c_voiceprocess import voice_preprocess
-from preprocessor.calc_duration import get_duration
+from preprocessing.preprocessor import Preprocessor
+from preprocessing.n2c_voiceprocess import voice_preprocess
+from preprocessing.calc_duration import get_duration
 
 
 if __name__ == "__main__":

@@ -74,7 +74,7 @@ def delete_novoice_from_path(input_path, output_path, preprocess_config):
         for chunk in chunks:
             audio_cut += chunk
 
-        audio_cut.export(opth.join(output_path, opth.basename(input_path)), format="wav")
+    audio_cut.export(opth.join(output_path, opth.basename(input_path)), format="wav")
 
 
 def delete_novoice(config):

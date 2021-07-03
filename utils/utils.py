@@ -10,8 +10,8 @@ import matplotlib.pyplot as plt
 import audio as Audio
 
 
-def plot_mels(mels: List[np.ndarray], wav_paths: List[str], sr: int) -> None:
-    fig, ax = plt.subplots(len(mels), 1, sharex=True, figsize=(15, 10))
+def plot_mels(mels: List[np.ndarray], wav_paths: List[str], sr: int, sharex: bool = True) -> None:
+    fig, ax = plt.subplots(len(mels), 1, sharex=sharex, figsize=(15, 10))
 
     if len(mels) == 1:
         ax = [ax]

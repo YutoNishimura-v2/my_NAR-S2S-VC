@@ -7,8 +7,8 @@ import os
 import json
 
 import audio as Audio
-from preprocessor.n2c_voiceprocess import load_and_save, delete_novoice_from_path
-from preprocessor.preprocessor import process_utterance, normalize, mel_normalize
+from preprocessing.n2c_voiceprocess import load_and_save, delete_novoice_from_path
+from preprocessing.preprocessor import process_utterance, normalize, mel_normalize
 
 
 def inference_preprocess(input_path, output_path, preprocess_config):
