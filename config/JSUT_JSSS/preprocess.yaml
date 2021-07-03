@@ -2,16 +2,19 @@ dataset: "JSUT_JSSS"
 
 path:
   source_raw_path: "./raw_data/JSUT_JSSS/JSUT"
-  source_prevoice_path: "./pre_voice/JSUT_JSSS/JSUT"
+  source_prevoice_path: "./pre_voice/JSUT_JSSS_2/JSUT"
   target_raw_path: "./raw_data/JSUT_JSSS/JSSS"
-  target_prevoice_path: "./pre_voice/JSUT_JSSS/JSSS"
-  preprocessed_path: "./preprocessed_data/JSUT_JSSS"  # out_dir. こっちはsource, targetで自動で分ける.
+  target_prevoice_path: "./pre_voice/JSUT_JSSS_2/JSSS"
+  preprocessed_path: "./preprocessed_data/JSUT_JSSS_2"  # out_dir. こっちはsource, targetで自動で分ける.
 
 preprocessing:
   val_size: 229 # 元は512  # 全データが3229個.
   audio:
     sampling_rate: 24000
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
+    min_silence_len: 50
+    silence_thresh: -50
+    keep_silence: 10
   stft:  # NARS2Sのpaperの値.
     filter_length: 2048  # number of FFT components
     hop_length: 300
@@ -22,4 +25,3 @@ preprocessing:
     mel_fmax: null # please set to 8000 for HiFi-GAN vocoder, set to null for MelGAN vocoder
                    # hifi-ganも, 1からtrainingするので, nullに設定してヨシ. nullとすれば, librosa.filters.melにおいて, 
                    # sampling_rate/2 をf_maxとしてmelを計算してくれる. そうじゃないとsr=24,000でやってる意味ない.
- 

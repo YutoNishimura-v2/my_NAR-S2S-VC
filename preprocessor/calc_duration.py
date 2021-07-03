@@ -12,7 +12,7 @@ import librosa
 import audio as Audio
 
 
-def calc_duration(ts_src: List[np.array]) -> np.array:
+def calc_duration(ts_src: List[np.ndarray], target_path: str) -> np.ndarray:
     """
     Args:
       ts_src: アライメントさせたい対象.
@@ -54,6 +54,10 @@ def calc_duration(ts_src: List[np.array]) -> np.array:
         b_p_t = p_t
         b_p_s = p_s
 
+    duration[b_p_s] += count if count > 0 else 0
+
+    assert np.sum(duration) == len(t_src), f"{target_path}にてdurationの不一致が置きました."
+
     return duration
 
 
@@ -80,7 +84,7 @@ def get_duration(config):
     source_wav_paths = np.sort(glob(opth.join(source_in_dir, "*.wav")))
     target_wav_paths = np.sort(glob(opth.join(target_in_dir, "*.wav")))
 
-    assert opth.basename(source_wav_paths[0]).replace("n_", "c_") == opth.basename(target_wav_paths[0])
+    assert opth.basename(source_wav_paths[0]) == opth.basename(target_wav_paths[0])
 
     for source_path, target_path in zip(source_wav_paths, target_wav_paths):
         source_wav, _ = librosa.load(
@@ -89,6 +93,6 @@ def get_duration(config):
             target_path, sr=config["preprocessing"]["audio"]["sampling_rate"])
         source_mel, _ = Audio.tools.get_mel_from_wav(source_wav, STFT)
         target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
-        duration = calc_duration([target_mel, source_mel])
+        duration = calc_duration([target_mel, source_mel], target_path)
         duration_filename = f"duration-{opth.basename(source_path).replace('.wav', '')}.npy"
         np.save(os.path.join(out_dir, "source", "duration", duration_filename), duration)

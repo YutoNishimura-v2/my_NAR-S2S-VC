@@ -38,7 +38,7 @@ def change_sr(config):
 def delete_novoice_from_path(input_path, output_path):
     for input_path in glob(opth.join(input_path, "*.wav")):
         audio = AudioSegment.from_wav(input_path)
-        chunks = split_on_silence(audio, min_silence_len=50, silence_thresh=-100, keep_silence=10)
+        chunks = split_on_silence(audio, min_silence_len=50, silence_thresh=-50, keep_silence=10)
         audio_cut = AudioSegment.empty()
         for chunk in chunks:
             audio_cut += chunk

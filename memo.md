@@ -2,6 +2,9 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
+    - durationを作成しなおし
+        - その際に, ちゃんと無音部分を切る.
+    - 作成しなおしたdurationとpre_voiceで再度train.
     - hifi-ganのtrain
 
 ## 必要なもの
@@ -170,6 +173,11 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
         - NARS2Sとロジックが違うせいで, ズレてしまうので, NARS2Sのもので統一.
         - valで, ズレるのはどこでやろうが仕方ないみたい.
         - なので, audioサイズで切り取ることにします(mel_spectrogram_nars2s). 
+
+        - NARS2SのものはGPU未対応なので, 超低速. 戻しました.
+    
+    - durationの計算間違えがあるよう.
+        - BASICの0290で, durationをsumしてもtargetのmelのtimeに届かない事案発生.
 
 # 読み解いていく.
 - 気になる点
