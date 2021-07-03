@@ -293,3 +293,9 @@
             - dilationは基本, upsampleでやっているみたい.
                 - resblockのdilationはpadなのでkernelと対応.
                 - 4回のupsampleをすべてかけてたらhop_sizeになるようにする.
+
+        - なぜか, melの計算が合わない問題...。
+            - 0002で実験.
+            - durationでも380が正解.
+            - source, targetのmelはともに380になっている.
+            - なぜか, generatorの出力をmel化したものだけ381になってしまう...。

@@ -2,19 +2,23 @@ import math
 import os
 import random
 
+import librosa
 import numpy as np
 import torch
 import torch.utils.data
 from librosa.filters import mel as librosa_mel_fn
 from librosa.util import normalize
-from scipy.io.wavfile import read
+
+from audio.stft import TacotronSTFT
 
 MAX_WAV_VALUE = 32768.0
 
 
-def load_wav(full_path):
-    sampling_rate, data = read(full_path)
-    return data, sampling_rate
+def load_wav(full_path, sr):
+    # sampling_rate, data = read(full_path)
+    wav, _ = librosa.load(
+        full_path, sr=sr)
+    return wav, sr
 
 
 def dynamic_range_compression(x, C=1, clip_val=1e-5):
@@ -73,6 +77,34 @@ def mel_spectrogram(y, n_fft, num_mels, sampling_rate, hop_size, win_size, fmin,
     return spec
 
 
+def mel_spectrogram_nars2s(y, n_fft, num_mels, sampling_rate, hop_size, win_size, fmin, fmax, max_audio_len=None):
+    # y: audio
+    # valは9000で切り取らないので, melにするとズレうる. なのでここで調整.
+    def get_mel_from_wav(audio, _stft, max_audio_len):
+        if max_audio_len is not None:
+            audio = audio[:, :max_audio_len]  # batchで来る想定.
+        audio = torch.clip(audio, -1, 1)
+        audio = torch.autograd.Variable(audio, requires_grad=False)
+        melspec, _ = _stft.mel_spectrogram(audio)
+        melspec = torch.squeeze(melspec, 0)
+
+        return melspec
+
+    STFT = TacotronSTFT(
+        n_fft,
+        hop_size,
+        win_size,
+        num_mels,
+        sampling_rate,
+        fmin,
+        fmax
+    )
+
+    mel = get_mel_from_wav(y, STFT, max_audio_len)
+
+    return mel.unsqueeze(0) if mel.dim() == 2 else mel
+
+
 def get_dataset_filelist(a):
     with open(os.path.join(a.input_mel_path, "train.txt"), 'r', encoding='utf-8') as fi:
         training_files = [os.path.join(a.input_wav_path, x + '.wav')
@@ -113,7 +145,7 @@ class MelDataset(torch.utils.data.Dataset):
     def __getitem__(self, index):
         filename = self.audio_files[index]
         if self._cache_ref_count == 0:
-            audio, sampling_rate = load_wav(filename)
+            audio, sampling_rate = load_wav(filename, self.sampling_rate)
             audio = audio / MAX_WAV_VALUE
             if not self.fine_tuning:  # もはやここでしかfinetuning使わない.
                 audio = normalize(audio) * 0.95
@@ -128,8 +160,6 @@ class MelDataset(torch.utils.data.Dataset):
 
         audio = torch.FloatTensor(audio)
         audio = audio.unsqueeze(0)
-        print(filename)
-        print(os.path.join(self.base_mels_path, os.path.splitext(os.path.split(filename)[-1])[0] + '.npy'))
         mel = np.load(
             os.path.join(self.base_mels_path, os.path.splitext(os.path.split(filename)[-1])[0] + '.npy'))
         mel = torch.from_numpy(mel)
@@ -140,27 +170,16 @@ class MelDataset(torch.utils.data.Dataset):
         if self.split:
             frames_per_seg = math.ceil(self.segment_size / self.hop_size)
             if audio.size(1) >= self.segment_size:
-                print(audio.size())
-                print(mel.size())
                 mel_start = random.randint(0, mel.size(2) - frames_per_seg - 1)
                 mel = mel[:, :, mel_start:mel_start + frames_per_seg]
                 audio = audio[:, mel_start * self.hop_size:(mel_start + frames_per_seg) * self.hop_size]
-                print(mel_start)
-                print(self.hop_size)
-                print(mel_start * self.hop_size)
-                print((mel_start + frames_per_seg) * self.hop_size)
             else:
                 mel = torch.nn.functional.pad(mel, (0, frames_per_seg - mel.size(2)), 'constant')
                 audio = torch.nn.functional.pad(audio, (0, self.segment_size - audio.size(1)), 'constant')
 
-        print(mel.size())
-        print(audio.size())
-        print("=====")
-        a
         # loss用のmel??
-        mel_loss = mel_spectrogram(audio, self.n_fft, self.num_mels,
-                                   self.sampling_rate, self.hop_size, self.win_size, self.fmin, self.fmax_loss,
-                                   center=False)
+        mel_loss = mel_spectrogram_nars2s(audio, self.n_fft, self.num_mels,
+                                          self.sampling_rate, self.hop_size, self.win_size, self.fmin, self.fmax_loss)
 
         return (mel.squeeze(), audio.squeeze(0), filename, mel_loss.squeeze())
 

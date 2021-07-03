@@ -2,9 +2,9 @@ import argparse
 import itertools
 import json
 import os
+import sys
 import time
 import warnings
-import sys
 
 import torch
 import torch.multiprocessing as mp
@@ -15,11 +15,13 @@ from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
 sys.path.append('.')
+
 from hifigan.env import AttrDict, build_env
-from hifigan.meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
+from hifigan.meldataset import (MelDataset, get_dataset_filelist,
+                                mel_spectrogram_nars2s)
 from hifigan.models import (Generator, MultiPeriodDiscriminator,
-                            MultiScaleDiscriminator, discriminator_loss, feature_loss,
-                            generator_loss)
+                            MultiScaleDiscriminator, discriminator_loss,
+                            feature_loss, generator_loss)
 from hifigan.utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
                            scan_checkpoint)
 
@@ -145,19 +147,14 @@ def train(rank, a, h):
             if rank == 0:
                 start_b = time.time()
             x, y, _, y_mel = batch
-            print(x.size())
-            print(y.size())
-            print(y_mel.size())
             x = torch.autograd.Variable(x.to(device, non_blocking=True))
             y = torch.autograd.Variable(y.to(device, non_blocking=True))
             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
             y = y.unsqueeze(1)
-
             y_g_hat = generator(x)
-            y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
-                                          h.win_size, h.fmin, h.fmax_for_loss)
-            print(y_g_hat.size())
-            print(y_g_hat_mel.size())
+            y_g_hat_mel = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
+                                                 h.win_size, h.fmin, h.fmax_for_loss)
+
             # MPD: multi period descriminator
             y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
             loss_disc_f, losses_disc_f_r, losses_disc_f_g = discriminator_loss(y_df_hat_r, y_df_hat_g)
@@ -169,8 +166,8 @@ def train(rank, a, h):
             loss_disc_all = loss_disc_s + loss_disc_f
 
             loss_disc_all.backward()
-            scheduler_d.step()
             optim_d.step()
+            scheduler_d.step()
             optim_d.zero_grad()
 
             # Generator
@@ -187,8 +184,8 @@ def train(rank, a, h):
             loss_gen_all = loss_gen_s + loss_gen_f + loss_fm_s + loss_fm_f + loss_mel
 
             loss_gen_all.backward()
-            scheduler_g.step()
             optim_g.step()
+            scheduler_g.step()
             optim_g.zero_grad()
 
             if rank == 0:
@@ -226,12 +223,13 @@ def train(rank, a, h):
                     val_err_tot = 0
                     with torch.no_grad():
                         for j, batch in enumerate(validation_loader):
+                            # validationはbatch_size=1で固定.
                             x, y, _, y_mel = batch
                             y_g_hat = generator(x.to(device))
                             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
-                            y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate,
-                                                          h.hop_size, h.win_size,
-                                                          h.fmin, h.fmax_for_loss)
+                            y_g_hat_mel = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
+                                                                 h.sampling_rate, h.hop_size, h.win_size,
+                                                                 h.fmin, h.fmax_for_loss, max_audio_len=y.size()[1])
                             val_err_tot += F.l1_loss(y_mel, y_g_hat_mel).item()
 
                             if j <= 4:
@@ -240,9 +238,9 @@ def train(rank, a, h):
                                     sw.add_figure('gt/y_spec_{}'.format(j), plot_spectrogram(x[0]), steps)
 
                                 sw.add_audio('generated/y_hat_{}'.format(j), y_g_hat[0], steps, h.sampling_rate)
-                                y_hat_spec = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
-                                                             h.sampling_rate, h.hop_size, h.win_size,
-                                                             h.fmin, h.fmax)
+                                y_hat_spec = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
+                                                                    h.sampling_rate, h.hop_size, h.win_size,
+                                                                    h.fmin, h.fmax)
                                 sw.add_figure('generated/y_hat_spec_{}'.format(j),
                                               plot_spectrogram(y_hat_spec.squeeze(0).cpu().numpy()), steps)
 
