@@ -16,10 +16,10 @@ from torch.utils.tensorboard import SummaryWriter
 from env import AttrDict, build_env
 from meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
 from models import (Generator, MultiPeriodDiscriminator,
-                     MultiScaleDiscriminator, discriminator_loss, feature_loss,
-                     generator_loss)
+                    MultiScaleDiscriminator, discriminator_loss, feature_loss,
+                    generator_loss)
 from utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
-                    scan_checkpoint)
+                   scan_checkpoint)
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -53,7 +53,10 @@ def train(rank, a, h):
                            world_size=h.dist_config['world_size'] * h.num_gpus, rank=rank)
 
     torch.cuda.manual_seed(h.seed)
-    device = torch.device('cuda:{:d}'.format(rank))
+    if torch.cuda.is_available() is True:
+        device = torch.device('cuda:{:d}'.format(rank))
+    else:
+        device = 'cpu'
 
     generator = Generator(h).to(device)
     mpd = MultiPeriodDiscriminator().to(device)
@@ -152,8 +155,6 @@ def train(rank, a, h):
             y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
                                           h.win_size, h.fmin, h.fmax_for_loss)
 
-            optim_d.zero_grad()
-
             # MPD: multi period descriminator
             y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
             loss_disc_f, losses_disc_f_r, losses_disc_f_g = discriminator_loss(y_df_hat_r, y_df_hat_g)
@@ -165,10 +166,11 @@ def train(rank, a, h):
             loss_disc_all = loss_disc_s + loss_disc_f
 
             loss_disc_all.backward()
+            scheduler_d.step()
             optim_d.step()
+            optim_d.zero_grad()
 
             # Generator
-            optim_g.zero_grad()
 
             # L1 Mel-Spectrogram Loss  # melのlossもみるみたい.
             loss_mel = F.l1_loss(y_mel, y_g_hat_mel) * 45
@@ -182,7 +184,9 @@ def train(rank, a, h):
             loss_gen_all = loss_gen_s + loss_gen_f + loss_fm_s + loss_fm_f + loss_mel
 
             loss_gen_all.backward()
+            scheduler_g.step()
             optim_g.step()
+            optim_g.zero_grad()
 
             if rank == 0:
                 # STDOUT logging
@@ -245,9 +249,6 @@ def train(rank, a, h):
                     generator.train()
 
             steps += 1
-
-        scheduler_g.step()
-        scheduler_d.step()
 
         if rank == 0:
             print('Time taken for epoch {} is {} sec\n'.format(epoch + 1, int(time.time() - start)))
