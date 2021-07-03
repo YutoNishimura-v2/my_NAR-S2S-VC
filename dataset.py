@@ -274,6 +274,7 @@ class SourceDataset(Dataset):
         s_energies = [data[idx]["s_energy"] for idx in idxs]
         if self.duration_force is True:
             s_durations = [data[idx]["s_duration"] for idx in idxs]
+            t_mel_lens = np.sum(s_durations, axis=1)
             s_durations = pad_1D(s_durations)
 
         # textとmelのlenを取得.
@@ -295,7 +296,9 @@ class SourceDataset(Dataset):
                 max(s_mel_lens),
                 s_pitches,
                 s_energies,
-                s_durations
+                s_durations,
+                t_mel_lens,
+                max(t_mel_lens)
             )
         else:
             return (
@@ -349,7 +352,7 @@ if __name__ == "__main__":
     )
 
     train_dataset = TrainDataset(
-        "train.txt", preprocess_config, train_config, sort=True, drop_last=True
+        "train.txt", preprocess_config, train_config, sort=True, drop_last=False
     )
     val_dataset = TrainDataset(
         "val.txt", preprocess_config, train_config, sort=False, drop_last=False
@@ -374,6 +377,9 @@ if __name__ == "__main__":
 
     for batchs in train_loader:
         for batch in batchs:
+            print("source_mel_lens: ", batch[3])
+            print("duration sum: ", np.sum(batch[7], axis=1))
+            print("target_mel_lens: ", batch[9])
             to_device(batch, device)
             max_ = max(max_, np.max(batch[9]))
             min_ = min(min_, np.min(batch[9]))
