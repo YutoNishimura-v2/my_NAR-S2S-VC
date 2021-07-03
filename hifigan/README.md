@@ -9,16 +9,16 @@
     - input_wav_path
         - *.wav: pre_voiceに入った, 変換先wav.
 
+    - 注意
+        - melは, teacher forcingで作らないと, melと音声が合わない.
+        - つまり, durationだけ正解を与えて推論するしかない.
+
 - output_path
     - (finetuningに用いる最初の重みを投入する)
 
 ## 使い方
-### train(fine tuning)
+### train
 - trainするときはさすがにcwdはhifi-ganにしようね.
-
-- 基本, finetuningで. universalが良さそうなので, [こちら](https://drive.google.com/drive/folders/1YuOoV3lO2-Hhn1F2HJ2aQ4S0LC1JdKLd)を利用する.
-
-- 重みを保存するフォルダを作成し, その中に↑これを入れる.
 
 - また, input_pathも作り, 想定は上述.
 

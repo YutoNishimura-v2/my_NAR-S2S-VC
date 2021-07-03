@@ -63,7 +63,7 @@ def train(rank, a, h):
     msd = MultiScaleDiscriminator().to(device)
 
     if rank == 0:
-        print(generator)
+        # print(generator)
         os.makedirs(a.checkpoint_path, exist_ok=True)
         print("checkpoints directory : ", a.checkpoint_path)
 
@@ -139,11 +139,11 @@ def train(rank, a, h):
 
         if h.num_gpus > 1:
             train_sampler.set_epoch(epoch)
-
         for _, batch in enumerate(train_loader):
             if rank == 0:
                 start_b = time.time()
             x, y, _, y_mel = batch
+            print(x.size())
             print(y.size())
             print(y_mel.size())
             x = torch.autograd.Variable(x.to(device, non_blocking=True))
@@ -154,7 +154,8 @@ def train(rank, a, h):
             y_g_hat = generator(x)
             y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
                                           h.win_size, h.fmin, h.fmax_for_loss)
-
+            print(y_g_hat.size())
+            print(y_g_hat_mel.size())
             # MPD: multi period descriminator
             y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
             loss_disc_f, losses_disc_f_r, losses_disc_f_g = discriminator_loss(y_df_hat_r, y_df_hat_g)

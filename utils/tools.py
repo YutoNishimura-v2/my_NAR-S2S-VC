@@ -79,6 +79,17 @@ def to_device(data, device):
 
         return (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies)
 
+    if len(data) == 7:  # infe, duration_forcing用.
+        (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies, s_durations) = data
+
+        s_mels = torch.from_numpy(s_mels).float().to(device)
+        s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
+        s_pitches = torch.from_numpy(s_pitches).float().to(device)
+        s_energies = torch.from_numpy(s_energies).to(device)
+        s_durations = torch.from_numpy(s_durations).to(device)
+
+        return (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies, s_durations)
+  
 
 def log(
     logger, step=None, losses=None, fig=None, audio=None, sampling_rate=22050, tag=""

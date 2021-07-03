@@ -160,7 +160,7 @@ if __name__ == "__main__":
         shutil.copy(os.path.join(args.input_path, "train.txt"), args.output_path)
         shutil.copy(os.path.join(args.input_path, "val.txt"), args.output_path)
 
-        dataset = SourceDataset("inference.txt", args.input_path, train_config)
+        dataset = SourceDataset("inference.txt", args.input_path, train_config, duration_force=True)
 
         os.makedirs(os.path.join(args.output_path, "mels"), exist_ok=True)
 

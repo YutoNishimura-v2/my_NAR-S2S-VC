@@ -191,7 +191,7 @@ class TrainDataset(Dataset):
 
 
 class SourceDataset(Dataset):
-    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False):
+    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False, duration_force=False):
         """
         Args:
           filepath: 処理したい音声の直上フォルダを指定.
@@ -204,6 +204,7 @@ class SourceDataset(Dataset):
         self.basename = self.process_meta(filename)
         self.sort = sort
         self.drop_last = drop_last
+        self.duration_force = duration_force
 
     def __len__(self):
         return len(self.basename)
@@ -232,12 +233,27 @@ class SourceDataset(Dataset):
         )
         energy = np.load(energy_path)
 
-        sample = {
-            "id": basename,
-            "s_mel": mel,
-            "s_pitch": pitch,
-            "s_energy": energy,
-        }
+        if self.duration_force is True:
+            duration_path = os.path.join(
+                self.preprocessed_path,
+                "duration",
+                "duration-{}.npy".format(basename),
+            )
+            duration = np.load(duration_path)
+            sample = {
+                "id": basename,
+                "s_mel": mel,
+                "s_pitch": pitch,
+                "s_energy": energy,
+                "s_duration": duration
+            }
+        else:
+            sample = {
+                "id": basename,
+                "s_mel": mel,
+                "s_pitch": pitch,
+                "s_energy": energy,
+            }
 
         return sample
 
@@ -256,6 +272,9 @@ class SourceDataset(Dataset):
         s_mels = [data[idx]["s_mel"] for idx in idxs]
         s_pitches = [data[idx]["s_pitch"] for idx in idxs]
         s_energies = [data[idx]["s_energy"] for idx in idxs]
+        if self.duration_force is True:
+            s_durations = [data[idx]["s_duration"] for idx in idxs]
+            s_durations = pad_1D(s_durations)
 
         # textとmelのlenを取得.
         s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
@@ -267,14 +286,26 @@ class SourceDataset(Dataset):
         s_energies = pad_1D(s_energies)
 
         # ついでにmaxの値も返す.
-        return (
-            ids,
-            s_mels,
-            s_mel_lens,
-            max(s_mel_lens),
-            s_pitches,
-            s_energies,
-        )
+
+        if self.duration_force is True:
+            return (
+                ids,
+                s_mels,
+                s_mel_lens,
+                max(s_mel_lens),
+                s_pitches,
+                s_energies,
+                s_durations
+            )
+        else:
+            return (
+                ids,
+                s_mels,
+                s_mel_lens,
+                max(s_mel_lens),
+                s_pitches,
+                s_energies,
+            )
 
     def collate_fn(self, data):
         data_size = len(data)

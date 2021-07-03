@@ -99,10 +99,14 @@ class Generator(torch.nn.Module):
         self.conv_post.apply(init_weights)
 
     def forward(self, x):
+        print("in generator...")
+        print(x.size())
         x = self.conv_pre(x)
+        print(x.size())
         for i in range(self.num_upsamples):
             x = F.leaky_relu(x, LRELU_SLOPE)
             x = self.ups[i](x)
+            print(x.size())
             xs = None
             for j in range(self.num_kernels):
                 if xs is None:
@@ -110,9 +114,12 @@ class Generator(torch.nn.Module):
                 else:
                     xs += self.resblocks[i*self.num_kernels+j](x)
             x = xs / self.num_kernels
+            print(x.size())
         x = F.leaky_relu(x)
         x = self.conv_post(x)
         x = torch.tanh(x)
+        print(x.size())
+        print("out generator...")
 
         return x
 
