@@ -178,8 +178,8 @@ class MelDataset(torch.utils.data.Dataset):
                 audio = torch.nn.functional.pad(audio, (0, self.segment_size - audio.size(1)), 'constant')
 
         # loss用のmel??
-        mel_loss = mel_spectrogram_nars2s(audio, self.n_fft, self.num_mels,
-                                          self.sampling_rate, self.hop_size, self.win_size, self.fmin, self.fmax_loss)
+        mel_loss = mel_spectrogram(audio, self.n_fft, self.num_mels,
+                                   self.sampling_rate, self.hop_size, self.win_size, self.fmin, self.fmax_loss)
 
         return (mel.squeeze(), audio.squeeze(0), filename, mel_loss.squeeze())
 

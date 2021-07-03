@@ -18,12 +18,13 @@ sys.path.append('.')
 
 from hifigan.env import AttrDict, build_env
 from hifigan.meldataset import (MelDataset, get_dataset_filelist,
-                                mel_spectrogram_nars2s)
+                                mel_spectrogram)
 from hifigan.models import (Generator, MultiPeriodDiscriminator,
                             MultiScaleDiscriminator, discriminator_loss,
                             feature_loss, generator_loss)
 from hifigan.utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
                            scan_checkpoint)
+
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
@@ -156,8 +157,8 @@ def train(rank, a, h):
             y_g_hat = generator(x)
             print("generator: ", time.time()-start_b)
             start_b = time.time()
-            y_g_hat_mel = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
-                                                 h.win_size, h.fmin, h.fmax_for_loss)
+            y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
+                                          h.win_size, h.fmin, h.fmax_for_loss)
             print("mel load: ", time.time()-start_b)
             start_b = time.time()
 
@@ -240,9 +241,9 @@ def train(rank, a, h):
                             print("val generator: ", time.time()-start_b)
                             start_b = time.time()
                             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
-                            y_g_hat_mel = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
-                                                                 h.sampling_rate, h.hop_size, h.win_size,
-                                                                 h.fmin, h.fmax_for_loss, max_audio_len=y.size()[1])
+                            y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
+                                                          h.sampling_rate, h.hop_size, h.win_size,
+                                                          h.fmin, h.fmax_for_loss)
                             print("val mel load: ", time.time()-start_b)
                             start_b = time.time()
                             val_err_tot += F.l1_loss(y_mel, y_g_hat_mel).item()
@@ -253,9 +254,9 @@ def train(rank, a, h):
                                     sw.add_figure('gt/y_spec_{}'.format(j), plot_spectrogram(x[0]), steps)
 
                                 sw.add_audio('generated/y_hat_{}'.format(j), y_g_hat[0], steps, h.sampling_rate)
-                                y_hat_spec = mel_spectrogram_nars2s(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
-                                                                    h.sampling_rate, h.hop_size, h.win_size,
-                                                                    h.fmin, h.fmax)
+                                y_hat_spec = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
+                                                             h.sampling_rate, h.hop_size, h.win_size,
+                                                             h.fmin, h.fmax)
                                 sw.add_figure('generated/y_hat_spec_{}'.format(j),
                                               plot_spectrogram(y_hat_spec.squeeze(0).cpu().numpy()), steps)
 
