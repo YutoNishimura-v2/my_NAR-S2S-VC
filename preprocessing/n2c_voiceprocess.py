@@ -9,6 +9,7 @@ from glob import glob
 import os.path as opth
 import os
 
+from tqdm import tqdm
 import soundfile as sf
 import librosa
 from pydub import AudioSegment
@@ -19,7 +20,7 @@ def load_and_save(input_path, output_path, sr):
     """
     sr以外, つまり, monoと16bitなのは固定.
     """
-    for wav_path in glob(opth.join(input_path, "*.wav")):
+    for wav_path in tqdm(glob(opth.join(input_path, "*.wav"))):
         y, sr = librosa.core.load(wav_path, sr=sr, mono=True)  # 22050Hz、モノラルで読み込み
         sf.write(opth.join(output_path, opth.basename(wav_path)), y, sr, subtype="PCM_16")
 
@@ -82,9 +83,9 @@ def delete_novoice(config):
     source_prevoice_path = config["path"]["source_prevoice_path"]
     target_prevoice_path = config["path"]["target_prevoice_path"]
 
-    for s_wav_path in glob(os.path.join(source_prevoice_path, '*.wav')):
+    for s_wav_path in tqdm(glob(os.path.join(source_prevoice_path, '*.wav'))):
         delete_novoice_from_path(s_wav_path, source_prevoice_path, config)
-    for t_wav_path in glob(os.path.join(target_prevoice_path, '*.wav')):
+    for t_wav_path in tqdm(glob(os.path.join(target_prevoice_path, '*.wav'))):
         delete_novoice_from_path(t_wav_path, target_prevoice_path, config)
 
 

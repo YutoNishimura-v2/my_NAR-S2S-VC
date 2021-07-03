@@ -6,6 +6,7 @@ import librosa
 import numpy as np
 import pyworld as pw
 from sklearn.preprocessing import StandardScaler
+from tqdm import tqdm
 
 import audio as Audio
 
@@ -59,7 +60,7 @@ class Preprocessor:
             mel_scalers = [StandardScaler() for _ in range(self.n_mel_channels)]
             source_or_target = ["source", "target"][i]
 
-            for wav_name in os.listdir(input_dir):
+            for wav_name in tqdm(os.listdir(input_dir)):
                 if ".wav" not in wav_name:
                     continue
 

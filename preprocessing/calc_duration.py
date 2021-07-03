@@ -8,6 +8,7 @@ import numpy as np
 from scipy.spatial.distance import cityblock
 from fastdtw import fastdtw
 import librosa
+from tqdm import tqdm
 
 import audio as Audio
 
@@ -89,7 +90,7 @@ def get_duration(config):
 
     assert opth.basename(source_wav_paths[0]) == opth.basename(target_wav_paths[0])
 
-    for source_path, target_path in zip(source_wav_paths, target_wav_paths):
+    for source_path, target_path in tqdm(zip(source_wav_paths, target_wav_paths)):
         source_wav, _ = librosa.load(
             source_path, sr=config["preprocessing"]["audio"]["sampling_rate"])
         target_wav, _ = librosa.load(
