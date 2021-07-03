@@ -1,6 +1,6 @@
 """
 Examples:
->>> python preprocess.py config/N2C/preprocess.yaml
+>>> python preprocess.py config/JSUT_JSSS/preprocess.yaml
 
 """
 

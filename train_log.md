@@ -302,3 +302,34 @@
             - 超凡ミスなコードミスでした.
         
             - melをNARS2Sのものから戻したら超高速化出来た。おそらくGPU対応していなかったんだろう...。
+
+        - そして普通にdurationのミスが発覚...。
+
+- NARS2S: データ用意
+    - options
+        - source_raw_path: "./raw_data/JSUT_JSSS/JSUT"
+        - source_prevoice_path: "./pre_voice/JSUT_JSSS_2/JSUT"
+        - target_raw_path: "./raw_data/JSUT_JSSS/JSSS"
+        - target_prevoice_path: "./pre_voice/JSUT_JSSS_2/JSSS"
+        - preprocessed_path: "./preprocessed_data/JSUT_JSSS_2"
+
+- NARS2S_9回目
+    - date: 20210703
+    - output_folder_name: JSUT_2_JSSS_8
+    - dataset: JSUT_JSSS
+    - options
+        - pitch
+            - stop_gradient_flow = True
+            - layer = 5
+        - energy
+            - stop_gradient_flow = False
+            - layer = 5
+        - duration
+            - stop_gradient_flow = True
+            - layer = 5
+
+        - annotation = 384
+    
+    - memo
+        - durationを間違えていたので, やり直し.
+        - ついでに, ちゃんと無音区間を消すことにした.

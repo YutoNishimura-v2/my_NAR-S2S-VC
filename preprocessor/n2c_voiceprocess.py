@@ -35,10 +35,12 @@ def change_sr(config):
     load_and_save(target_raw_path, target_prevoice_path, sr)
 
 
-def delete_novoice_from_path(input_path, output_path):
+def delete_novoice_from_path(input_path, output_path, preprocess_config):
     for input_path in glob(opth.join(input_path, "*.wav")):
         audio = AudioSegment.from_wav(input_path)
-        chunks = split_on_silence(audio, min_silence_len=50, silence_thresh=-50, keep_silence=10)
+        chunks = split_on_silence(audio, min_silence_len=preprocess_config["preprocessing"]["audio"]["min_silence_len"],
+                                  silence_thresh=preprocess_config["preprocessing"]["audio"]["silence_thresh"],
+                                  keep_silence=preprocess_config["preprocessing"]["audio"]["keep_silence"])
         audio_cut = AudioSegment.empty()
         for chunk in chunks:
             audio_cut += chunk
@@ -50,8 +52,8 @@ def delete_novoice(config):
     source_prevoice_path = config["path"]["source_prevoice_path"]
     target_prevoice_path = config["path"]["target_prevoice_path"]
 
-    delete_novoice_from_path(source_prevoice_path, source_prevoice_path)
-    delete_novoice_from_path(target_prevoice_path, target_prevoice_path)
+    delete_novoice_from_path(source_prevoice_path, source_prevoice_path, config)
+    delete_novoice_from_path(target_prevoice_path, target_prevoice_path, config)
 
 
 def voice_preprocess(config):

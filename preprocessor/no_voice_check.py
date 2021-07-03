@@ -19,24 +19,29 @@ from utils.utils import get_mels, plot_mels
 # ここだけ指定してください
 ########################
 config_base_path = "./config/JSUT_JSSS"
+shuffle = False
 ########################
 
 preprocess_config = yaml.load(open(os.path.join(config_base_path, "preprocess.yaml"),
                               "r", encoding='utf-8'), Loader=yaml.FullLoader)
 
 # 使うデータ
-source_input_paths = glob(os.path.join(preprocess_config["path"]["source_raw_path"], '*.wav'))
-target_input_paths = glob(os.path.join(preprocess_config["path"]["target_raw_path"], '*.wav'))
+source_input_paths = np.array(glob(os.path.join(preprocess_config["path"]["source_raw_path"], '*.wav')))
+target_input_paths = np.array(glob(os.path.join(preprocess_config["path"]["target_raw_path"], '*.wav')))
 
 assert len(source_input_paths) == len(target_input_paths)
 
-indexes = np.random.permutation(len(source_input_paths))[:5]
-
-source_input_paths = np.array(source_input_paths)[indexes]
-target_input_paths = np.array(target_input_paths)[indexes]
+if shuffle is True:
+    indexes = np.random.permutation(len(source_input_paths))[:5]
+    source_input_paths = source_input_paths[indexes]
+    target_input_paths = target_input_paths[indexes]
+else:
+    source_input_paths = source_input_paths[:5]
+    target_input_paths = target_input_paths[:5]
 
 tmp_dir = "./tmp_for_novoicecheck"
-os.makedirs(tmp_dir, exist_ok=True)
+os.makedirs(os.path.join(tmp_dir, "source"), exist_ok=True)
+os.makedirs(os.path.join(tmp_dir, "target"), exist_ok=True)
 
 s_wav_paths = []
 t_wav_paths = []

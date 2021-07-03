@@ -38,7 +38,7 @@ def inference_preprocess(input_path, output_path, preprocess_config):
     load_and_save(input_path, output_path, sr)
 
     # 無音区間の削除
-    delete_novoice_from_path(output_path, output_path)
+    delete_novoice_from_path(output_path, output_path, preprocess_config)
 
     # ここから, 入力に用いるmelやpitchなどを作りに行く.
 

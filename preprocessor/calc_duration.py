@@ -56,7 +56,10 @@ def calc_duration(ts_src: List[np.ndarray], target_path: str) -> np.ndarray:
 
     duration[b_p_s] += count if count > 0 else 0
 
-    assert np.sum(duration) == len(t_src), f"{target_path}にてdurationの不一致が置きました."
+    assert np.sum(duration) == t_src.shape[1], f"""{target_path}にてdurationの不一致がおきました\n
+    duration: {duration}\n
+    np.sum(duration): {np.sum(duration)}\n
+    len(t_src): {len(t_src)}"""
 
     return duration
 

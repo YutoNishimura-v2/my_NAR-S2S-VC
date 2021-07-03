@@ -13,7 +13,7 @@ preprocessing:
     sampling_rate: 24000
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
     min_silence_len: 50
-    silence_thresh: -50
+    silence_thresh: -55
     keep_silence: 10
   stft:  # NARS2Sのpaperの値.
     filter_length: 2048  # number of FFT components
