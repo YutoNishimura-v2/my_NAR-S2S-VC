@@ -236,14 +236,19 @@ def train(rank, a, h):
                             # validationはbatch_size=1で固定.
                             print("val dataloader load: ", time.time()-start_b)
                             start_b = time.time()
-                            x, y, _, y_mel = batch
+                            x, y, filename, y_mel = batch
                             y_g_hat = generator(x.to(device))
                             print("val generator: ", time.time()-start_b)
                             start_b = time.time()
                             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
+                            print("file_name: ", filename)
+                            print("x: ", x.size())
+                            print("y: ", y.size())
+                            print("y_mel: ", y_mel.size())
+                            print("y_g_hat: ", y_g_hat.size())
                             y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
                                                           h.sampling_rate, h.hop_size, h.win_size,
-                                                          h.fmin, h.fmax_for_loss)
+                                                          h.fmin, h.fmax_for_loss, max_audio_len=y.size()[1])
                             print("val mel load: ", time.time()-start_b)
                             start_b = time.time()
                             val_err_tot += F.l1_loss(y_mel, y_g_hat_mel).item()
