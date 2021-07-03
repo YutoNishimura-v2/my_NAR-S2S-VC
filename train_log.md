@@ -333,3 +333,42 @@
     - memo
         - durationを間違えていたので, やり直し.
         - ついでに, ちゃんと無音区間を消すことにした.
+
+        - durationはよくなったがそれ以外が軒並み超絶悪化
+        - 先生の言葉を見返したら, 冒頭と末尾の無音を消せというお話だった.
+            - 途中は消さないほうが良さそう...。
+            - 先頭と最後尾のみを削除するコードに変更して再実行してみる.
+
+- NARS2S: データ用意
+    - options
+        - source_raw_path: "./raw_data/JSUT_JSSS/JSUT"
+        - source_prevoice_path: "./pre_voice/JSUT_JSSS_3/JSUT"
+        - target_raw_path: "./raw_data/JSUT_JSSS/JSSS"
+        - target_prevoice_path: "./pre_voice/JSUT_JSSS_3/JSSS"
+        - preprocessed_path: "./preprocessed_data/JSUT_JSSS_3"
+
+- NARS2S_10回目
+    - date: 20210703
+    - output_folder_name: JSUT_2_JSSS_9
+    - dataset: JSUT_JSSS
+    - options
+        - pitch
+            - stop_gradient_flow = True
+            - layer = 5
+        - energy
+            - stop_gradient_flow = False
+            - layer = 5
+        - duration
+            - stop_gradient_flow = True
+            - layer = 5
+
+        - annotation = 384
+    
+    - memo
+        - durationを間違えていたので, やり直し.
+        - ついでに, ちゃんと無音区間を消すことにした.
+
+        - durationはよくなったがそれ以外が軒並み超絶悪化
+        - 先生の言葉を見返したら, 冒頭と末尾の無音を消せというお話だった.
+            - 途中は消さないほうが良さそう...。
+            - 先頭と最後尾のみを削除するコードに変更して再実行してみる.

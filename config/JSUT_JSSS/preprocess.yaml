@@ -2,10 +2,10 @@ dataset: "JSUT_JSSS"
 
 path:
   source_raw_path: "./raw_data/JSUT_JSSS/JSUT"
-  source_prevoice_path: "./pre_voice/JSUT_JSSS_2/JSUT"
+  source_prevoice_path: "./pre_voice/JSUT_JSSS_3/JSUT"
   target_raw_path: "./raw_data/JSUT_JSSS/JSSS"
-  target_prevoice_path: "./pre_voice/JSUT_JSSS_2/JSSS"
-  preprocessed_path: "./preprocessed_data/JSUT_JSSS_2"  # out_dir. こっちはsource, targetで自動で分ける.
+  target_prevoice_path: "./pre_voice/JSUT_JSSS_3/JSSS"
+  preprocessed_path: "./preprocessed_data/JSUT_JSSS_3"  # out_dir. こっちはsource, targetで自動で分ける.
 
 preprocessing:
   val_size: 229 # 元は512  # 全データが3229個.
@@ -15,6 +15,7 @@ preprocessing:
     min_silence_len: 50
     silence_thresh: -55
     keep_silence: 10
+    head_tail_only: True
   stft:  # NARS2Sのpaperの値.
     filter_length: 2048  # number of FFT components
     hop_length: 300

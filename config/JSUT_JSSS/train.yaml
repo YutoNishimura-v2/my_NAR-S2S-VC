@@ -1,6 +1,6 @@
 path:
-  ckpt_path: "./output/ckpt/JSUT_2_JSSS_8"
-  log_path: "./output/log/JSUT_2_JSSS_8"
+  ckpt_path: "./output/ckpt/JSUT_2_JSSS_9"
+  log_path: "./output/log/JSUT_2_JSSS_9"
 optimizer:
   batch_size: 12  # default: 32
   betas: [0.9, 0.98]
