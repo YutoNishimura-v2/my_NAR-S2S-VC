@@ -274,7 +274,7 @@ class SourceDataset(Dataset):
         s_energies = [data[idx]["s_energy"] for idx in idxs]
         if self.duration_force is True:
             s_durations = [data[idx]["s_duration"] for idx in idxs]
-            t_mel_lens = np.sum(s_durations, axis=1)
+            t_mel_lens = np.sum(s_durations)
             s_durations = pad_1D(s_durations)
 
         # textとmelのlenを取得.
