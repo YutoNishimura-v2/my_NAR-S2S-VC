@@ -271,3 +271,7 @@
             - dilationは基本, upsampleでやっているみたい.
                 - resblockのdilationはpadなのでkernelと対応.
                 - 4回のupsampleをすべてかけてたらhop_sizeになるようにする.
+
+    - inference2
+        - 長さ合わない問題のために, durationをforcingすることに.
+        - `python inference.py --restore_step 40000 --input_path ./preprocessed_data/JSUT_JSSS/source --output_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_2 -p ./output/log/JSUT_2_JSSS_7/preprocess.yaml -m ./output/log/JSUT_2_JSSS_7/model.yaml -t ./output/log/JSUT_2_JSSS_7/train.yaml --get_mel_for_hifigan`
