@@ -275,3 +275,21 @@
     - inference2
         - 長さ合わない問題のために, durationをforcingすることに.
         - `python inference.py --restore_step 40000 --input_path ./preprocessed_data/JSUT_JSSS/source --output_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_2 -p ./output/log/JSUT_2_JSSS_7/preprocess.yaml -m ./output/log/JSUT_2_JSSS_7/model.yaml -t ./output/log/JSUT_2_JSSS_7/train.yaml --get_mel_for_hifigan`
+
+- Hifi-gan_2回目
+    - date: 20210703
+    - output_folder_name: JSUT_2_JSSS_2
+    - dataset: JSUT_JSSSで, source: JSUT
+    - options
+        - training
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - 設定が違うので, trainingからする必要あり...。
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_2 --input_wav_path ./pre_voice/JSUT_JSSS/JSSS --checkpoint_path ./hifigan/output/JSUT_2_JSSS_2 --config ./hifigan/configs/config_JSUT_JSSS.json`
+
+        - hop_length　= 300
+            - これにすると, 倍率から変える必要あり.
+            - dilationは基本, upsampleでやっているみたい.
+                - resblockのdilationはpadなのでkernelと対応.
+                - 4回のupsampleをすべてかけてたらhop_sizeになるようにする.

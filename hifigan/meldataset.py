@@ -128,7 +128,8 @@ class MelDataset(torch.utils.data.Dataset):
 
         audio = torch.FloatTensor(audio)
         audio = audio.unsqueeze(0)
-
+        print(filename)
+        print(os.path.join(self.base_mels_path, os.path.splitext(os.path.split(filename)[-1])[0] + '.npy'))
         mel = np.load(
             os.path.join(self.base_mels_path, os.path.splitext(os.path.split(filename)[-1])[0] + '.npy'))
         mel = torch.from_numpy(mel)
@@ -152,6 +153,7 @@ class MelDataset(torch.utils.data.Dataset):
 
         print(mel.size())
         print(audio.size())
+        print("=====")
         a
         # loss用のmel??
         mel_loss = mel_spectrogram(audio, self.n_fft, self.num_mels,

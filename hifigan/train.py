@@ -4,6 +4,7 @@ import json
 import os
 import time
 import warnings
+import sys
 
 import torch
 import torch.multiprocessing as mp
@@ -13,13 +14,14 @@ from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
 
-from .env import AttrDict, build_env
-from .meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
-from .models import (Generator, MultiPeriodDiscriminator,
-                     MultiScaleDiscriminator, discriminator_loss, feature_loss,
-                     generator_loss)
-from .utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
-                    scan_checkpoint)
+sys.path.append('.')
+from hifigan.env import AttrDict, build_env
+from hifigan.meldataset import MelDataset, get_dataset_filelist, mel_spectrogram
+from hifigan.models import (Generator, MultiPeriodDiscriminator,
+                            MultiScaleDiscriminator, discriminator_loss, feature_loss,
+                            generator_loss)
+from hifigan.utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
+                           scan_checkpoint)
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
 
