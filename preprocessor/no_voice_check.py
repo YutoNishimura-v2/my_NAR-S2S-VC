@@ -8,12 +8,11 @@ from glob import glob
 
 import numpy as np
 import yaml
-from pydub import AudioSegment
-from pydub.silence import split_on_silence
 
 sys.path.append('.')
 
 from utils.utils import get_mels, plot_mels
+from preprocessor.n2c_voiceprocess import delete_novoice_from_path
 
 
 # ここだけ指定してください
@@ -46,34 +45,27 @@ os.makedirs(os.path.join(tmp_dir, "target"), exist_ok=True)
 s_wav_paths = []
 t_wav_paths = []
 
-for i, (source_path, target_path) in enumerate(zip(source_input_paths, target_input_paths)):
-    s_audio = AudioSegment.from_wav(source_path)
-    t_audio = AudioSegment.from_wav(target_path)
+for source_path, target_path in zip(source_input_paths, target_input_paths):
+    output_path = opth.join(tmp_dir, "source")
+    s_wav_paths.append(os.path.join(output_path, os.path.basename(source_path)))
+    delete_novoice_from_path(source_path, output_path, preprocess_config)
 
-    for j, audio_ in enumerate([s_audio, t_audio]):
-        chunks = split_on_silence(audio_,
-                                  min_silence_len=preprocess_config["preprocessing"]["audio"]["min_silence_len"],
-                                  silence_thresh=preprocess_config["preprocessing"]["audio"]["silence_thresh"],
-                                  keep_silence=preprocess_config["preprocessing"]["audio"]["keep_silence"])
-        audio_cut = AudioSegment.empty()
-        for chunk in chunks:
-            audio_cut += chunk
+    output_path = opth.join(tmp_dir, "target")
+    t_wav_paths.append(os.path.join(output_path, os.path.basename(target_path)))
+    delete_novoice_from_path(target_path, output_path, preprocess_config)
 
-        if j == 0:
-            # source
-            output_path = opth.join(tmp_dir, "source", opth.basename(source_path))
-            s_wav_paths.append(output_path)
-        else:
-            output_path = opth.join(tmp_dir, "source", opth.basename(target_path))
-            t_wav_paths.append(output_path)
 
-        audio_cut.export(output_path, format="wav")
-
-s_mels = get_mels(s_wav_paths, 80, preprocess_config)
-t_mels = get_mels(s_wav_paths, 80, preprocess_config)
+s_mels = get_mels(source_input_paths.tolist(), 80, preprocess_config)
+s_mels_cut = get_mels(s_wav_paths, 80, preprocess_config)
+t_mels = get_mels(target_input_paths.tolist(), 80, preprocess_config)
+t_mels_cut = get_mels(t_wav_paths, 80, preprocess_config)
 
 for i in range(len(s_mels)):
-    plot_mels([s_mels[i], t_mels[i]], [s_wav_paths[i], t_wav_paths[i]],
+    plot_mels([s_mels[i], s_mels_cut[i]], [source_input_paths[i], s_wav_paths[i]],
+              preprocess_config["preprocessing"]["audio"]["sampling_rate"])
+
+for i in range(len(t_mels)):
+    plot_mels([t_mels[i], t_mels_cut[i]], [target_input_paths[i], t_wav_paths[i]],
               preprocess_config["preprocessing"]["audio"]["sampling_rate"])
 
 shutil.rmtree(tmp_dir)
