@@ -76,7 +76,7 @@ def train(rank, a, h):
         cp_g = scan_checkpoint(a.checkpoint_path, 'g_')
         cp_do = scan_checkpoint(a.checkpoint_path, 'do_')
 
-    steps = 1
+    steps = 0
     if cp_g is None or cp_do is None:
         state_dict_do = None
         last_epoch = -1
