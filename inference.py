@@ -6,6 +6,7 @@ import torch
 import yaml
 from torch.utils.data import DataLoader
 import numpy as np
+from tqdm import tqdm
 
 from utils.model import get_model, get_vocoder
 from utils.tools import to_device, synth_samples, mel_denormalize
@@ -19,7 +20,7 @@ def synthesize(model, configs, vocoder, loader, control_values, output_path):
     preprocess_config, model_config, _ = configs
     pitch_control, energy_control, duration_control = control_values
 
-    for batchs in loader:
+    for batchs in tqdm(loader):
         for batch in batchs:
             batch = to_device(batch, device)
             with torch.no_grad():
@@ -44,7 +45,7 @@ def inference_mel(model, configs, loader, control_values, output_path):
     preprocess_config, _, _ = configs
     pitch_control, energy_control, duration_control = control_values
 
-    for batchs in loader:
+    for batchs in tqdm(loader):
         for batch in batchs:
             batch = to_device(batch, device)
             with torch.no_grad():

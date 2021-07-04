@@ -372,3 +372,22 @@
         - 先生の言葉を見返したら, 冒頭と末尾の無音を消せというお話だった.
             - 途中は消さないほうが良さそう...。
             - 先頭と最後尾のみを削除するコードに変更して再実行してみる.
+
+        - 途中を消さないので再実行したら何とかなった。
+            - 精度はちょっと落ちたか？
+            - 正直、無音部分のほうが推定は簡単なので、そこが減った分lossが上がったと推察される.
+
+- inference
+    - `python inference.py --restore_step 50000 --input_path ./preprocessed_data/JSUT_JSSS_3/source --output_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_3 -p ./output/log/JSUT_2_JSSS_9/preprocess.yaml -m ./output/log/JSUT_2_JSSS_9/model.yaml -t ./output/log/JSUT_2_JSSS_9/train.yaml --get_mel_for_hifigan`
+
+- Hifi-gan_3回目
+    - date: 20210704
+    - output_folder_name: JSUT_2_JSSS_3
+    - dataset: JSUT_JSSSで, source: JSUT
+    - options
+        - training
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - 設定が違うので, trainingからする必要あり...。
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_3 --input_wav_path ./pre_voice/JSUT_JSSS_3/JSSS --checkpoint_path ./hifigan/output/JSUT_2_JSSS_3 --config ./hifigan/configs/config_JSUT_JSSS.json`
