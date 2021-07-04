@@ -6,7 +6,6 @@ import sys
 import time
 import warnings
 
-from tqdm import tqdm
 import torch
 import torch.multiprocessing as mp
 import torch.nn.functional as F
@@ -14,6 +13,8 @@ from torch.distributed import init_process_group
 from torch.nn.parallel import DistributedDataParallel
 from torch.utils.data import DataLoader, DistributedSampler
 from torch.utils.tensorboard import SummaryWriter
+from tqdm import tqdm
+
 
 sys.path.append('.')
 
@@ -138,8 +139,9 @@ def train(rank, a, h):
     mpd.train()
     msd.train()
 
-    outer_bar = tqdm(total=a.training_epochs, desc="Training", position=0)  # positionを指定すれば2重にできる!!
-    outer_bar.n = a.summary_interval
+    total = a.training_epochs * len(train_loader)
+    outer_bar = tqdm(total=total, desc="Training", position=0)  # positionを指定すれば2重にできる!!
+    outer_bar.n = 0
     outer_bar.update()
 
     for epoch in range(max(0, last_epoch), a.training_epochs):
@@ -205,8 +207,8 @@ def train(rank, a, h):
                     with torch.no_grad():
                         mel_error = F.l1_loss(y_mel, y_g_hat_mel).item()
 
-                    print('Steps : {:d}, Gen Loss Total : {:4.3f}, Mel-Spec. Error : {:4.3f}, s/b : {:4.3f}'.
-                          format(steps, loss_gen_all, mel_error, time.time() - start_b))
+                    outer_bar.set_postfix({'Gen Loss Total': loss_gen_all.item(),
+                                           'Mel-Spec. Error': mel_error, 's/b': time.time() - start_b})
 
                 # checkpointing
                 if steps % a.checkpoint_interval == 0 and steps != 0:
@@ -264,11 +266,11 @@ def train(rank, a, h):
                     generator.train()
 
             steps += 1
+            inner_bar.update(1)
             outer_bar.update(1)
 
         if rank == 0:
             print('Time taken for epoch {} is {} sec\n'.format(epoch + 1, int(time.time() - start)))
-            inner_bar.update(1)
 
 
 def main():
