@@ -159,12 +159,9 @@ def train(rank, a, h):
             y = torch.autograd.Variable(y.to(device, non_blocking=True))
             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
             y = y.unsqueeze(1)
-            start_b = time.time()
             y_g_hat = generator(x)
-            start_b = time.time()
             y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
                                           h.win_size, h.fmin, h.fmax_for_loss)
-            start_b = time.time()
 
             # MPD: multi period descriminator
             y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
@@ -180,8 +177,6 @@ def train(rank, a, h):
             optim_d.step()
             scheduler_d.step()
             optim_d.zero_grad()
-
-            start_b = time.time()
 
             # Generator
 
@@ -237,15 +232,12 @@ def train(rank, a, h):
                     with torch.no_grad():
                         for j, batch in enumerate(validation_loader):
                             # validationはbatch_size=1で固定.
-                            start_b = time.time()
                             x, y, _, y_mel = batch
                             y_g_hat = generator(x.to(device))
-                            start_b = time.time()
                             y_mel = torch.autograd.Variable(y_mel.to(device, non_blocking=True))
                             y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels,
                                                           h.sampling_rate, h.hop_size, h.win_size,
                                                           h.fmin, h.fmax_for_loss, max_audio_len=y.size()[1])
-                            start_b = time.time()
                             val_err_tot += F.l1_loss(y_mel, y_g_hat_mel).item()
 
                             if j <= 4:
