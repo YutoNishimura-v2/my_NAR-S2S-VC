@@ -140,8 +140,6 @@ def train(rank, a, h):
 
     total = a.training_epochs * len(train_loader)
     outer_bar = tqdm(total=total, desc="Training", position=0)  # positionを指定すれば2重にできる!!
-    outer_bar.n = 0
-    outer_bar.update()
 
     for epoch in range(max(0, last_epoch), a.training_epochs):
         if rank == 0:
