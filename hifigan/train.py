@@ -3,7 +3,6 @@ import itertools
 import json
 import os
 import sys
-import time
 import warnings
 
 import torch
@@ -146,14 +145,11 @@ def train(rank, a, h):
 
     for epoch in range(max(0, last_epoch), a.training_epochs):
         if rank == 0:
-            start = time.time()
             inner_bar = tqdm(total=len(train_loader), desc=f"Epoch {epoch+1}", position=1)
 
         if h.num_gpus > 1:
             train_sampler.set_epoch(epoch)
         for _, batch in enumerate(train_loader):
-            if rank == 0:
-                start_b = time.time()
             x, y, _, y_mel = batch
             x = torch.autograd.Variable(x.to(device, non_blocking=True))
             y = torch.autograd.Variable(y.to(device, non_blocking=True))
@@ -203,7 +199,7 @@ def train(rank, a, h):
                         mel_error = F.l1_loss(y_mel, y_g_hat_mel).item()
 
                     outer_bar.set_postfix({'Gen Loss Total': loss_gen_all.item(),
-                                           'Mel-Spec. Error': mel_error, 's/b': time.time() - start_b})
+                                           'Mel-Spec. Error': mel_error})
 
                 # checkpointing
                 if steps % a.checkpoint_interval == 0 and steps != 0:
@@ -260,9 +256,6 @@ def train(rank, a, h):
             steps += 1
             inner_bar.update(1)
             outer_bar.update(1)
-
-        if rank == 0:
-            print('Time taken for epoch {} is {} sec\n'.format(epoch + 1, int(time.time() - start)))
 
 
 def main():
