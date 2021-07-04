@@ -6,6 +6,7 @@ import sys
 import time
 import warnings
 
+from tqdm import tqdm
 import torch
 import torch.multiprocessing as mp
 import torch.nn.functional as F
@@ -136,10 +137,15 @@ def train(rank, a, h):
     generator.train()
     mpd.train()
     msd.train()
+
+    outer_bar = tqdm(total=a.training_epochs, desc="Training", position=0)  # positionを指定すれば2重にできる!!
+    outer_bar.n = a.summary_interval
+    outer_bar.update()
+
     for epoch in range(max(0, last_epoch), a.training_epochs):
         if rank == 0:
             start = time.time()
-            print("Epoch: {}".format(epoch+1))
+            inner_bar = tqdm(total=len(train_loader), desc=f"Epoch {epoch+1}", position=1)
 
         if h.num_gpus > 1:
             train_sampler.set_epoch(epoch)
@@ -258,9 +264,11 @@ def train(rank, a, h):
                     generator.train()
 
             steps += 1
+            outer_bar.update(1)
 
         if rank == 0:
             print('Time taken for epoch {} is {} sec\n'.format(epoch + 1, int(time.time() - start)))
+            inner_bar.update(1)
 
 
 def main():
