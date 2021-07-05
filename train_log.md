@@ -476,3 +476,17 @@
     - memo
         - Universalのfinetuningとして行ってみる.
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_2 --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_3 --config ./hifigan/configs/config_Universal.json --load_model_only`
+
+        - 大分下がったが, 0.4止まりみたい. 継続する価値はあるが, その前に他のことを試したい.
+
+- Hifi-gan_7回目
+    - date: 20210706
+    - output_folder_name: Universal_4
+    - dataset: いろんなデータセット詰め合わせ
+    - options
+        - training
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - 1から学習してみる
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_2 --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_4 --config ./hifigan/configs/config_Universal.json`
