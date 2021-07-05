@@ -43,12 +43,12 @@ def main(args, preprocess_config):
         audio, sampling_rate = load_wav(wav_path, sr)
         assert sampling_rate == sr
         audio = audio / 32768.0
-        audio = torch.FloatTensor(audio)
+        audio = torch.FloatTensor(audio).to("cuda")
         audio = audio.unsqueeze(0)
 
         mel = mel_spectrogram(audio, n_fft, num_mels, sr,
                               hop_size, win_size, fmin, fmax)
-
+        mel = mel.cpu().numpy()
         file_name = os.path.basename(wav_path).replace('.wav', '')
         np.save(os.path.join(mels_dir, file_name), mel)
 
