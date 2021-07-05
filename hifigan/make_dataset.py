@@ -24,13 +24,13 @@ def main(args, preprocess_config):
 
     # melにする.
     wav_paths = glob(os.path.join(args.pre_voice_path, '*.wav'))
-    mels = get_mels(wav_paths, 80, preprocess_config)
 
     mels_dir = os.path.join(args.output_path, 'mels')
     os.makedirs(mels_dir, exist_ok=True)
 
     print("\nmel save...")
-    for mel, wav_path in tqdm(zip(mels, wav_paths)):
+    for wav_path in tqdm(wav_paths):
+        mel = get_mels(wav_path, 80, preprocess_config)
         file_name = os.path.basename(wav_path).replace('.wav', '')
         np.save(os.path.join(mels_dir, file_name), mel)
 
