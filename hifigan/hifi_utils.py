@@ -55,3 +55,17 @@ def scan_checkpoint(cp_dir, prefix):
     if len(cp_list) == 0:
         return None
     return sorted(cp_list)[-1]
+
+
+def my_load_state_dict(model, state_dict):
+    model_state_dict = model.state_dict()
+    for k in state_dict:
+        if k in model_state_dict:
+            if state_dict[k].shape != model_state_dict[k].shape:
+                print(f"Skip loading parameter: {k}, "
+                      f"required shape: {model_state_dict[k].shape}, "
+                      f"loaded shape: {state_dict[k].shape}")
+                state_dict[k] = model_state_dict[k]
+        else:
+            print(f"Dropping parameter {k}")
+    model.load_state_dict(state_dict)

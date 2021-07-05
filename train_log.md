@@ -423,3 +423,21 @@
     - memo
         - config自体は, JSUTと変えない、というか変えたら意味ない.
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal --config ./hifigan/configs/config_Universal.json`
+
+        - 途中からまったく学習が進まない事態に...。
+        - 考えられる原因は以下
+            - パラメタが無理
+                - 変えた部分
+                - upsamplingの倍率
+                    - hop_lengthの因数分解しか許されないのでああやるしかない
+                - fmaxの上限がnull
+                    - これも, 高周波成分をちゃんと変換したいので残したいが...。
+            - 最初から別ドメイン混ぜまくりは無理
+                - これなら別々に学習させるだけなのでありがたい
+                - その一方で, これが原因だとすると, JSUT_JSSSで失敗した理由が説明できない
+                - データ数が少ないといっても, 一応3000データはあったので...。
+                - これを試して無理だったら、もうパラメタを諦めるか, hifiganを諦めるかする必要がありそう..
+
+        - とりあえず対策
+            - 一部の重みを再利用して転移学習してみる.
+            - upsample部分は合わないが, resblockの重みはハマるはずなのでそこを利用.

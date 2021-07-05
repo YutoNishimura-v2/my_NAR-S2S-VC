@@ -24,7 +24,7 @@ from hifigan.models import (Generator, MultiPeriodDiscriminator,
                             MultiScaleDiscriminator, discriminator_loss,
                             feature_loss, generator_loss)
 from hifigan.hifi_utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
-                                scan_checkpoint)
+                                scan_checkpoint, my_load_state_dict)
 
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
@@ -83,9 +83,9 @@ def train(rank, a, h):
     else:
         state_dict_g = load_checkpoint(cp_g, device)
         state_dict_do = load_checkpoint(cp_do, device)
-        generator.load_state_dict(state_dict_g['generator'])
-        mpd.load_state_dict(state_dict_do['mpd'])
-        msd.load_state_dict(state_dict_do['msd'])
+        my_load_state_dict(generator, state_dict_g['generator'])
+        my_load_state_dict(mpd, state_dict_do['mpd'])
+        my_load_state_dict(msd, state_dict_do['msd'])
         steps = state_dict_do['steps'] + 1
         last_epoch = state_dict_do['epoch']
 
