@@ -403,6 +403,15 @@
     - `python ./hifigan/make_dataset.py --input_path ./raw_data/Universal --pre_voice_path ./pre_voice/Universal --output_path ./preprocessed_data/Universal -p ./config/JSUT_JSSS/preprocess.yaml`
     - ここでは, configのaudio情報しか利用しないことに注意.
 
+    - Universalとは,
+        - JSUT
+        - JVS
+        - LJSpeech
+        - VCTK
+    - この4つを混ぜたもの.
+    - これでも足りなければ, 500h分もあるデータセットを追加予定.
+    - pre_voiceにあるのは, sr飲みかえたもの. 無音区間削除等はしていないことに注意.
+
 - Hifi-gan_4回目
     - date: 20210705
     - output_folder_name: Universal_1
@@ -412,5 +421,5 @@
         - batch_size = 12: 謎のエラーとして出るから注意.
     
     - memo
-        - 設定が違うので, trainingからする必要あり...。
-        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_3 --input_wav_path ./pre_voice/JSUT_JSSS_3/JSSS --checkpoint_path ./hifigan/output/JSUT_2_JSSS_3 --config ./hifigan/configs/config_JSUT_JSSS.json`
+        - config自体は, JSUTと変えない、というか変えたら意味ない.
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal --config ./hifigan/configs/config_Universal.json`
