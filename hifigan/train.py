@@ -86,6 +86,7 @@ def train(rank, a, h):
         my_load_state_dict(generator, state_dict_g['generator'])
         my_load_state_dict(mpd, state_dict_do['mpd'])
         my_load_state_dict(msd, state_dict_do['msd'])
+        last_epoch = -1
 
         if a.load_model_only is not True:
             steps = state_dict_do['steps'] + 1
