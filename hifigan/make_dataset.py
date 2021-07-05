@@ -20,6 +20,7 @@ def main(args, preprocess_config):
 
     # sampling rateを変更する.
     # そのために, 一時フォルダを用意.
+    print("\nchanging sampling rate")
     load_and_save(args.input_path, args.pre_voice_path, sr)
 
     # melにする.
