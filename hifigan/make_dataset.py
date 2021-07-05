@@ -91,7 +91,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--val_num',
         type=int,
-        default=1000
+        default=2000
     )
 
     args = parser.parse_args()

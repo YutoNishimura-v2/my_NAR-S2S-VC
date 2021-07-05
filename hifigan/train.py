@@ -158,7 +158,6 @@ def train(rank, a, h):
             y_g_hat = generator(x)
             y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
                                           h.win_size, h.fmin, h.fmax_for_loss)
-
             # MPD: multi period descriminator
             y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
             loss_disc_f, losses_disc_f_r, losses_disc_f_g = discriminator_loss(y_df_hat_r, y_df_hat_g)
