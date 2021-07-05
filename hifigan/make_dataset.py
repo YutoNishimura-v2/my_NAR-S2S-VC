@@ -42,7 +42,8 @@ def main(args, preprocess_config):
     for wav_path in tqdm(wav_paths):
         audio, sampling_rate = load_wav(wav_path, sr)
         assert sampling_rate == sr
-        audio = audio / 32768.0
+        if args.audio_clip is True:
+            audio = audio / 32768.0
         audio = torch.FloatTensor(audio).to("cuda")
         audio = audio.unsqueeze(0)
 
@@ -92,6 +93,10 @@ if __name__ == '__main__':
         '--val_num',
         type=int,
         default=2000
+    )
+    parser.add_argument(
+        '--audio_clip',
+        action='store_true'
     )
 
     args = parser.parse_args()

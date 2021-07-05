@@ -453,3 +453,26 @@
     - memo
         - Universalのfinetuningとして行ってみる.
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_2 --config ./hifigan/configs/config_Universal.json --load_model_only`
+
+        - ダメでした.
+        - melが変なのが気になる
+            - melについて調査しよう.
+            - 結果, audio_clipをすることによって変なことになっていることが判明.
+                - 公式ではこれをdatasetとして使っているが, 学習が進まない以上これでやってみるしかない.
+
+- make_dataset
+    - 作り直し.
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/Universal --pre_voice_path ./pre_voice/Universal --output_path ./preprocessed_data/Universal_2 -p ./config/JSUT_JSSS/preprocess.yaml`
+    - ここでは, configのaudio情報しか利用しないことに注意.
+
+- Hifi-gan_6回目
+    - date: 20210705
+    - output_folder_name: Universal_3
+    - dataset: いろんなデータセット詰め合わせ
+    - options
+        - training
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - Universalのfinetuningとして行ってみる.
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_2 --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_3 --config ./hifigan/configs/config_Universal.json --load_model_only`
