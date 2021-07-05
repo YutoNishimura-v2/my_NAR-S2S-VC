@@ -6,6 +6,7 @@ import librosa
 import librosa.display
 import numpy as np
 import matplotlib.pyplot as plt
+from tqdm import tqdm
 
 import audio as Audio
 
@@ -44,12 +45,10 @@ def get_mels(wav_paths: List[str], mel_num: Optional[int], config: dict) -> List
         config["preprocessing"]["mel"]["mel_fmax"],
     )
 
-    for wav_path in wav_paths:
+    for wav_path in tqdm(wav_paths):
         wav, _ = librosa.load(
             wav_path, sr=config["preprocessing"]["audio"]["sampling_rate"])
-        print("wav_shape: ", wav.shape)
         mel_spectrogram, _ = Audio.tools.get_mel_from_wav(wav, STFT)
-        print("mel_shape: ", mel_spectrogram.shape)
         mels.append(mel_spectrogram)
 
     return mels

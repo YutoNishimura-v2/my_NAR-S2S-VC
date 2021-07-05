@@ -19,6 +19,7 @@ from pydub.silence import split_on_silence
 def load_and_save(input_path, output_path, sr):
     """
     sr以外, つまり, monoと16bitなのは固定.
+    wav以外もlibrosaは読み込めるらしいが, 今のところは需要ないのでwav限定の運用で.
     """
     for wav_path in tqdm(glob(opth.join(input_path, "*.wav"))):
         y, sr = librosa.core.load(wav_path, sr=sr, mono=True)  # 22050Hz、モノラルで読み込み
