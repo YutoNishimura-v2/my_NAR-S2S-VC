@@ -441,3 +441,15 @@
         - とりあえず対策
             - 一部の重みを再利用して転移学習してみる.
             - upsample部分は合わないが, resblockの重みはハマるはずなのでそこを利用.
+
+- Hifi-gan_5回目
+    - date: 20210705
+    - output_folder_name: Universal_2
+    - dataset: いろんなデータセット詰め合わせ
+    - options
+        - training
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - Universalのfinetuningとして行ってみる.
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_2 --config ./hifigan/configs/config_Universal.json`
