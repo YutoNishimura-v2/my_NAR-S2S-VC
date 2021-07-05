@@ -452,4 +452,4 @@
     
     - memo
         - Universalのfinetuningとして行ってみる.
-        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_2 --config ./hifigan/configs/config_Universal.json`
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_2 --config ./hifigan/configs/config_Universal.json --load_model_only`

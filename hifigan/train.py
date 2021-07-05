@@ -86,8 +86,10 @@ def train(rank, a, h):
         my_load_state_dict(generator, state_dict_g['generator'])
         my_load_state_dict(mpd, state_dict_do['mpd'])
         my_load_state_dict(msd, state_dict_do['msd'])
-        steps = state_dict_do['steps'] + 1
-        last_epoch = state_dict_do['epoch']
+
+        if a.load_model_only is not True:
+            steps = state_dict_do['steps'] + 1
+            last_epoch = state_dict_do['epoch']
 
     if h.num_gpus > 1:
         generator = DistributedDataParallel(generator, device_ids=[rank]).to(device)
@@ -98,7 +100,7 @@ def train(rank, a, h):
     optim_d = torch.optim.AdamW(itertools.chain(msd.parameters(), mpd.parameters()),
                                 h.learning_rate, betas=[h.adam_b1, h.adam_b2])
 
-    if state_dict_do is not None:
+    if (state_dict_do is not None) and (a.load_model_only is not True):
         optim_g.load_state_dict(state_dict_do['optim_g'])
         optim_d.load_state_dict(state_dict_do['optim_d'])
 
@@ -273,6 +275,7 @@ def main():
     parser.add_argument('--summary_interval', default=100, type=int)
     parser.add_argument('--validation_interval', default=1000, type=int)
     parser.add_argument('--fine_tuning', action='store_true')
+    parser.add_argument('--load_model_only', action='store_true')
 
     a = parser.parse_args()
 

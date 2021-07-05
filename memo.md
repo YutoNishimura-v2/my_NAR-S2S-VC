@@ -179,6 +179,9 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
     - durationの計算間違えがあるよう.
         - BASICの0290で, durationをsumしてもtargetのmelのtimeに届かない事案発生.
 
+    - my_load_state_dictの追加.
+    - load_model_onlyの追加.
+
 # 読み解いていく.
 - 気になる点
     - `FastSpeech 2 - PyTorch Implementation`
