@@ -2,10 +2,13 @@
 # もちろん, configはNARS2Sのものを利用する.
 import os
 from glob import glob
+import sys
 
 import yaml
 import numpy as np
+from tqdm import tqdm
 
+sys.path.append('.')
 from preprocessing.n2c_voiceprocess import load_and_save
 from utils.utils import get_mels
 
@@ -13,22 +16,21 @@ from utils.utils import get_mels
 def main(args, preprocess_config):
     sr = preprocess_config["preprocessing"]["audio"]["sampling_rate"]
 
-    tmp_dir = os.path.join(args.output_path, 'tmp_dir')
-    os.makedirs(tmp_dir, exist_ok=True)
+    os.makedirs(args.pre_voice_path, exist_ok=True)
 
     # sampling rateを変更する.
     # そのために, 一時フォルダを用意.
-    load_and_save(args.input_path, tmp_dir, sr)
+    load_and_save(args.input_path, args.pre_voice_path, sr)
 
     # melにする.
-    wav_paths = glob(os.path.join(tmp_dir, '*.wav'))
+    wav_paths = glob(os.path.join(args.pre_voice_path, '*.wav'))
     mels = get_mels(wav_paths, 80, preprocess_config)
 
     mels_dir = os.path.join(args.output_path, 'mels')
     os.makedirs(mels_dir, exist_ok=True)
 
     print("\nmel save...")
-    for mel, wav_path in zip(mels, wav_paths):
+    for mel, wav_path in tqdm(zip(mels, wav_paths)):
         file_name = os.path.basename(wav_path).replace('.wav', '')
         np.save(os.path.join(mels_dir, file_name), mel)
 
@@ -54,6 +56,10 @@ if __name__ == '__main__':
     parser.add_argument(
         '--input_path',
         type=str
+    )
+    parser.add_argument(
+        '--pre_voice_path',
+        type=str,
     )
     parser.add_argument(
         '--output_path',

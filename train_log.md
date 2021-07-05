@@ -400,7 +400,7 @@
 
 - make_dataset
     - そして, melとtrain.txt, val.txtを作成する.
-    - `python ./hifigan/make_dataset.py --input_path ./raw_data/Universal --output_path ./preprocessed_data/Universal -p ./config/JSUT_JSSS/preprocess.yaml`
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/Universal --pre_voice_path ./pre_voice/Universal --output_path ./preprocessed_data/Universal -p ./config/JSUT_JSSS/preprocess.yaml`
     - ここでは, configのaudio情報しか利用しないことに注意.
 
 - Hifi-gan_4回目
