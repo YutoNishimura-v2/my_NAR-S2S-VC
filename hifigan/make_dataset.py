@@ -1,16 +1,17 @@
 # wavが大量に入ったフォルダに対して, mel化の処理を施す.
 # もちろん, configはNARS2Sのものを利用する.
 import os
-from glob import glob
 import sys
+from glob import glob
 
-import yaml
 import numpy as np
+import torch
+import yaml
 from tqdm import tqdm
 
 sys.path.append('.')
+from hifigan.meldataset import load_wav, mel_spectrogram
 from preprocessing.n2c_voiceprocess import load_and_save
-from utils.utils import get_mels
 
 
 def main(args, preprocess_config):
@@ -30,8 +31,24 @@ def main(args, preprocess_config):
     os.makedirs(mels_dir, exist_ok=True)
 
     print("\nmel save...")
+
+    n_fft = preprocess_config["preprocessing"]["stft"]["filter_length"]
+    num_mels = preprocess_config["preprocessing"]["mel"]["n_mel_channels"]
+    hop_size = preprocess_config["preprocessing"]["stft"]["hop_length"]
+    win_size = preprocess_config["preprocessing"]["stft"]["win_length"]
+    fmin = preprocess_config["preprocessing"]["mel"]["mel_fmin"]
+    fmax = preprocess_config["preprocessing"]["mel"]["mel_fmax"]
+
     for wav_path in tqdm(wav_paths):
-        mel = get_mels(wav_path, 80, preprocess_config)
+        audio, sampling_rate = load_wav(wav_path, sr)
+        assert sampling_rate == sr
+        audio = audio / 32768.0
+        audio = torch.FloatTensor(audio)
+        audio = audio.unsqueeze(0)
+
+        mel = mel_spectrogram(audio, n_fft, num_mels, sr,
+                              hop_size, win_size, fmin, fmax)
+
         file_name = os.path.basename(wav_path).replace('.wav', '')
         np.save(os.path.join(mels_dir, file_name), mel)
 
