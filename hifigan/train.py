@@ -23,8 +23,8 @@ from hifigan.meldataset import (MelDataset, get_dataset_filelist,
 from hifigan.models import (Generator, MultiPeriodDiscriminator,
                             MultiScaleDiscriminator, discriminator_loss,
                             feature_loss, generator_loss)
-from hifigan.utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
-                           scan_checkpoint)
+from hifigan.hifi_utils import (load_checkpoint, plot_spectrogram, save_checkpoint,
+                                scan_checkpoint)
 
 
 warnings.simplefilter(action='ignore', category=FutureWarning)
