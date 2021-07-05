@@ -50,7 +50,6 @@ def main(args, preprocess_config):
 
 if __name__ == '__main__':
     import argparse
-
     parser = argparse.ArgumentParser()
     parser.add_argument(
         '--input_path',
@@ -68,7 +67,7 @@ if __name__ == '__main__':
     parser.add_argument(
         '--val_num',
         type=int,
-        default=300
+        default=1000
     )
 
     args = parser.parse_args()

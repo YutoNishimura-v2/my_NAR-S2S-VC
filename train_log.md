@@ -391,3 +391,26 @@
     - memo
         - 設定が違うので, trainingからする必要あり...。
         - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_3 --input_wav_path ./pre_voice/JSUT_JSSS_3/JSSS --checkpoint_path ./hifigan/output/JSUT_2_JSSS_3 --config ./hifigan/configs/config_JSUT_JSSS.json`
+
+        - 全然だめ. 圧倒的データ不足...。
+        - ちゃんと, 沢山データ集めてそれで学習します.
+
+- get_out_of_wavs
+    - まずは, datasetからwavのみ取り出す.
+
+- make_dataset
+    - そして, melとtrain.txt, val.txtを作成する.
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/Universal --output_path ./preprocessed_data/Universal -p ./config/JSUT_JSSS/preprocess.yaml`
+    - ここでは, configのaudio情報しか利用しないことに注意.
+
+- Hifi-gan_4回目
+    - date: 20210705
+    - output_folder_name: Universal_1
+    - dataset: いろんなデータセット詰め合わせ
+    - options
+        - training
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - 設定が違うので, trainingからする必要あり...。
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/JSUT_2_JSSS_3 --input_wav_path ./pre_voice/JSUT_JSSS_3/JSSS --checkpoint_path ./hifigan/output/JSUT_2_JSSS_3 --config ./hifigan/configs/config_JSUT_JSSS.json`
