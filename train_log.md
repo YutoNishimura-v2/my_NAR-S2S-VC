@@ -490,3 +490,24 @@
     - memo
         - 1から学習してみる
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_2 --input_wav_path ./pre_voice/Universal --checkpoint_path ./hifigan/output/Universal_4 --config ./hifigan/configs/config_Universal.json`
+
+        - 結局, finetuningとほぼ変わらず.
+        - いまだにデータ量なのかデータの質(ばらつき)なのか測りかねているので, 2つ実験をする.
+            1. さらにデータを追加. この傾向だと, 0.2まで行ってくれるのではないか.
+            2. パラメタの原因かどうかを探る. そのために, まずはLJSpeechのみで訓練をしてみる. それでうまくいけば, 一気にいろんなドメインで学習するのがあほだし, うまくいかなければパラメタが原因の可能性が高い. 正直, upsamplingよりも, fmax=nullがだいぶ怪しそう....。
+
+- Hifi-gan_8回目
+    - date: 20210706
+    - output_folder_name: LJSpeech_1
+    - dataset: LJSpeech
+    - options
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - 1から学習してみる
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./pre_voice/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_1 --config ./hifigan/configs/config_LJSpeech.json`
+
+        - 結局, finetuningとほぼ変わらず.
+        - いまだにデータ量なのかデータの質(ばらつき)なのか測りかねているので, 2つ実験をする.
+            1. さらにデータを追加. この傾向だと, 0.2まで行ってくれるのではないか.
+            2. パラメタの原因かどうかを探る. そのために, まずはLJSpeechのみで訓練をしてみる. それでうまくいけば, 一気にいろんなドメインで学習するのがあほだし, うまくいかなければパラメタが原因の可能性が高い. 正直, upsamplingよりも, fmax=nullがだいぶ怪しそう....。
