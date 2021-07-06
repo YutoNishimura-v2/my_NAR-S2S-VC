@@ -511,3 +511,29 @@
         - いまだにデータ量なのかデータの質(ばらつき)なのか測りかねているので, 2つ実験をする.
             1. さらにデータを追加. この傾向だと, 0.2まで行ってくれるのではないか.
             2. パラメタの原因かどうかを探る. そのために, まずはLJSpeechのみで訓練をしてみる. それでうまくいけば, 一気にいろんなドメインで学習するのがあほだし, うまくいかなければパラメタが原因の可能性が高い. 正直, upsamplingよりも, fmax=nullがだいぶ怪しそう....。
+
+
+- make_dataset
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/LJSpeech --pre_voice_path ./pre_voice/LJSpeech --output_path ./preprocessed_data/LJSpeech -p ./config/JSUT_JSSS/preprocess.yaml`
+    - ここでは, configのaudio情報しか利用しないことに注意.
+
+- preprocess
+    - 次は, JSSS_2_JSUTを行う.
+    - そのために, まずはpreprocessed_dataを作成する.
+    - といっても, melとかは作り直す必要がないので, source, targetだけひっくり返して, durationのみ作成する.
+
+- NARS2S_finetuning_1回目
+    - date: 20210706
+    - output_folder_name: JSSS_2_JSUT
+    - dataset: JSSS_2_JSUT
+    - options
+        - finetuning
+            - JSUT_2_JSSS_9 の 50000からスタート
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo 
+        - `python train.py --restore_step 50000 -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+- make_dataset
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/LibriTTS --pre_voice_path ./pre_voice/LibriTTS --output_path ./preprocessed_data/LibriTTS -p ./config/JSUT_JSSS/preprocess.yaml`
+    - ここでは, configのaudio情報しか利用しないことに注意.
