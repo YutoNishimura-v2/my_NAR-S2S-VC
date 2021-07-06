@@ -496,19 +496,6 @@
             1. さらにデータを追加. この傾向だと, 0.2まで行ってくれるのではないか.
             2. パラメタの原因かどうかを探る. そのために, まずはLJSpeechのみで訓練をしてみる. それでうまくいけば, 一気にいろんなドメインで学習するのがあほだし, うまくいかなければパラメタが原因の可能性が高い. 正直, upsamplingよりも, fmax=nullがだいぶ怪しそう....。
 
-- Hifi-gan_8回目
-    - date: 20210706
-    - output_folder_name: LJSpeech_1
-    - dataset: LJSpeech
-    - options
-        - batch_size = 12: 謎のエラーとして出るから注意.
-    
-    - memo
-        - 1から学習してみる.
-        - これでうまく行けば, 異なるドメインを一気に学習があほだとわかり, うまくいかなければ, パラメタが怪しい.
-        - 苦労したけど, colabでは出来なかった...。
-        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./pre_voice/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_1 --config ./hifigan/configs/config_LJSpeech.json`
-
 
 - make_dataset
     - `python ./hifigan/make_dataset.py --input_path ./raw_data/LJSpeech --pre_voice_path ./pre_voice/LJSpeech --output_path ./preprocessed_data/LJSpeech -p ./config/JSUT_JSSS/preprocess.yaml`
@@ -553,3 +540,19 @@
 
         - 途中で学習が止まった. pitchとかは特に. melはゆるやかな減少.
         - optimは読み込まないモードを再び.
+
+        - melはめちゃ過学習...。
+        - それ以外はうまくいっているが...。 普通に, 1回目をもう少しまわすべきだった. 次はそうする.
+
+- Hifi-gan_8回目
+    - date: 20210706
+    - output_folder_name: LJSpeech_1
+    - dataset: LJSpeech
+    - options
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo
+        - 1から学習してみる.
+        - これでうまく行けば, 異なるドメインを一気に学習があほだとわかり, うまくいかなければ, パラメタが怪しい.
+        - 苦労したけど, colabでは出来なかった...。
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./pre_voice/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_1 --config ./hifigan/configs/config_LJSpeech.json`
