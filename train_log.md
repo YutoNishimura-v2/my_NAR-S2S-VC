@@ -504,13 +504,10 @@
         - batch_size = 12: 謎のエラーとして出るから注意.
     
     - memo
-        - 1から学習してみる
+        - 1から学習してみる.
+        - これでうまく行けば, 異なるドメインを一気に学習があほだとわかり, うまくいかなければ, パラメタが怪しい.
+        - 苦労したけど, colabでは出来なかった...。
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./pre_voice/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_1 --config ./hifigan/configs/config_LJSpeech.json`
-
-        - 結局, finetuningとほぼ変わらず.
-        - いまだにデータ量なのかデータの質(ばらつき)なのか測りかねているので, 2つ実験をする.
-            1. さらにデータを追加. この傾向だと, 0.2まで行ってくれるのではないか.
-            2. パラメタの原因かどうかを探る. そのために, まずはLJSpeechのみで訓練をしてみる. それでうまくいけば, 一気にいろんなドメインで学習するのがあほだし, うまくいかなければパラメタが原因の可能性が高い. 正直, upsamplingよりも, fmax=nullがだいぶ怪しそう....。
 
 
 - make_dataset
@@ -534,6 +531,25 @@
     - memo 
         - `python train.py --restore_step 50000 -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
 
+        - 途中で学習が止まった. pitchとかは特に. melはゆるやかな減少.
+        - optimは読み込まないモードを再び.
+
 - make_dataset
     - `python ./hifigan/make_dataset.py --input_path ./raw_data/LibriTTS --pre_voice_path ./pre_voice/LibriTTS --output_path ./preprocessed_data/LibriTTS -p ./config/JSUT_JSSS/preprocess.yaml`
     - ここでは, configのaudio情報しか利用しないことに注意.
+
+- NARS2S_finetuning_2回目
+    - date: 20210706
+    - output_folder_name: JSSS_2_JSUT_2
+    - dataset: JSSS_2_JSUT
+    - options
+        - finetuning
+            - JSUT_2_JSSS_9 の 50000からスタート
+            - optimizerは初期化.
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo 
+        - `python train.py --restore_step 50000 -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+        - 途中で学習が止まった. pitchとかは特に. melはゆるやかな減少.
+        - optimは読み込まないモードを再び.

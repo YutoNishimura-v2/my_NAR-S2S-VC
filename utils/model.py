@@ -27,14 +27,21 @@ def get_model(args, configs, device, train=False):
         ckpt = torch.load(ckpt_path)
         model.load_state_dict(ckpt["model"])
 
-    if train:
-        scheduled_optim = ScheduledOptim(
-            model, train_config, model_config, args.restore_step
-        )
-        if args.restore_step:
-            scheduled_optim.load_state_dict(ckpt["optimizer"])
-        model.train()
-        return model, scheduled_optim
+    if train is True:
+        if train_config["optimizer"]["reset_optim"] is True:
+            scheduled_optim = ScheduledOptim(
+                model, train_config, model_config, 0
+            )
+            model.train()
+            return model, scheduled_optim
+        else:
+            scheduled_optim = ScheduledOptim(
+                model, train_config, model_config, args.restore_step
+            )
+            if args.restore_step:
+                scheduled_optim.load_state_dict(ckpt["optimizer"])
+            model.train()
+            return model, scheduled_optim
 
     model.eval()
     model.requires_grad_ = False
