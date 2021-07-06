@@ -5,6 +5,7 @@ import random
 import librosa
 import numpy as np
 import torch
+from torch._C import Value
 import torch.utils.data
 from librosa.filters import mel as librosa_mel_fn
 from librosa.util import normalize
@@ -171,8 +172,12 @@ class MelDataset(torch.utils.data.Dataset):
 
         if self.split:
             frames_per_seg = math.ceil(self.segment_size / self.hop_size)
-            if audio.size(1) >= self.segment_size:
-                mel_start = random.randint(0, mel.size(2) - frames_per_seg - 1)
+            if audio.size(1) > self.segment_size:
+                if mel.size(2) - frames_per_seg - 1 == 0:
+                    # 例えば, audio_len = 9120なら, melはhop_size=300で30となり, 0になってしまう.
+                    mel_start = 0
+                else:
+                    mel_start = random.randint(0, mel.size(2) - frames_per_seg - 1)
                 mel = mel[:, :, mel_start:mel_start + frames_per_seg]
                 audio = audio[:, mel_start * self.hop_size:(mel_start + frames_per_seg) * self.hop_size]
             else:

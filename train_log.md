@@ -556,3 +556,5 @@
         - これでうまく行けば, 異なるドメインを一気に学習があほだとわかり, うまくいかなければ, パラメタが怪しい.
         - 苦労したけど, colabでは出来なかった...。
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./pre_voice/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_1 --config ./hifigan/configs/config_LJSpeech.json`
+
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LibriTTS --input_wav_path ./pre_voice/LibriTTS --checkpoint_path ./hifigan/output/LibriTTS_1 --config ./hifigan/configs/config_LJSpeech.json`
