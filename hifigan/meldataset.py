@@ -173,8 +173,8 @@ class MelDataset(torch.utils.data.Dataset):
         if self.split:
             frames_per_seg = math.ceil(self.segment_size / self.hop_size)
             if audio.size(1) > self.segment_size:
-                if mel.size(2) - frames_per_seg - 1 == 0:
-                    # 例えば, audio_len = 9120なら, melはhop_size=300で30となり, 0になってしまう.
+                if (mel.size(2) - frames_per_seg - 1) < 1:
+                    # 例えば, audio_len = 9120なら, melはhop_size=300で30となり, -1になってしまう.
                     mel_start = 0
                 else:
                     mel_start = random.randint(0, mel.size(2) - frames_per_seg - 1)
