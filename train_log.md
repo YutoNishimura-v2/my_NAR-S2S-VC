@@ -557,4 +557,18 @@
         - 苦労したけど, colabでは出来なかった...。
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./pre_voice/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_1 --config ./hifigan/configs/config_LJSpeech.json`
 
+        - 恐らく, `異なるドメインを一気に学習がアホ`が確かめられた.
+            - 本来データが山ほどあって有利なはずのUniversalよりも, LJSpeech単体でよい成績を残している.
+            - なので, 別々に学習するべき.
+        
+        - 以降, これを使ってfinetuningしていく.
+
+- Hifi-gan_9回目
+    - date: 20210706
+    - output_folder_name: LibriTTS_1
+    - dataset: LibriTTS
+    - options
+        - LJSpeechの続き.
+        - finetuning
+        - batch_size = 12: 謎のエラーとして出るから注意.
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LibriTTS --input_wav_path ./pre_voice/LibriTTS --checkpoint_path ./hifigan/output/LibriTTS_1 --config ./hifigan/configs/config_LJSpeech.json`
