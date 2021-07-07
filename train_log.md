@@ -612,4 +612,44 @@ make_dataset
         - batch_size = 12: 謎のエラーとして出るから注意.
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/VCTK-Corpus --input_wav_path ./pre_voice/VCTK-Corpus --checkpoint_path ./hifigan/output/VCTK-Corpus_1 --config ./hifigan/configs/config_LJSpeech.json`
 
-        - 
+        
+    - memo
+        - 全くうまくいかず...。
+        - さすがにfinetuningについて色々考え直した方が良さそう.
+
+
+- issueを読んで分かったこと.
+    - [44kHzの人](https://github.com/jik876/hifi-gan/issues/7)
+        - "discriminator_periods": [3, 5, 7, 11, 17, 23, 37],
+        - これにするとよかったらしい.
+    - [48kの人](https://github.com/jik876/hifi-gan/issues/11)
+        - upsample数をいじっている人もいる.
+    - [split_sizeについて](https://github.com/jik876/hifi-gan/issues/38)
+        - segment_size / hop_size = 32になると良さそうらしい.
+    - [Universalはどうやって作られた?](https://github.com/jik876/hifi-gan/issues/46)
+        - LibriTTS, VCTK, LJSpeechらしい.
+        - ちゃんと, finetuningの設定でやってみるか.    
+    - [44100はどんなパラメタがよい?](https://github.com/jik876/hifi-gan/issues/58)
+        - upsampling系や, kernel, pediodsをいじると良さそうらしい.
+
+- これを踏まえて以下の変更を加えて再実行したい
+    - descriminator_preriodsの変更
+    - upsample数の増加
+    - segment_size / hop_size = 32
+    - generatorのkernel sizeの増加
+    - Libriも含めたUniversalデータの作成.
+
+
+- pre_voice: Universal_2の作成
+- preprocessed_data: Universal_3の作成.
+    - どちらも, Libiriも加えたすべてのデータにする.
+    - valは3000.
+
+- Hifi-gan_11回目
+    - date: 20210706
+    - output_folder_name: Universal_5
+    - dataset: Universal_3
+    - options
+        - training.
+        - batch_size = 12: 謎のエラーとして出るから注意.
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_3 --input_wav_path ./pre_voice/Universal_2 --checkpoint_path ./hifigan/output/Universal_5 --config ./hifigan/configs/config_Universal_2.json`

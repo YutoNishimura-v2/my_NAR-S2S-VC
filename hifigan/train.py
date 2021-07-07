@@ -64,7 +64,7 @@ def train(rank, a, h):
     else:
         device = 'cpu'
     generator = Generator(h).to(device)
-    mpd = MultiPeriodDiscriminator().to(device)
+    mpd = MultiPeriodDiscriminator(h).to(device)
     msd = MultiScaleDiscriminator().to(device)
 
     if rank == 0:
