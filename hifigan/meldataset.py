@@ -5,7 +5,6 @@ import random
 import librosa
 import numpy as np
 import torch
-from torch._C import Value
 import torch.utils.data
 from librosa.filters import mel as librosa_mel_fn
 from librosa.util import normalize

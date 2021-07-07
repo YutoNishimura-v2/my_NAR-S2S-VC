@@ -572,3 +572,44 @@
         - finetuning
         - batch_size = 12: 謎のエラーとして出るから注意.
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LibriTTS --input_wav_path ./pre_voice/LibriTTS --checkpoint_path ./hifigan/output/LibriTTS_1 --config ./hifigan/configs/config_LJSpeech.json`
+
+        - まったく学習がうまく進まず...。
+        - データの質が悪い説があるので, 他のデータでfinetuningする.
+
+- NARS2S_finetuning_3回目
+    - date: 20210706
+    - output_folder_name: JSSS_2_JSUT
+    - dataset: JSSS_2_JSUT
+    - options
+        - finetuning
+            - JSSS_2_JSUT の 52500からスタート
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo 
+        - `python train.py --restore_step 52500 -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+        - さっきよりは大分ましだが, energyが悲惨なことになっているし, melもfinetuning以前より落ちる気配がない.
+        - まず, energy, durationは指定通りlayer = 2にしたほうがよさそう.
+        - そんで, mel対策としては, finetuningをスタートするのを30000くらいのもっと早めに始める.
+
+        - なので, permを変えて訓練しなおし.
+
+make_dataset
+    - Universalではなく, 1つ1つ単体のデータセットを用意しておく.
+    - mel_check.ipynbで, Universalから計算済みのmelやpre_voiceをcopyして抜き出すことで対応する.
+        - なので, やることはtrain.txt, val.txt作るだけ.
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/LJSpeech --pre_voice_path ./pre_voice/jsut_ver1.1 --output_path ./preprocessed_data/jsut_ver1.1 -p ./config/JSUT_JSSS/preprocess.yaml --val_num 500`
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/LJSpeech --pre_voice_path ./pre_voice/jvs_ver1 --output_path ./preprocessed_data/jvs_ver1 -p ./config/JSUT_JSSS/preprocess.yaml --val_num 300`
+    - `python ./hifigan/make_dataset.py --input_path ./raw_data/LJSpeech --pre_voice_path ./pre_voice/VCTK-Corpus --output_path ./preprocessed_data/VCTK-Corpus -p ./config/JSUT_JSSS/preprocess.yaml`
+
+- Hifi-gan_10回目
+    - date: 20210706
+    - output_folder_name: VCTK-Corpus_1
+    - dataset: VCTK-Corpus
+    - options
+        - LJSpeechの続き.
+        - finetuning
+        - batch_size = 12: 謎のエラーとして出るから注意.
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/VCTK-Corpus --input_wav_path ./pre_voice/VCTK-Corpus --checkpoint_path ./hifigan/output/VCTK-Corpus_1 --config ./hifigan/configs/config_LJSpeech.json`
+
+        - 
