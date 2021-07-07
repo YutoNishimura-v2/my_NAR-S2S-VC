@@ -644,6 +644,13 @@ make_dataset
 - preprocessed_data: Universal_3の作成.
     - どちらも, Libiriも加えたすべてのデータにする.
     - valは3000.
+
+    - jsut_ver1.1: 7696
+    - jvs_ver1: 3110
+    - LibriTTS: 205044
+    - LJSpeech: 13100
+    - VCTK-Corpus: 44257
+    - sum: 273207
 - makedataset
     - `python ./hifigan/make_dataset.py --input_path ./raw_data/LJSpeech --pre_voice_path ./pre_voice/Universal_2 --output_path ./preprocessed_data/Universal_3 -p ./config/JSUT_JSSS/preprocess.yaml --val_num 3000`
 
@@ -662,10 +669,27 @@ make_dataset
 
 
 - Hifi-gan_11回目
-    - date: 20210706
+    - date: 20210708
     - output_folder_name: Universal_5
     - dataset: Universal_3
     - options
         - training.
         - batch_size = 12: 謎のエラーとして出るから注意.
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_3 --input_wav_path ./pre_voice/Universal_2 --checkpoint_path ./hifigan/output/Universal_5 --config ./hifigan/configs/config_Universal_2.json`
+
+    - memo
+        - 結局, modelの容量を増やしたりしてみたが, 大局は変わらないので, finetuning周りで元の実装に戻してみた.
+
+        - 結果, LJSpeech単体と変わらず....どうして....
+
+- NARS2S_new_finetuning_1回目
+    - date: 20210708
+    - output_folder_name: JSSS_2_JSUT_3
+    - dataset: JSSS_2_JSUT
+    - options
+        - train
+        - batch_size = 12: 謎のエラーとして出るから注意.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 20000`
+        - energyとdurationの層を浅くして, そのうえで30000くらいでiterは止めてfinetuningに備える.
