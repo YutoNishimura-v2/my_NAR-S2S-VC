@@ -134,6 +134,7 @@ def main(args, configs):
                         train_logger,
                         fig=fig,
                         tag="Training/step_{}_{}".format(step, tag),
+                        step=step
                     )
                     sampling_rate = preprocess_config["preprocessing"]["audio"][
                         "sampling_rate"
@@ -142,12 +143,14 @@ def main(args, configs):
                         train_logger,
                         audio=wav_reconstruction,
                         sampling_rate=sampling_rate,
+                        step=step,
                         tag="Training/step_{}_{}_reconstructed".format(step, tag),
                     )
                     log(
                         train_logger,
                         audio=wav_prediction,
                         sampling_rate=sampling_rate,
+                        step=step,
                         tag="Training/step_{}_{}_synthesized".format(step, tag),
                     )
 

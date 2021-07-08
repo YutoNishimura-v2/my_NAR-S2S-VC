@@ -693,3 +693,16 @@ make_dataset
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 20000`
         - energyとdurationの層を浅くして, そのうえで30000くらいでiterは止めてfinetuningに備える.
+
+        - memo
+            - だめ。energyも過学習してるし, melも下がらんし, 正直前と変わらん....。
+            - 研究室でお話を聞く
+
+        
+        - 質問回答メモ
+            - まぁ普通に考えて, trainはX→YとY→X同時にやるべき
+            - targetの逆正規化はtargetのものでやるべき←これ, 未実装.
+            - finetuningの際, optimizerはリセット. 一方で, スタートのlrは小さくしたほうがよさそう
+                - リセットはわかる. 確かにリセットしたほうが良さそう.
+            
+            

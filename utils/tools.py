@@ -108,7 +108,7 @@ def log(
 
     if fig is not None:
         # synth_stepで記述.
-        logger.add_figure(tag, fig)
+        logger.add_figure(tag, fig, step)
 
     if audio is not None:
         # synth_stepで記述.
@@ -116,6 +116,7 @@ def log(
         logger.add_audio(
             tag,
             audio / max(abs(audio)),
+            step,
             sample_rate=sampling_rate,
         )
 
