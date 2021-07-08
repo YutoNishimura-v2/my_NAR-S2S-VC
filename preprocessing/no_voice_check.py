@@ -1,5 +1,7 @@
 # 簡単なチェック用コード
 
+# 注意!!ちゃんと音声も確認しよう! melだとノイズに見えても, 実は音声だったりするよ!!
+
 import os
 import os.path as opth
 import shutil

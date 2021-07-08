@@ -2,9 +2,9 @@ dataset: "JSSS_2_JSUT"
 
 path:
   source_raw_path: "./raw_data/JSUT_JSSS/JSUT"
-  source_prevoice_path: "./pre_voice/JSUT_JSSS_3/JSUT"
+  source_prevoice_path: "./pre_voice/JSUT_JSSS_4/JSUT"
   target_raw_path: "./raw_data/JSUT_JSSS/JSSS"
-  target_prevoice_path: "./pre_voice/JSUT_JSSS_3/JSSS"
+  target_prevoice_path: "./pre_voice/JSUT_JSSS_4/JSSS"
   preprocessed_path: "./preprocessed_data/JSUT_JSSS_4"  # out_dir. こっちはsource, targetで自動で分ける.
 
 preprocessing:
@@ -13,7 +13,8 @@ preprocessing:
     sampling_rate: 24000
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
     min_silence_len: 50
-    silence_thresh: -40
+    silence_thresh: -100
+    silence_thresh_head: -40
     keep_silence: 10
     head_tail_only: True
   stft:  # NARS2Sのpaperの値.

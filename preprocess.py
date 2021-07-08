@@ -5,6 +5,8 @@ Examples:
 """
 
 import argparse
+import shutil
+import os
 
 import yaml
 
@@ -29,3 +31,9 @@ if __name__ == "__main__":
 
     # durationの用意
     get_duration(config)
+
+    # ちゃんとconfigを残しておく.
+    pre_voice_path = os.path.dirname(config["path"]["source_prevoice_path"])
+    preprocessed_path = config["path"]["preprocessed_path"]
+    shutil.copy(args.config, pre_voice_path)
+    shutil.copy(args.config, preprocessed_path)

@@ -45,6 +45,7 @@ def delete_novoice_from_path(input_path, output_path, preprocess_config):
     """
     min_silence_len = preprocess_config["preprocessing"]["audio"]["min_silence_len"]
     silence_thresh = preprocess_config["preprocessing"]["audio"]["silence_thresh"]
+    silence_thresh_h = preprocess_config["preprocessing"]["audio"]["silence_thresh_head"]
     keep_silence = preprocess_config["preprocessing"]["audio"]["keep_silence"]
     head_tail_only = preprocess_config["preprocessing"]["audio"]["head_tail_only"]
 
@@ -61,7 +62,11 @@ def delete_novoice_from_path(input_path, output_path, preprocess_config):
                 trim_ms += chunk_size
 
             return trim_ms
-        start_trim = detect_leading_silence(audio, silence_threshold=silence_thresh, chunk_size=min_silence_len)
+        if silence_thresh_h is not None:
+            start_trim = detect_leading_silence(audio, silence_threshold=silence_thresh_h, chunk_size=min_silence_len)
+        else:
+            start_trim = detect_leading_silence(audio, silence_threshold=silence_thresh, chunk_size=min_silence_len)
+
         end_trim = detect_leading_silence(audio.reverse(),
                                           silence_threshold=silence_thresh, chunk_size=min_silence_len)
 

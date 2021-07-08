@@ -728,6 +728,11 @@ make_dataset
     - durationはmel_num=20で作り直しているので, 影響受けない.
     - なのでmelのとこだけ計算しなおす.
 
+    - durationは同じだから...と思ってJSUT_JSSS_3のものをコピペしたらエラーでまくった. printしようとするとエラーが出なくなる意味不明なエラー. しょうがないのでちゃんと作り直し.
+    - そのdebugをしている最中に, 音声がぶつ切りに合っていることを発見してしまった. ちゃんと音声も確認して閾値は決めよう.
+
+    - pre_voiceから, JSUT_JSSS_4として作り直し
+
 - NARS2S_11回目
     - date: 20210708
     - output_folder_name: JSUT_2_JSSS_11
@@ -735,6 +740,7 @@ make_dataset
     - options
         - energyを元に戻した
         - targetのmelをnormalizeするのやめた
+        - preprocessで, tailの閾値を低くしてぶつ切りをなくした
     
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
