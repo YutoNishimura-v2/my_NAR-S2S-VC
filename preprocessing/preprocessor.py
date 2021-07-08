@@ -107,9 +107,11 @@ class Preprocessor:
             energy_min, energy_max = normalize(
                 os.path.join(self.out_dir, source_or_target, "energy"), energy_mean, energy_std
             )
-            mel_normalize(
-                os.path.join(self.out_dir, source_or_target, "mel"), mel_means, mel_stds
-            )
+            if source_or_target == "source":
+                # targetの時はnormalizeを行わない. 保存はすでに行われていることに注意.
+                mel_normalize(
+                    os.path.join(self.out_dir, source_or_target, "mel"), mel_means, mel_stds
+                )
 
             # Save files
 

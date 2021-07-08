@@ -216,8 +216,8 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     pitch = targets[11][0, :mel_len].detach().cpu().numpy()
     energy = targets[12][0, :mel_len].detach().cpu().numpy()
 
-    mel_target = mel_denormalize(mel_target, preprocess_config)
-    mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
+    # mel_target = mel_denormalize(mel_target, preprocess_config)
+    # mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
 
     with open(
         os.path.join(preprocess_config["path"]["preprocessed_path"], "target", "stats.json")
@@ -264,7 +264,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
         pitch = predictions[2][i, :mel_len].detach().cpu().numpy()
         energy = predictions[3][i, :mel_len].detach().cpu().numpy()
 
-        mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
+        # mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
 
         with open(
             os.path.join(preprocess_config["path"]["preprocessed_path"], "target", "stats.json")
@@ -286,7 +286,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
 
     mel_predictions = predictions[1].transpose(1, 2)
     # これで, (batch, dim, time)になっている.
-    mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
+    # mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
     lengths = predictions[9] * preprocess_config["preprocessing"]["stft"]["hop_length"]
     wav_predictions = vocoder_infer(
         mel_predictions, vocoder, preprocess_config, lengths=lengths

@@ -2,10 +2,8 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
-    - durationを作成しなおし
-        - その際に, ちゃんと無音部分を切る.
-    - 作成しなおしたdurationとpre_voiceで再度train.
-    - hifi-ganのtrain
+    - inference時に, trainに用いたtargetの正規化melでdenormalizeするように変更.
+        - 現状は虚無から取り出そうとしている. エラーになるので気づきそう.
 
 ## 必要なもの
 - pyworld用
@@ -114,6 +112,9 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
     - mel, 正規化は未実装. 先生に聞いてみる.
         - 80次元あるが, しょうがない, 次元ごとに正規化が正しい.
+    
+    - targetの正規化は不要. 論文にもなかったし. 削除します(2021-07-08)
+        - pitchとenergyのは必要. 論文にも書いてあるし.
 
 - nars2svc.pyの作成: 20210530~20210626
     - now: Decoderの, mel_mask=Noneの場合の動作確認中

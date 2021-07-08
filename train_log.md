@@ -702,7 +702,41 @@ make_dataset
         - 質問回答メモ
             - まぁ普通に考えて, trainはX→YとY→X同時にやるべき
             - targetの逆正規化はtargetのものでやるべき←これ, 未実装.
+                - それなら, 推論時はtargetのものはないので, 不可能
+                - というよりそもそもtargetのmelのnormalize不要な気がする
+                - 論文にも, sourceはそうするが, targetについての記載はまったくなかったので.
+                - なくします.
             - finetuningの際, optimizerはリセット. 一方で, スタートのlrは小さくしたほうがよさそう
                 - リセットはわかる. 確かにリセットしたほうが良さそう.
             
+            - vocoderが悪いだけな気がする. つまり, 確かにみかけlossは下がっていないが, 実は既にうまくいってる説
+                - 僕が気にしていたノイズも, 普通にmelが下がったもので乗っていた. なので確かにその説が濃厚.
+            
+            - energy過学習は気にしなくてよさそう?
+                - ablation studyを見るとenergyは主観にほぼ影響しないので.
+            
+            - 残る疑問は, 同発話で簡単っぽいタスクなのにlossが下がらないのはなぜ??
+                - これは先生も未経験.
+                - とりあえずは, 出来ること(optimizerの話)をやってみるべき.
+
+
+- targetのmelは正規化しないように変更.
+    - それに伴い, datasetを作り直し.
+    - `python preprocess.py config/JSUT_JSSS/preprocess.yaml`
+    - prevoiceはJSUT_JSSS_3を引き続き利用.
+    - preprocessedとしてJSUT_JSSS_4に.
+    - durationはmel_num=20で作り直しているので, 影響受けない.
+    - なのでmelのとこだけ計算しなおす.
+
+- NARS2S_11回目
+    - date: 20210708
+    - output_folder_name: JSUT_2_JSSS_11
+    - dataset: JSUT_JSSS_4
+    - options
+        - energyを元に戻した
+        - targetのmelをnormalizeするのやめた
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
+
             

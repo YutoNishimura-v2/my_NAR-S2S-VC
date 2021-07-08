@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 from utils.model import get_model, get_vocoder
-from utils.tools import to_device, synth_samples, mel_denormalize
+from utils.tools import to_device, synth_samples
 from dataset import SourceDataset
 from preprocessing.inference_preprocessor import inference_preprocess
 
@@ -41,8 +41,7 @@ def synthesize(model, configs, vocoder, loader, control_values, output_path):
                 )
 
 
-def inference_mel(model, configs, loader, control_values, output_path):
-    preprocess_config, _, _ = configs
+def inference_mel(model, loader, control_values, output_path):
     pitch_control, energy_control, duration_control = control_values
 
     for batchs in tqdm(loader):
@@ -60,7 +59,7 @@ def inference_mel(model, configs, loader, control_values, output_path):
                 mel_lens = output[9].cpu().numpy()
                 basenames = batch[0]
                 for i, mel in enumerate(mel_predictions):
-                    mel = mel_denormalize(mel, preprocess_config)
+                    # mel = mel_denormalize(mel, preprocess_config)
                     mel = mel.cpu().numpy()
                     mel = mel[:, :mel_lens[i]]
                     # vocoderとしてのinputは, dim, timeが想定されているみたい.
@@ -178,4 +177,4 @@ if __name__ == "__main__":
     if args.get_mel_for_hifigan is not True:
         synthesize(model, configs, vocoder, dataloader, control_values, args.output_path)
     else:
-        inference_mel(model, configs, dataloader, control_values, args.output_path)
+        inference_mel(model, dataloader, control_values, args.output_path)
