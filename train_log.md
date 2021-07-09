@@ -782,6 +782,7 @@ make_dataset
     - options
         - lrはreset.
         - JSUT_2_JSSS_10の20000からスタート.
+            - energyのlayerが2ですね
         - melの正規化はやり直し.
         - statsに関して, train時のモノで正規化をする事にしてみる.
     
@@ -789,4 +790,49 @@ make_dataset
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 20000`
 
         - あとはinit_lrも変更したい(今1)
-        - あと, 正規化の数字を補正するのもあり.
+        - あと, 正規化の数字を補正するのもあり(finetuningのデータのmeanとstdも使って補正かけるということ).
+
+        - いい感じ. 
+        - 欲を言えばもう少し下がってほしいので, lrの件をやってみることにする.
+        - そっちで失敗したらこれを訓練続行する.
+
+- NARS2S_new_finetuning_4回目
+    - date: 20210709
+    - output_folder_name: JSSS_2_JSUT_6
+    - dataset: JSSS_2_JSUT_3
+    - options
+        - lrはreset. init_lr = 0.1
+        - JSUT_2_JSSS_10の20000からスタート.
+            - energyのlayerが2ですね
+        - statsに関して, train時のモノで正規化をする事にしてみる.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 20000`
+
+        - validationは低いが, trainがなかなか下がらん, 失敗.
+        - 一個前の続きを行うことにする.
+
+- NARS2S_new_finetuning_3回目
+    - date: 20210709
+    - output_folder_name: JSSS_2_JSUT_5
+    - dataset: JSSS_2_JSUT_3
+    - options
+        - lrはreset.
+        - JSUT_2_JSSS_10の20000からスタート.
+            - energyのlayerが2ですね
+        - melの正規化はやり直し.
+        - statsに関して, train時のモノで正規化をする事にしてみる.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 22500`
+
+- NARS2S_new_finetuning_5回目
+    - date: 20210709
+    - output_folder_name: JSSS_2_JSUT_7
+    - dataset: JSSS_2_JSUT_3
+    - options
+        - lrはreset. 10倍スタートしてみる.
+        - JSUT_2_JSSS_10の20000からスタート.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 20000`
