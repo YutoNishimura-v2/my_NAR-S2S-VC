@@ -836,3 +836,33 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 20000`
+
+        - 普通にダメでした.
+
+        - ここまでやった感じ, 他にできることはもうないので, 次にやることは同時訓練をしておいてN2Cに備えるくらいですね.
+        
+        - 実験からわかったことをまとめると
+            - mel lossは0.3未満なら普通に大丈夫そう
+            - source, targetともにfinetuning時はpre_trainの正規化特徴量で正規化しよう.
+            - lrはresetしたほうが良いが, その時のlrは初期値でよさそう. 絶妙な値だった.
+        
+
+    - next
+        - X→Y, Y→Xを同時に学習.
+        - そのためには, prevoiceから用意が必要. ファイル名も変える必要があるので...。
+        - とりあえずhifiganを訓練しておいて時間あるときにやりましょう.
+
+- Hifi-gan_11回目
+    - date: 20210710
+    - output_folder_name: Universal_5
+    - dataset: Universal_3
+    - options
+        - training.
+            - Universal_5の続き.
+        - batch_size = 12: 謎のエラーとして出るから注意.
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_3 --input_wav_path ./pre_voice/Universal_2 --checkpoint_path ./hifigan/output/Universal_5 --config ./hifigan/configs/config_Universal_2.json --checkpoint_interval 25000 --summary_interval 500 --validation_interval 5000`
+            - hifiganでtrainingを続ける場合は勝手に重み探して継続してくれるからいいね.
+            - intervalを5倍にした. 1Mやる前提なので, そんなに頻繁に出されてもこまるので.
+
+    - memo
+        
