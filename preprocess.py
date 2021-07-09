@@ -17,7 +17,8 @@ from preprocessing.calc_duration import get_duration
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("config", type=str, help="path to preprocess.yaml")
+    parser.add_argument("--config", type=str, help="path to preprocess.yaml")
+    parser.add_argument("--finetuning", action='store_true')
     args = parser.parse_args()
 
     config = yaml.load(open(args.config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     voice_preprocess(config)
 
     # melの用意とか
-    preprocessor = Preprocessor(config)
+    preprocessor = Preprocessor(config, finetuning=args.finetuning)
     preprocessor.build_from_path()
 
     # durationの用意

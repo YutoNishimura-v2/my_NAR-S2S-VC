@@ -9,7 +9,7 @@ import numpy as np
 from tqdm import tqdm
 
 from utils.model import get_model, get_vocoder
-from utils.tools import to_device, synth_samples
+from utils.tools import to_device, synth_samples, mel_denormalize
 from dataset import SourceDataset
 from preprocessing.inference_preprocessor import inference_preprocess
 
@@ -59,7 +59,7 @@ def inference_mel(model, loader, control_values, output_path):
                 mel_lens = output[9].cpu().numpy()
                 basenames = batch[0]
                 for i, mel in enumerate(mel_predictions):
-                    # mel = mel_denormalize(mel, preprocess_config)
+                    mel = mel_denormalize(mel, preprocess_config)
                     mel = mel.cpu().numpy()
                     mel = mel[:, :mel_lens[i]]
                     # vocoderとしてのinputは, dim, timeが想定されているみたい.

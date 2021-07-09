@@ -12,7 +12,7 @@ import audio as Audio
 
 
 class Preprocessor:
-    def __init__(self, config):
+    def __init__(self, config, finetuning=False):
         self.config = config
         self.source_in_dir = config["path"]["source_prevoice_path"]
         self.target_in_dir = config["path"]["target_prevoice_path"]
@@ -31,6 +31,8 @@ class Preprocessor:
             config["preprocessing"]["mel"]["mel_fmin"],
             config["preprocessing"]["mel"]["mel_fmax"],
         )
+
+        self.finetuning = finetuning
 
     def build_from_path(self):
         """
@@ -55,9 +57,10 @@ class Preprocessor:
         for i, input_dir in enumerate([self.source_in_dir, self.target_in_dir]):
             out = list()
             n_frames = 0
-            pitch_scaler = StandardScaler()
-            energy_scaler = StandardScaler()
-            mel_scalers = [StandardScaler() for _ in range(self.n_mel_channels)]
+            if self.finetuning is not True:
+                pitch_scaler = StandardScaler()
+                energy_scaler = StandardScaler()
+                mel_scalers = [StandardScaler() for _ in range(self.n_mel_channels)]
             source_or_target = ["source", "target"][i]
 
             for wav_name in tqdm(os.listdir(input_dir)):
@@ -75,31 +78,51 @@ class Preprocessor:
                 out.append(info)
                 # mel: (80, time)
 
-                if len(pitch) > 0:
-                    # partial_fitでオンライン学習. meanとstdを.
-                    pitch_scaler.partial_fit(pitch.reshape((-1, 1)))
-                if len(energy) > 0:
-                    energy_scaler.partial_fit(energy.reshape((-1, 1)))
-                if len(mel) > 0:
-                    for idx, scaler in enumerate(mel_scalers):
-                        scaler.partial_fit(mel[idx, :].reshape((-1, 1)))
+                if self.finetuning is not True:
+                    if len(pitch) > 0:
+                        # partial_fitでオンライン学習. meanとstdを.
+                        pitch_scaler.partial_fit(pitch.reshape((-1, 1)))
+                    if len(energy) > 0:
+                        energy_scaler.partial_fit(energy.reshape((-1, 1)))
+                    if len(mel) > 0:
+                        for idx, scaler in enumerate(mel_scalers):
+                            scaler.partial_fit(mel[idx, :].reshape((-1, 1)))
 
                 n_frames += mel.shape[1]
 
-            print("Computing statistic quantities ...")
-            # Perform normalization if necessary
-            pitch_mean = pitch_scaler.mean_[0]
-            pitch_std = pitch_scaler.scale_[0]
-            energy_mean = energy_scaler.mean_[0]
-            energy_std = energy_scaler.scale_[0]
+            if self.finetuning is not True:
+                print("Computing statistic quantities ...")
+                # Perform normalization if necessary
+                pitch_mean = pitch_scaler.mean_[0]
+                pitch_std = pitch_scaler.scale_[0]
+                energy_mean = energy_scaler.mean_[0]
+                energy_std = energy_scaler.scale_[0]
 
-            # melのも.
-            mel_means = []
-            mel_stds = []
+                # melのも.
+                mel_means = []
+                mel_stds = []
 
-            for scaler in mel_scalers:
-                mel_means.append(scaler.mean_[0])
-                mel_stds.append(scaler.scale_[0])
+                for scaler in mel_scalers:
+                    mel_means.append(scaler.mean_[0])
+                    mel_stds.append(scaler.scale_[0])
+
+            else:
+                if source_or_target == "source":
+                    print("reading from: ", self.config["path"]["source_stats_path"])
+                    with open(self.config["path"]["source_stats_path"]) as f:
+                        stats = json.load(f)
+                        pitch_mean, pitch_std = stats["pitch"][2:]
+                        energy_mean, energy_std = stats["energy"][2:]
+                        mel_means = stats["mel_means"]
+                        mel_stds = stats["mel_stds"]
+                else:
+                    print("reading from: ", self.config["path"]["source_stats_path"])
+                    with open(self.config["path"]["target_stats_path"]) as f:
+                        stats = json.load(f)
+                        pitch_mean, pitch_std = stats["pitch"][2:]
+                        energy_mean, energy_std = stats["energy"][2:]
+                        mel_means = stats["mel_means"]
+                        mel_stds = stats["mel_stds"]
 
             pitch_min, pitch_max = normalize(
                 os.path.join(self.out_dir, source_or_target, "pitch"), pitch_mean, pitch_std
@@ -107,11 +130,9 @@ class Preprocessor:
             energy_min, energy_max = normalize(
                 os.path.join(self.out_dir, source_or_target, "energy"), energy_mean, energy_std
             )
-            if source_or_target == "source":
-                # targetの時はnormalizeを行わない. 保存はすでに行われていることに注意.
-                mel_normalize(
-                    os.path.join(self.out_dir, source_or_target, "mel"), mel_means, mel_stds
-                )
+            mel_normalize(
+                os.path.join(self.out_dir, source_or_target, "mel"), mel_means, mel_stds
+            )
 
             # Save files
 

@@ -760,3 +760,33 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 35000`
+
+        - 結果: うまくいかない
+        - targetのmelを正規化する前よりもうまくいっていない...。
+        - やはり, finetuning時は, input, outputどちらもtrain時のstatsを使うべきなきがする.
+        - それでやってみます.
+
+- targetのmelを正規化するように直す.
+    - 但し, finetuning時は, statsを配置するように変更.
+    - pretrain modelは, JSUT_2_JSSS_10
+        - mel正規化されているはず. ただのパラメタ変えただけのものなので.
+        - pre_voice: JSUT_JSSS_3
+        - preprocessed: JSUT_JSSS_3
+    - なので, このpreprocessedで作られたstatsを用いて正規化をしよう!!
+    - `python preprocess.py --config ./config/JSUT_JSSS/preprocess.yaml --finetuning`
+
+- NARS2S_new_finetuning_3回目
+    - date: 20210709
+    - output_folder_name: JSSS_2_JSUT_5
+    - dataset: JSSS_2_JSUT_3
+    - options
+        - lrはreset.
+        - JSUT_2_JSSS_10の20000からスタート.
+        - melの正規化はやり直し.
+        - statsに関して, train時のモノで正規化をする事にしてみる.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 20000`
+
+        - あとはinit_lrも変更したい(今1)
+        - あと, 正規化の数字を補正するのもあり.

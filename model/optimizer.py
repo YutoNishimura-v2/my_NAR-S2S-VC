@@ -18,6 +18,7 @@ class ScheduledOptim:
         self.anneal_rate = train_config["optimizer"]["anneal_rate"]
         self.current_step = current_step
         self.init_lr = np.power(model_config["conformer"]["encoder_hidden"], -0.5)
+        self.init_lr *= train_config["optimizer"]["init_lr"]
 
     def step_and_update_lr(self):
         self._update_learning_rate()
