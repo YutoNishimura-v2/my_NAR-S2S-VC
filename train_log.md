@@ -745,4 +745,18 @@ make_dataset
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
 
-            
+- makedataset
+    - 一方だけmelを正規化していないので, ちゃんと作り直す.
+    - pre_voice: JSUT_JSSS_4
+    - preprocessed_Data: JSSS_2_JSUT_2
+
+- NARS2S_new_finetuning_2回目
+    - date: 20210708
+    - output_folder_name: JSSS_2_JSUT_4
+    - dataset: JSSS_2_JSUT_2
+    - options
+        - lrはreset.
+        - JSUT_2_JSSS_11の35000からスタート.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 35000`
