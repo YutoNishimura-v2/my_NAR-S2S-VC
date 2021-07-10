@@ -33,6 +33,7 @@ class Preprocessor:
         )
 
         self.finetuning = finetuning
+        self.multi_speaker = config["preprocessing"]["multi_speaker"]
 
     def build_from_path(self):
         """
@@ -54,6 +55,7 @@ class Preprocessor:
         # Compute pitch, energy, duration, and mel-spectrogram
         # one-to-oneなので, speakerという概念は不要そう.
         outs = []
+        speakers = []
         for i, input_dir in enumerate([self.source_in_dir, self.target_in_dir]):
             out = list()
             n_frames = 0
@@ -76,7 +78,10 @@ class Preprocessor:
                 else:
                     info, pitch, energy, mel = ret
                 out.append(info)
-                # mel: (80, time)
+
+                if self.multi_speaker is True:
+                    # wavのファイル名の先頭に話者名が記載されていることを仮定.
+                    speakers.append(basename.split('_')[0])
 
                 if self.finetuning is not True:
                     if len(pitch) > 0:
@@ -186,11 +191,14 @@ class Preprocessor:
                 for m in valid_outs[i]:
                     f.write(m + "\n")
 
-        print("""
-        targetとsourceのtrain.txt, val.txtを確認し, 対応関係が成り立っているか確認してください.
-        成り立っていない場合, ファイル名に一貫性がありません.
-        np.sortをした際にtargetとsourceが想定通りの対応関係になるような対称的な命名にしましょう.
-        """)
+        assert train_outs[0][0] == train_outs[1][0]
+        assert valid_outs[0][0] == valid_outs[1][0]
+
+        if self.multi_speaker is True:
+            speakers = set(speakers)
+            with open(os.path.join(self.out_dir, "speakers.txt"), "w", encoding="utf-8") as f:
+                for speaker in speakers:
+                    f.write(speaker + '\n')
 
 
 def process_utterance(input_dir, out_dir, basename,

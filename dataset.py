@@ -21,6 +21,13 @@ class TrainDataset(Dataset):
         self.sort = sort
         self.drop_last = drop_last
 
+        self.speakers = {}
+        if os.path.exists(os.path.join(self.preprocessed_path, "speakers.txt")):
+            with open(os.path.join(self.preprocessed_path, "speakers.txt"), "r", encoding="utf-8") as f:
+                for i, line in enumerate(f.readlines()):
+                    n = line.strip("\n")
+                    self.speakers[n] = i
+
     def __len__(self):
         return len(self.basenames[0])
 
@@ -28,6 +35,7 @@ class TrainDataset(Dataset):
         # 基本的には, あらかじめ計算しておいた, pitch, energy, duration, melをtextとともに用いる.
         # textは, symbol化済みなので, それをidに変換する.
         basenames = []
+        speakers = []
         mels = []
         pitchs = []
         energys = []
@@ -69,6 +77,12 @@ class TrainDataset(Dataset):
                 duration = np.load(duration_path)
 
             basenames.append(basename)
+            if len(self.speakers) > 0:
+                speakers.append(self.speakers[basename.split('_')[0]])
+            else:
+                # multi_speakerをoffにしていたら, ここに来る. この時は, source: 0, target: 1
+                # として強制的にspeakerを持たせる.
+                speakers.append(i)
             mels.append(mel)
             pitchs.append(pitch)
             energys.append(energy)
@@ -76,6 +90,7 @@ class TrainDataset(Dataset):
         sample = {
             "s_id": basenames[0],
             "t_id": basenames[1],
+            "s_speaker_id": basenames[0],
             "s_mel": mels[0],
             "s_pitch": pitchs[0],
             "s_energy": energys[0],

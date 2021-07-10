@@ -11,6 +11,7 @@ path:
 
 preprocessing:
   val_size: 229 # 元は512  # 全データが3229個.
+  multi_speaker: True
   audio:
     sampling_rate: 22050
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
