@@ -894,4 +894,39 @@ make_dataset
     - memo 
         - `python train.py -p ./config/JSUT_to_from_JSSS/preprocess.yaml -t ./config/JSUT_to_from_JSSS/train.yaml -m ./config/JSUT_to_from_JSSS/model.yaml`
 
-        - 
+        - 学習が進まない...妙だな....
+            - よく考えたら, 話者が異なるんだから混ぜたら困るのは当然!!!!
+            - 話者指定してあげないと無理だよ!!!!!
+            - ということで, speaker情報を復活させます...。
+
+            - それはよくない.
+            - inputとoutput両方にspeakerのembeddingが必要だろう.
+                - でもfinetuningする前提ならそっちのほうがうまくいったりするのか...?
+                - とりあえず, 普通にfinetuningするほうで実験を進めつつ, 改造しよう.
+
+- makedataset for NARS2S
+    - hifiganのconfigに合うように訓練してみる.
+    - sr = 22050
+    - n_fft = 1024
+    - hop_size = 256
+    - win_size = 1024
+    - X→Yは同時に行わず, 今まで通りまずはJSUT_JSSSのpre_voiceを作成する.
+
+    - pre_voice: JSUT_JSSS_5
+    - preprocessed: JSUT_JSSS_5
+    
+    - pre_voice: JSUT_JSSS_5
+    - preprocessed: JSSS_2_JSUT_4
+        - finetuning用に, JSUT_JSSS_5のstatsを利用することに注意.
+
+    - `python preprocess.py --config ./config/JSUT_JSSS/preprocess.yaml`
+
+- NARS2S_new_1回目
+    - date: 20210710
+    - output_folder_name: JSUT_2_JSSS_12
+    - dataset: JSUT_JSSS_5
+    - options
+        - hifiganのパラメタに合わせた設定.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
