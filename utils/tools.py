@@ -45,6 +45,8 @@ def to_device(data, device):
             t_energies,
         ) = data
 
+        s_sp_ids = torch.from_numpy(s_sp_ids).long().to(device)
+        t_sp_ids = torch.from_numpy(t_sp_ids).long().to(device)
         s_mels = torch.from_numpy(s_mels).float().to(device)
         s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
         s_pitches = torch.from_numpy(s_pitches).float().to(device)
@@ -76,6 +78,8 @@ def to_device(data, device):
     if len(data) == 8:  # infe用.
         (ids, s_sp_ids, t_sp_ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies) = data
 
+        s_sp_ids = torch.from_numpy(s_sp_ids).long().to(device)
+        t_sp_ids = torch.from_numpy(t_sp_ids).long().to(device)
         s_mels = torch.from_numpy(s_mels).float().to(device)
         s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
         s_pitches = torch.from_numpy(s_pitches).float().to(device)
@@ -87,6 +91,8 @@ def to_device(data, device):
         (ids, s_sp_ids, t_sp_ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies,
          s_durations, t_mel_lens, max_t_mel_len) = data
 
+        s_sp_ids = torch.from_numpy(s_sp_ids).long().to(device)
+        t_sp_ids = torch.from_numpy(t_sp_ids).long().to(device)
         s_mels = torch.from_numpy(s_mels).float().to(device)
         s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
         s_pitches = torch.from_numpy(s_pitches).float().to(device)

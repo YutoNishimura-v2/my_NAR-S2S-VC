@@ -138,6 +138,9 @@ class TrainDataset(Dataset):
         s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
         t_mel_lens = np.array([t_mel.shape[0] for t_mel in t_mels])
 
+        s_sp_ids = np.array(s_sp_ids)
+        t_sp_ids = np.array(t_sp_ids)
+
         # padding. tools.pyにあり.
         # 与えられたtext内からmax_sizeを探し出して, padしてくれる.
         s_mels = pad_2D(s_mels)
@@ -321,6 +324,9 @@ class SourceDataset(Dataset):
 
         # textとmelのlenを取得.
         s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
+
+        s_sp_ids = np.array(s_sp_ids)
+        t_sp_ids = np.array(t_sp_ids)
 
         # padding. tools.pyにあり.
         # 与えられたtext内からmax_sizeを探し出して, padしてくれる.

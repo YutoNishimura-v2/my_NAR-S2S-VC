@@ -1,13 +1,14 @@
-import sys
 import os
+import sys
 
+import torch
 import torch.nn as nn
+from conformer.Layers import PostNet
+from conformer.Models import Decoder, Encoder
+from utils.tools import get_mask_from_lengths
 
 sys.path.append('.')
-from conformer.Models import Encoder, Decoder
-from conformer.Layers import PostNet
 from .modules import VarianceAdaptor
-from utils.tools import get_mask_from_lengths
 
 
 class NARS2SVC(nn.Module):
@@ -33,9 +34,10 @@ class NARS2SVC(nn.Module):
 
         n_speaker = 2
 
-        if os.path.exists(os.path.join(self.preprocessed_path, "speakers.txt")):
+        if os.path.exists(os.path.join(preprocess_config["path"]["preprocessed_path"], "speakers.txt")):
             n_speaker = 0
-            with open(os.path.join(self.preprocessed_path, "speakers.txt"), "r", encoding="utf-8") as f:
+            with open(os.path.join(preprocess_config["path"]["preprocessed_path"], "speakers.txt"), "r",
+                      encoding="utf-8") as f:
                 for _ in f.readlines():
                     n_speaker += 1
 
@@ -47,6 +49,8 @@ class NARS2SVC(nn.Module):
 
     def forward(
         self,
+        s_sp_ids,
+        t_sp_ids,
         s_mels,
         s_mel_lens,
         max_s_mel_len,
@@ -72,6 +76,8 @@ class NARS2SVC(nn.Module):
 
         output = self.mel_linear_1(s_mels)
 
+        output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, max_s_mel_len, -1)
+
         output = self.encoder(output, s_mel_masks)
 
         (
@@ -96,6 +102,8 @@ class NARS2SVC(nn.Module):
             e_control,
             d_control,
         )
+
+        output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, torch.max(t_mel_lens), -1)
 
         # ここまでのoutputは, (batch, mel_len+pad, hidden)となっている.
         # masksはtargetのもの.なければmel_lensから作成.

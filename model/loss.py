@@ -18,7 +18,7 @@ class NARS2SVCLoss(nn.Module):
             _,
             pitch_targets,
             energy_targets,
-        ) = inputs[7:]
+        ) = inputs[9:]
         (
             mel_predictions,
             postnet_mel_predictions,
