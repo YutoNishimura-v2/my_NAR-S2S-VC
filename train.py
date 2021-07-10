@@ -123,7 +123,7 @@ def main(args, configs):
 
                 if step % synth_step == 0:
                     # 合成結果を記載する.
-                    fig, wav_reconstruction, wav_prediction, tag = synth_one_sample(
+                    fig, wav_reconstruction, wav_prediction, tag, speaker = synth_one_sample(
                         batch,
                         output,
                         vocoder,
@@ -133,7 +133,7 @@ def main(args, configs):
                     log(
                         train_logger,
                         fig=fig,
-                        tag="Training/step_{}_{}".format(step, tag),
+                        tag="Training/step_{}_{}_{}".format(step, tag, speaker),
                         step=step
                     )
                     sampling_rate = preprocess_config["preprocessing"]["audio"][

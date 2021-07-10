@@ -181,50 +181,16 @@ def mel_denormalize(mels: torch.Tensor, preprocess_config):
 
 
 def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_config):
-    """
-    Args:
-      targets:      s_ids,
-                    t_ids,
-                    s_mels,
-                    s_mel_lens,
-                    max(s_mel_lens),
-                    s_pitches,
-                    s_energies,
-                    s_durations,
-                    t_mels,
-                    t_mel_lens,
-                    max(t_mel_lens),
-                    t_pitches,
-                    t_energies,
-      predictions:  output,
-                    postnet_output,
-                    p_predictions,
-                    e_predictions,
-                    log_d_predictions,
-                    d_rounded,
-                    s_mel_masks,
-                    t_mel_masks,
-                    s_mel_lens,
-                    t_mel_lens,
-    Examples:
-    >>> fig, wav_reconstruction, wav_prediction, tag = synth_one_sample(
-    >>>     batch,
-    >>>     output,
-    >>>     vocoder,
-    >>>     model_config,
-    >>>     preprocess_config,
-    >>> )
-    """
     # さすがにbatch一つ目のデータを利用.
     # batch[0][0]で, 後者がバッチのうちの0番目を指定している事に注意.
     # 基本targetのものを利用している.
     basename = targets[1][0]
     mel_len = predictions[9][0].item()
     # melたちは, (time, dim)のように, 最後がmel_channel数.
-    mel_target = targets[8][0, :mel_len].detach().transpose(0, 1)
+    mel_target = targets[19][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
-    pitch = targets[11][0, :mel_len].detach().cpu().numpy()
-    energy = targets[12][0, :mel_len].detach().cpu().numpy()
+    pitch = targets[13][0, :mel_len].detach().cpu().numpy()
+    energy = targets[14][0, :mel_len].detach().cpu().numpy()
 
     mel_target = mel_denormalize(mel_target, preprocess_config)
     mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
