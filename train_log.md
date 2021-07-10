@@ -930,3 +930,15 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+- NARS2S_new_finetuning_1回目
+    - date: 20210711
+    - output_folder_name: JSSS_2_JSUT_8
+    - dataset: JSSS_2_JSUT_4
+    - options
+        - hifiganのパラメタに合わせた設定.
+        - finetuningを始めるには少しだけ早いが, 寝るので...。
+        - あと, 本命はmulti_speakerだしね.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 17500`
