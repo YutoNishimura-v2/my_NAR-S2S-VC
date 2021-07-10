@@ -90,7 +90,8 @@ class TrainDataset(Dataset):
         sample = {
             "s_id": basenames[0],
             "t_id": basenames[1],
-            "s_speaker_id": basenames[0],
+            "s_speaker_id": speakers[0],
+            "t_speaker_id": speakers[1],
             "s_mel": mels[0],
             "s_pitch": pitchs[0],
             "s_energy": energys[0],
@@ -123,6 +124,8 @@ class TrainDataset(Dataset):
         # まずはそいつらのデータを取得.
         s_ids = [data[idx]["s_id"] for idx in idxs]
         t_ids = [data[idx]["t_id"] for idx in idxs]
+        s_sp_ids = [data[idx]["s_speaker_id"] for idx in idxs]
+        t_sp_ids = [data[idx]["t_speaker_id"] for idx in idxs]
         s_mels = [data[idx]["s_mel"] for idx in idxs]
         s_pitches = [data[idx]["s_pitch"] for idx in idxs]
         s_energies = [data[idx]["s_energy"] for idx in idxs]
@@ -149,6 +152,8 @@ class TrainDataset(Dataset):
         return (
             s_ids,
             t_ids,
+            s_sp_ids,
+            t_sp_ids,
             s_mels,
             s_mel_lens,
             max(s_mel_lens),
@@ -206,7 +211,7 @@ class TrainDataset(Dataset):
 
 
 class SourceDataset(Dataset):
-    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False, duration_force=False):
+    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False, duration_force=False, t_speaker=1):
         """
         Args:
           filepath: 処理したい音声の直上フォルダを指定.
@@ -220,6 +225,15 @@ class SourceDataset(Dataset):
         self.sort = sort
         self.drop_last = drop_last
         self.duration_force = duration_force
+
+        self.speakers = {}
+        if os.path.exists(os.path.join(self.preprocessed_path, "speakers.txt")):
+            with open(os.path.join(self.preprocessed_path, "speakers.txt"), "r", encoding="utf-8") as f:
+                for i, line in enumerate(f.readlines()):
+                    n = line.strip("\n")
+                    self.speakers[n] = i
+
+        self.target_speaker = t_speaker  # default: 1
 
     def __len__(self):
         return len(self.basename)
@@ -248,6 +262,13 @@ class SourceDataset(Dataset):
         )
         energy = np.load(energy_path)
 
+        if len(self.speakers) > 0:
+            speaker = self.speakers[basename.split('_')[0]]
+        else:
+            # multi_speakerをoffにしていたら, ここに来る. この時は, source: 0, target: 1
+            # として強制的にspeakerを持たせる.
+            speaker = 0
+
         if self.duration_force is True:
             duration_path = os.path.join(
                 self.preprocessed_path,
@@ -257,6 +278,8 @@ class SourceDataset(Dataset):
             duration = np.load(duration_path)
             sample = {
                 "id": basename,
+                "s_speaker_id": speaker,
+                "t_speaker_id": self.target_speaker,
                 "s_mel": mel,
                 "s_pitch": pitch,
                 "s_energy": energy,
@@ -265,6 +288,8 @@ class SourceDataset(Dataset):
         else:
             sample = {
                 "id": basename,
+                "s_speaker_id": speaker,
+                "t_speaker_id": self.target_speaker,
                 "s_mel": mel,
                 "s_pitch": pitch,
                 "s_energy": energy,
@@ -284,6 +309,8 @@ class SourceDataset(Dataset):
 
     def reprocess(self, data, idxs):
         ids = [data[idx]["id"] for idx in idxs]
+        s_sp_ids = [data[idx]["s_speaker_id"] for idx in idxs]
+        t_sp_ids = [data[idx]["t_speaker_id"] for idx in idxs]
         s_mels = [data[idx]["s_mel"] for idx in idxs]
         s_pitches = [data[idx]["s_pitch"] for idx in idxs]
         s_energies = [data[idx]["s_energy"] for idx in idxs]
@@ -306,6 +333,8 @@ class SourceDataset(Dataset):
         if self.duration_force is True:
             return (
                 ids,
+                s_sp_ids,
+                t_sp_ids,
                 s_mels,
                 s_mel_lens,
                 max(s_mel_lens),
@@ -318,6 +347,8 @@ class SourceDataset(Dataset):
         else:
             return (
                 ids,
+                s_sp_ids,
+                t_sp_ids,
                 s_mels,
                 s_mel_lens,
                 max(s_mel_lens),

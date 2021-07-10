@@ -2,8 +2,7 @@
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - todo
-    - inference時に, trainに用いたtargetの正規化melでdenormalizeするように変更.
-        - 現状は虚無から取り出そうとしている. エラーになるので気づきそう.
+    - inference時にspeakerを利用する実装に変更.
 
 ## 必要なもの
 - pyworld用

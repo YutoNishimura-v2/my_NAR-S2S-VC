@@ -26,10 +26,12 @@ def save_configs(args, train_config):
 
 
 def to_device(data, device):
-    if len(data) == 13:  # train用.
+    if len(data) == 15:  # train用.
         (
             s_ids,
             t_ids,
+            s_sp_ids,
+            t_sp_ids,
             s_mels,
             s_mel_lens,
             max_s_mel_len,
@@ -56,6 +58,8 @@ def to_device(data, device):
         return (
             s_ids,
             t_ids,
+            s_sp_ids,
+            t_sp_ids,
             s_mels,
             s_mel_lens,
             max_s_mel_len,
@@ -69,18 +73,18 @@ def to_device(data, device):
             t_energies,
         )
 
-    if len(data) == 6:  # infe用.
-        (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies) = data
+    if len(data) == 8:  # infe用.
+        (ids, s_sp_ids, t_sp_ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies) = data
 
         s_mels = torch.from_numpy(s_mels).float().to(device)
         s_mel_lens = torch.from_numpy(s_mel_lens).to(device)
         s_pitches = torch.from_numpy(s_pitches).float().to(device)
         s_energies = torch.from_numpy(s_energies).to(device)
 
-        return (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies)
+        return (ids, s_sp_ids, t_sp_ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies)
 
-    if len(data) == 9:  # infe, duration_forcing用.
-        (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies,
+    if len(data) == 11:  # infe, duration_forcing用.
+        (ids, s_sp_ids, t_sp_ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies,
          s_durations, t_mel_lens, max_t_mel_len) = data
 
         s_mels = torch.from_numpy(s_mels).float().to(device)
@@ -90,7 +94,7 @@ def to_device(data, device):
         s_durations = torch.from_numpy(s_durations).to(device)
         t_mel_lens = torch.from_numpy(t_mel_lens).to(device)
 
-        return (ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies,
+        return (ids, s_sp_ids, t_sp_ids, s_mels, s_mel_lens, s_mel_max_len, s_pitches, s_energies,
                 s_durations, None, t_mel_lens, max_t_mel_len)
 
 

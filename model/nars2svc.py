@@ -1,4 +1,5 @@
 import sys
+import os
 
 import torch.nn as nn
 
@@ -29,6 +30,20 @@ class NARS2SVC(nn.Module):
             preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
         )
         self.postnet = PostNet()
+
+        n_speaker = 2
+
+        if os.path.exists(os.path.join(self.preprocessed_path, "speakers.txt")):
+            n_speaker = 0
+            with open(os.path.join(self.preprocessed_path, "speakers.txt"), "r", encoding="utf-8") as f:
+                for _ in f.readlines():
+                    n_speaker += 1
+
+        self.speaker_emb = nn.Embedding(
+            n_speaker,
+            model_config["conformer"]["encoder_hidden"],
+        )
+        assert model_config["conformer"]["encoder_hidden"] == model_config["conformer"]["decoder_hidden"]
 
     def forward(
         self,

@@ -199,6 +199,7 @@ class Preprocessor:
             with open(os.path.join(self.out_dir, "speakers.txt"), "w", encoding="utf-8") as f:
                 for speaker in speakers:
                     f.write(speaker + '\n')
+            print("正しく想定したspeakersが記録されたか確認してください.")
 
 
 def process_utterance(input_dir, out_dir, basename,
