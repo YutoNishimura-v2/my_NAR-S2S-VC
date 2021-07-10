@@ -79,7 +79,7 @@ class TrainDataset(Dataset):
 
             basenames.append(basename)
             if len(self.speakers) > 0:
-                speakers.append(self.speakers[basename.split('_')[0]])
+                speakers.append(self.speakers[basename.split('_')[i]])
             else:
                 # multi_speakerをoffにしていたら, ここに来る. この時は, source: 0, target: 1
                 # として強制的にspeakerを持たせる.
@@ -295,10 +295,18 @@ class SourceDataset(Dataset):
                 "duration-{}.npy".format(basename),
             )
             duration = np.load(duration_path)
+
+            assert len(self.speakers) > 0
+            # duration_forceをするのは, for_hifiganの時のみ.
+            # この時は, NARS2Sの訓練に使ったデータを利用するので,
+            # ファイル名もsource_target_になっていることに注意.
+            t_speaker = basename.split('_')[1]
+
+            assert t_speaker in self.speakers.keys()
             sample = {
                 "id": basename,
                 "s_speaker_id": speaker,
-                "t_speaker_id": self.target_speaker,
+                "t_speaker_id": t_speaker,
                 "s_mel": mel,
                 "s_pitch": pitch,
                 "s_energy": energy,
