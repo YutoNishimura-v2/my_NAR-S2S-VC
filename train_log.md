@@ -865,4 +865,33 @@ make_dataset
             - intervalを5倍にした. 1Mやる前提なので, そんなに頻繁に出されてもこまるので.
 
     - memo
-        
+        - やはりうまくいかない。。。。。
+        - もはやデータ量の問題でもない気がする(一応LJSpeechは改良できるみたい)
+        - 一応, LibriTTSを全部使ってなかったみたいなので, あと400hは増やせるが、本質的でない気もする...。
+        - 全てが終わってGPUをもてあましたらやるくらい。
+
+        - とりあえず今は, 22050に合わせることにしてみる.
+            - 22050でも悪くない気がする.
+            - fmax8000の問題も, finetuningすれば行けると信じる.
+
+- makedataset for NARS2S
+    - hifiganのconfigに合うように訓練してみる.
+    - sr = 22050
+    - n_fft = 1024
+    - hop_size = 256
+    - win_size = 1024
+    - また, X→YとY→Xは同時に行う.
+
+    - `python preprocess.py --config ./config/JSUT_to_from_JSSS/preprocess.yaml`
+
+- NARS2S_new_1回目
+    - date: 20210710
+    - output_folder_name: JSUT_to_from_JSSS
+    - dataset: JSUT_to_from_JSSS
+    - options
+        - 初のhifiganに合わせたパラメタ設定. どうなることやら.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_to_from_JSSS/preprocess.yaml -t ./config/JSUT_to_from_JSSS/train.yaml -m ./config/JSUT_to_from_JSSS/model.yaml`
+
+        - 

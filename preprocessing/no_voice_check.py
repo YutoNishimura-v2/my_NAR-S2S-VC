@@ -19,7 +19,7 @@ from preprocessing.n2c_voiceprocess import delete_novoice_from_path
 
 # ここだけ指定してください
 ########################
-config_base_path = "./config/JSUT_JSSS"
+config_base_path = "./config/JSUT_to_from_JSSS"
 shuffle = True
 ########################
 

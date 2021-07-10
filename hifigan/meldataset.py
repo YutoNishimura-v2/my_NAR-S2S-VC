@@ -149,7 +149,7 @@ class MelDataset(torch.utils.data.Dataset):
         if self._cache_ref_count == 0:
             audio, sampling_rate = load_wav(filename, self.sampling_rate)
             audio = audio / MAX_WAV_VALUE
-            if not self.fine_tuning:  # もはやここでしかfinetuning使わない.
+            if self.fine_tuning is not True:  # もはやここでしかfinetuning使わない.
                 audio = normalize(audio) * 0.95
             self.cached_wav = audio
             if sampling_rate != self.sampling_rate:
@@ -163,7 +163,7 @@ class MelDataset(torch.utils.data.Dataset):
         audio = torch.FloatTensor(audio)
         audio = audio.unsqueeze(0)
 
-        if not self.fine_tuning:
+        if self.fine_tuning is not True:
             if self.split:
                 if audio.size(1) >= self.segment_size:
                     max_audio_start = audio.size(1) - self.segment_size
