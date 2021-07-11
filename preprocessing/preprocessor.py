@@ -81,7 +81,9 @@ class Preprocessor:
 
                 if self.multi_speaker is True:
                     # wavのファイル名の先頭に話者名が記載されていることを仮定.
+                    # 例: 「JSUT_JSSS_....」なら, JSUT_to_JSSSで, sourceがJSUTであることを示している.
                     speakers.append(basename.split('_')[0])
+                    speakers.append(basename.split('_')[1])
 
                 if self.finetuning is not True:
                     if len(pitch) > 0:

@@ -27,6 +27,7 @@ class TrainDataset(Dataset):
                 for i, line in enumerate(f.readlines()):
                     n = line.strip("\n")
                     self.speakers[n] = i
+        print("speakers: ", self.speakers)
 
     def __len__(self):
         return len(self.basenames[0])
@@ -78,7 +79,7 @@ class TrainDataset(Dataset):
 
             basenames.append(basename)
             if len(self.speakers) > 0:
-                speakers.append(self.speakers[basename.split('_')[0]])
+                speakers.append(self.speakers[basename.split('_')[i]])
             else:
                 # multi_speakerをoffにしていたら, ここに来る. この時は, source: 0, target: 1
                 # として強制的にspeakerを持たせる.
@@ -214,7 +215,8 @@ class TrainDataset(Dataset):
 
 
 class SourceDataset(Dataset):
-    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False, duration_force=False, t_speaker=1):
+    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False,
+                 duration_force=False, t_speaker=None):
         """
         Args:
           filepath: 処理したい音声の直上フォルダを指定.
@@ -236,7 +238,15 @@ class SourceDataset(Dataset):
                     n = line.strip("\n")
                     self.speakers[n] = i
 
-        self.target_speaker = t_speaker  # default: 1
+        if t_speaker is None:
+            self.target_speaker = 1  # default: 1
+        else:
+            if t_speaker not in self.speakers.keys():
+                print("error! 該当するspeakerは存在しません.")
+                print("input: ", t_speaker)
+                print("speakers: ", self.speakers)
+                exit(0)
+            self.target_speaker = self.speakers[t_speaker]
 
     def __len__(self):
         return len(self.basename)
@@ -266,7 +276,13 @@ class SourceDataset(Dataset):
         energy = np.load(energy_path)
 
         if len(self.speakers) > 0:
-            speaker = self.speakers[basename.split('_')[0]]
+            speaker_ = basename.split('_')[0]
+            if speaker_ not in self.speakers:
+                print(f"speaker: {speaker_}: 存在しません.")
+                print("speaker id = 0 として処理します.")
+                speaker = 0
+            else:
+                speaker = self.speakers[speaker_]
         else:
             # multi_speakerをoffにしていたら, ここに来る. この時は, source: 0, target: 1
             # として強制的にspeakerを持たせる.
@@ -279,10 +295,18 @@ class SourceDataset(Dataset):
                 "duration-{}.npy".format(basename),
             )
             duration = np.load(duration_path)
+
+            assert len(self.speakers) > 0
+            # duration_forceをするのは, for_hifiganの時のみ.
+            # この時は, NARS2Sの訓練に使ったデータを利用するので,
+            # ファイル名もsource_target_になっていることに注意.
+            t_speaker = basename.split('_')[1]
+
+            assert t_speaker in self.speakers.keys()
             sample = {
                 "id": basename,
                 "s_speaker_id": speaker,
-                "t_speaker_id": self.target_speaker,
+                "t_speaker_id": t_speaker,
                 "s_mel": mel,
                 "s_pitch": pitch,
                 "s_energy": energy,

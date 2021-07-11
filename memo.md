@@ -1,9 +1,6 @@
 # my_NAR-S2S-VC: 20210528~
 FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
-- todo
-    - inference時にspeakerを利用する実装に変更.
-
 ## 必要なもの
 - pyworld用
     - [C++のビルドツール](https://self-development.info/%E3%80%8Cmicrosoft-visual-c-14-0-or-greater-is-required-%E3%80%8D%E3%81%8C%E5%87%BA%E3%81%9F%E5%A0%B4%E5%90%88%E3%81%AE%E5%AF%BE%E5%87%A6%E6%96%B9%E6%B3%95/)
@@ -47,6 +44,37 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 
 - 本来は, 句読点まで一致した読み合わせのペアを, JSUTとJSSSから選ぶ必要があるが, 
 ここでの目的は, 僕の汚いズレた発音も含めてtrainingできるようにすることなので, あえて句読点の違う汚いデータも入れてみる.
+
+## inputのルール(実行方法も)
+### NARS2S
+- 共通ルール
+    - 必ず, source_targetで対応させたいファイル名は同じにすること.
+        - sortできるようにするため.
+
+- multi_speaker
+    - train+finetuning時
+        - ファイル名: source_target_...
+        - (multi_speakerのfinetuningは想定していないですが)
+    - inference時
+        - ファイル名: source_...
+    - for_fihigan
+        - train時と同様.
+
+- train
+    - source_target_...のように, speaker名を入れてあげる.
+    - あとは, preprocess→trainするだけ.
+- finetuning
+    - preprocess時にfinetuningをargに追加  
+        - そうすると, train時のstatsを使ってmelを作る.
+    - configにstatsファイルを指定
+        - ちゃんとね.
+    - そしてpreprocess→train
+- inference
+    - 指示に従うだけ
+    - target_speakerは指定しないと強制的に1になる.
+- for_hifigan
+    - get_mel_for_hifiganをつけるだけ.
+    - あとは自動. target_speakerもいらない.
 
 ## 変更点
 - Encoder, DecoderのTransformerをConformerへ.: 20210528~20210529
@@ -104,6 +132,9 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
         - training: 持ちうるデータ全てで一気に訓練
             - そのほうが汎化性能はよさそう.
             - 音声ファイル名冒頭に, 話者名を追加することでspeakersを獲得することにする.
+            - sourceとtargetの対応をちゃんとするために, 名前は同一である必要があった.
+                - そこで, source_target_...という名前をつけることにすれば良さそう.
+                - inferenceの時は, source_....という名前にしてもらう.
             - multi_speaker = Trueというconfigを追加して後方互換性はたもっておきたい.
 
 - duration教師データ用意について: 20210604~20210624
