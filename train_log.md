@@ -955,3 +955,14 @@ make_dataset
     - JSUT_to_from_JSSS
     - prevoice: JSUT_to_from_JSSS_2
     - preprocess: JSUT_to_from_JSSS_2
+
+- NARS2S_new_1回目
+    - date: 20210711
+    - output_folder_name: JSUT_to_from_JSSS_2
+    - dataset: JSUT_to_from_JSSS_2
+    - options
+        - hifiganのパラメタに合わせた設定.
+        - multi_speaker = True
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_to_from_JSSS/preprocess.yaml -t ./config/JSUT_to_from_JSSS/train.yaml -m ./config/JSUT_to_from_JSSS/model.yaml`
