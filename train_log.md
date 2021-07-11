@@ -942,3 +942,16 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml --restore_step 17500`
+
+
+- makedataset for NARS2S
+    - hifiganのconfigに合うように訓練してみる.
+    - sr = 22050
+    - n_fft = 1024
+    - hop_size = 256
+    - win_size = 1024
+    - X→Yは同時. multi_speaker.
+
+    - JSUT_to_from_JSSS
+    - prevoice: JSUT_to_from_JSSS_2
+    - preprocess: JSUT_to_from_JSSS_2
