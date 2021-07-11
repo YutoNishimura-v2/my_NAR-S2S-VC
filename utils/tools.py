@@ -187,7 +187,7 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     basename = targets[1][0]
     mel_len = predictions[9][0].item()
     # melたちは, (time, dim)のように, 最後がmel_channel数.
-    mel_target = targets[19][0, :mel_len].detach().transpose(0, 1)
+    mel_target = targets[10][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
     pitch = targets[13][0, :mel_len].detach().cpu().numpy()
     energy = targets[14][0, :mel_len].detach().cpu().numpy()
