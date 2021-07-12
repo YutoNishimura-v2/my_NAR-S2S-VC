@@ -88,9 +88,9 @@ def get_duration(config):
     source_wav_paths = np.sort(glob(opth.join(source_in_dir, "*.wav")))
     target_wav_paths = np.sort(glob(opth.join(target_in_dir, "*.wav")))
 
-    assert opth.basename(source_wav_paths[0]) == opth.basename(target_wav_paths[0])
-
     for source_path, target_path in tqdm(zip(source_wav_paths, target_wav_paths)):
+        assert opth.basename(source_path) == opth.basename(target_path), "対応関係が壊れています."
+
         source_wav, _ = librosa.load(
             source_path, sr=config["preprocessing"]["audio"]["sampling_rate"])
         target_wav, _ = librosa.load(
