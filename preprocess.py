@@ -23,12 +23,12 @@ if __name__ == "__main__":
 
     config = yaml.load(open(args.config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
 
-    # 音声に対する前処理
-    voice_preprocess(config)
+    # # 音声に対する前処理
+    # voice_preprocess(config)
 
-    # melの用意とか
-    preprocessor = Preprocessor(config, finetuning=args.finetuning)
-    preprocessor.build_from_path()
+    # # melの用意とか
+    # preprocessor = Preprocessor(config, finetuning=args.finetuning)
+    # preprocessor.build_from_path()
 
     # durationの用意
     get_duration(config)

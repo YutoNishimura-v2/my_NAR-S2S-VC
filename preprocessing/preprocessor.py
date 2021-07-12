@@ -176,25 +176,36 @@ class Preprocessor:
             out = [r for r in out if r is not None]
             out = np.sort(out)
             outs.append(out)
+        
+        # 片方にのみ生き残ったデータなどもあるので注意.
+        out_1 = set(outs[0])
+        out_2 = set(outs[1])
 
-        assert len(outs[0]) == len(outs[1]), "target と sourceのデータ数が合いません."
+        out = out_1 & out_2
 
-        outs = np.array(outs)
-        index_ = np.random.permutation(len(outs[0]))
-        train_outs = outs[:, index_[self.val_size:]]
-        valid_outs = outs[:, index_[: self.val_size]]
+        if (len(out) < len(out_1)) or (len(out) < len(out_2)):
+            print("おそらくprocess_utteranceで一部除かれてしまいました.")
+            print("len(out): ", len(out))
+            print("len(out_1): ", len(out_1))
+            print("len(out_2): ", len(out_2))
+            print("out-out_1: ", out-out_1)
+            print("out-out_2: ", out-out_2)
+            print("out_1-out: ", out_1-out)
+            print("out_2-out: ", out_2-out)
+
+        out = np.array(out)
+        index_ = np.random.permutation(len(out))
+        train_outs = out[index_[self.val_size:]]
+        valid_outs = out[index_[: self.val_size]]
 
         for i, source_or_target in enumerate(["source", "target"]):
             # Write metadata
             with open(os.path.join(self.out_dir, source_or_target, "train.txt"), "w", encoding="utf-8") as f:
-                for m in train_outs[i]:
+                for m in train_outs:
                     f.write(m + "\n")
             with open(os.path.join(self.out_dir, source_or_target, "val.txt"), "w", encoding="utf-8") as f:
-                for m in valid_outs[i]:
+                for m in valid_outs:
                     f.write(m + "\n")
-
-        assert train_outs[0][0] == train_outs[1][0]
-        assert valid_outs[0][0] == valid_outs[1][0]
 
         if self.multi_speaker is True:
             speakers = set(speakers)
@@ -265,7 +276,7 @@ def remove_outlier(values):
 def normalize(in_dir, mean, std):
     max_value = np.finfo(np.float64).min
     min_value = np.finfo(np.float64).max
-    for filename in os.listdir(in_dir):
+    for filename in tqdm(os.listdir(in_dir)):
         filename = os.path.join(in_dir, filename)
         values = (np.load(filename) - mean) / std
         np.save(filename, values)
@@ -277,7 +288,7 @@ def normalize(in_dir, mean, std):
 
 
 def mel_normalize(in_dir, mel_means, mel_stds):
-    for filename in os.listdir(in_dir):
+    for filename in tqdm(os.listdir(in_dir)):
         filename = os.path.join(in_dir, filename)
         mel = np.load(filename)
         mel = mel.T  # 転置して保存していたので.
