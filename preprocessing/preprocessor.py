@@ -176,7 +176,7 @@ class Preprocessor:
             out = [r for r in out if r is not None]
             out = np.sort(out)
             outs.append(out)
-        
+
         # 片方にのみ生き残ったデータなどもあるので注意.
         out_1 = set(outs[0])
         out_2 = set(outs[1])
