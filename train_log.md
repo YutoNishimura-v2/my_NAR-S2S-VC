@@ -966,3 +966,51 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/JSUT_to_from_JSSS/preprocess.yaml -t ./config/JSUT_to_from_JSSS/train.yaml -m ./config/JSUT_to_from_JSSS/model.yaml`
+    
+        - lossはちょうどfinetuningとpretrainの中間くらい.
+        - 一方で, lossが低いのに音質も悪いという謎の現象.
+        - multiという難易度の高さに対してデータが少ないと判断し, jvsを追加することにした.
+
+- makedataset for NARS2S
+    - jsut_jsss_jvs
+    - prevoice: jsut_jsss_jvs
+    - preprocess: jsut_jsss_jvs
+
+    - jvsを混ぜてみた. jvsは, 一話者につき4話者への変換をするようにデータを作成した.
+
+    - その際に生じた問題がいくつか存在
+        - まず, process_utterenceの際に, Noneを返されるようなデータがあり、そのせいでデータ数が合わない.
+        - また, Noneでなくても, pitchとenergyとmelで時間方向に不一致も.
+            - この場合もNoneを返すように改造.
+
+- NARS2S_new_1回目
+    - date: 20210713
+    - output_folder_name: jsut_jsss_jvs
+    - dataset: jsut_jsss_jvs
+    - options
+        - hifiganのパラメタに合わせた設定.
+        - multi_speaker = True
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+    
+        - かなりlossが低い. 少なくとも一個前の二人のmultiより全然よい結果. すこし過学習を心配していたが, 問題なさそう.
+        - 一方で, validationがtrainよりも低く, その傾向が続いている
+            - 今度は, データに対してモデルの容量が小さそう.
+            - モデルのパラメタを大きくしてみる.
+
+- NARS2S_new_2回目
+    - date: 20210714
+    - output_folder_name: jsut_jsss_jvs_2
+    - dataset: jsut_jsss_jvs
+    - options
+        - modelのパラメタを軒並み大きく。
+        - hiddenは弄っていない. いじるとメモリに乗らない.
+            - layer数だけ全て増やした感じ.
+            - パラメタが1.5倍くらいになった.
+        - batch_size = 4
+            - こうじゃないと乗りません.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+

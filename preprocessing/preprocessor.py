@@ -56,6 +56,7 @@ class Preprocessor:
         # one-to-oneなので, speakerという概念は不要そう.
         outs = []
         speakers = []
+        none_list = []
         for i, input_dir in enumerate([self.source_in_dir, self.target_in_dir]):
             out = list()
             n_frames = 0
@@ -74,6 +75,7 @@ class Preprocessor:
                 ret = process_utterance(input_dir, os.path.join(self.out_dir, source_or_target), basename,
                                         self.sampling_rate, self.hop_length, self.STFT)
                 if ret is None:
+                    none_list.append(wav_name)
                     continue
                 else:
                     info, pitch, energy, mel = ret
@@ -206,6 +208,8 @@ class Preprocessor:
             with open(os.path.join(self.out_dir, source_or_target, "val.txt"), "w", encoding="utf-8") as f:
                 for m in valid_outs:
                     f.write(m + "\n")
+        
+        print("process_utteranceで弾かれたwavたちです: ", none_list)
 
         if self.multi_speaker is True:
             speakers = set(speakers)
@@ -236,6 +240,10 @@ def process_utterance(input_dir, out_dir, basename,
 
     # Compute mel-scale spectrogram and energy
     mel_spectrogram, energy = Audio.tools.get_mel_from_wav(wav, STFT)
+
+    if (mel_spectrogram.shape[1] != energy.shape[0]) or (mel_spectrogram.shape[1] != pitch.shape[0]):
+        # ここで一致していないと, 後でエラーになりますので.
+        return None
 
     # energyとpitchはここでlogをとる.
     pitch = np.log(pitch+1e-6)
