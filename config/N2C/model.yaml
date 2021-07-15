@@ -23,17 +23,12 @@ variance_predictor:
   duration:
     kernel_size: 3
     layer_num: 2
+    stop_gradient_flow: True
   energy:
     kernel_size: 3
     layer_num: 2
+    stop_gradient_flow: False
   pitch:
     kernel_size: 5
     layer_num: 5
-
-multi_speaker: False
-
-max_seq_len: 1000
-
-vocoder:
-  model: "HiFi-GAN" # support 'HiFi-GAN', 'MelGAN'
-  speaker: "universal" # support  'LJSpeech', 'universal'
+    stop_gradient_flow: True

@@ -1014,3 +1014,26 @@ make_dataset
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
 
+        - めっちゃloss落ちる. 成功か???
+        - とりあえずここまで訓練したモデルでfinetuningをN2Cでしてみる.
+
+
+- make_dataset: N2C
+    - melody+までの結果で一回やってみる.
+    - jsut_jsss_jvsの重みからfinetuning.
+    - なので, `python preprocess.py --config config/N2C/preprocess.yaml --finetuning`
+    - finetuningとして, jsut_jsss_jvsのstatsを指定.
+    - また, multi_speakerはoffにしてみる.
+
+- N2C_finetuning_1回目
+    - date: 20210715
+    - output_folder_name: N2C
+    - dataset: N2C
+    - options
+        - jsut_jsss_jvsのfinetuning
+        - multi_speaker = False
+        - batch_size = 8
+        - これによって, 重みがembeddingのところは読み込めないので, hifiganで用いた読み込めるやつを利用する.
+    
+    - memo
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 85000`

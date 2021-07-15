@@ -195,8 +195,8 @@ class Preprocessor:
             print("out_1-out: ", out_1-out)
             print("out_2-out: ", out_2-out)
 
-        out = np.array(out)
-        index_ = np.random.permutation(len(out))
+        out = np.array(list(out))
+        index_ = np.random.permutation(out.shape[0])
         train_outs = out[index_[self.val_size:]]
         valid_outs = out[index_[: self.val_size]]
 
@@ -208,7 +208,7 @@ class Preprocessor:
             with open(os.path.join(self.out_dir, source_or_target, "val.txt"), "w", encoding="utf-8") as f:
                 for m in valid_outs:
                     f.write(m + "\n")
-        
+
         print("process_utteranceで弾かれたwavたちです: ", none_list)
 
         if self.multi_speaker is True:

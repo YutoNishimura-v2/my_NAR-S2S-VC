@@ -1,25 +1,32 @@
 dataset: "N2C"
 
 path:
-  source_raw_path: "./raw_data/N2C/nishimura"
-  source_prevoice_path: "./pre_voice/N2C/nishimura"
-  target_raw_path: "./raw_data/N2C/cherry"
-  target_prevoice_path: "./pre_voice/N2C/cherry"
+  source_raw_path: "./raw_data/N2C/source"
+  source_prevoice_path: "./pre_voice/N2C/source"
+  target_raw_path: "./raw_data/N2C/target"
+  target_prevoice_path: "./pre_voice/N2C/target"
   preprocessed_path: "./preprocessed_data/N2C"  # out_dir. こっちはsource, targetで自動で分ける.
+  source_stats_path: "./preprocessed_data/jsut_jsss_jvs/source/stats.json"  # finetuningのみ利用
+  target_stats_path: "./preprocessed_data/jsut_jsss_jvs/target/stats.json"  # finetuningのみ利用
 
 preprocessing:
-  val_size: 1 # 元は512
+  val_size: 20 # 元は512  # 全データが3229個.
+  multi_speaker: False
   audio:
-    sampling_rate: 24000
+    sampling_rate: 22050
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
+    min_silence_len: 50
+    silence_thresh: -80
+    silence_thresh_head: -40
+    keep_silence: 10
+    head_tail_only: True
   stft:  # NARS2Sのpaperの値.
-    filter_length: 2048  # number of FFT components
-    hop_length: 300
-    win_length: 1200
+    filter_length: 1024  # number of FFT components
+    hop_length: 256
+    win_length: 1024
   mel:
     n_mel_channels: 80
     mel_fmin: 0
-    mel_fmax: null # please set to 8000 for HiFi-GAN vocoder, set to null for MelGAN vocoder
+    mel_fmax: 8000 # please set to 8000 for HiFi-GAN vocoder, set to null for MelGAN vocoder
                    # hifi-ganも, 1からtrainingするので, nullに設定してヨシ. nullとすれば, librosa.filters.melにおいて, 
                    # sampling_rate/2 をf_maxとしてmelを計算してくれる. そうじゃないとsr=24,000でやってる意味ない.
- 

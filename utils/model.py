@@ -8,6 +8,20 @@ from model.nars2svc import NARS2SVC
 from model.optimizer import ScheduledOptim
 
 
+def my_load_state_dict(model, state_dict):
+    model_state_dict = model.state_dict()
+    for k in state_dict:
+        if k in model_state_dict:
+            if state_dict[k].shape != model_state_dict[k].shape:
+                print(f"Skip loading parameter: {k}, "
+                      f"required shape: {model_state_dict[k].shape}, "
+                      f"loaded shape: {state_dict[k].shape}")
+                state_dict[k] = model_state_dict[k]
+        else:
+            print(f"Dropping parameter {k}")
+    model.load_state_dict(state_dict)
+
+
 def get_model(args, configs, device, train=False):
     """
     train.pyなどで使用.
@@ -25,7 +39,7 @@ def get_model(args, configs, device, train=False):
             "{}.pth.tar".format(args.restore_step),
         )
         ckpt = torch.load(ckpt_path)
-        model.load_state_dict(ckpt["model"])
+        my_load_state_dict(model, ckpt["model"])
 
     if train is True:
         if train_config["optimizer"]["reset_optim"] is True:
