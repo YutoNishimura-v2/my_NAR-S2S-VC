@@ -6,6 +6,8 @@ input_pathとoutput_pathを指定したらあとは勝手にやってほしい. 
 import os
 import json
 
+from glob import glob
+
 import audio as Audio
 from preprocessing.n2c_voiceprocess import load_and_save, delete_novoice_from_path
 from preprocessing.preprocessor import process_utterance, normalize, mel_normalize
@@ -38,7 +40,8 @@ def inference_preprocess(input_path, output_path, preprocess_config):
     load_and_save(input_path, output_path, sr)
 
     # 無音区間の削除
-    delete_novoice_from_path(output_path, output_path, preprocess_config)
+    for input_wav_path in glob(os.path.join(output_path, '*.wav')):
+        delete_novoice_from_path(input_wav_path, output_path, preprocess_config)
 
     # ここから, 入力に用いるmelやpitchなどを作りに行く.
 
@@ -57,7 +60,7 @@ def inference_preprocess(input_path, output_path, preprocess_config):
 
         basename = wav_name.split(".")[0]
         # melとかenergyをここで計算.
-        ret = process_utterance(input_path, output_path, basename,
+        ret = process_utterance(output_path, output_path, basename,
                                 sr, hop_length, STFT)
         if ret is None:
             continue

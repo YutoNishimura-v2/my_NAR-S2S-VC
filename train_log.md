@@ -1037,3 +1037,24 @@ make_dataset
     
     - memo
         - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 85000`
+
+- inference一回目
+    - だめだめ
+    - traindataすらまともに動かず...。
+        - 説1: energyとpitchとかが悪いから説.
+        - 確かに, validationもteacherforcingで評価してるの正直良くないと思う.
+        - validation時はtest同様のデータしか与えないこととする.
+            - duration(+mask系)は上げないとlossが計算できないので仕方ないので上げる.
+            - pitchとenergyだけはあげないということにしてみる.
+
+        - おそらく, targetデータを頼らないような訓練もするべきな気がするが, ↓この実験次第ですね.
+
+- NARS2S_new_3回目
+    - date: 20210715
+    - output_folder_name: jsut_jsss_jvs_3
+    - dataset: jsut_jsss_jvs
+    - options
+        - validationの評価をinferenceと同じにした.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
