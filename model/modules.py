@@ -30,6 +30,7 @@ class VarianceAdaptor(nn.Module):
         self.pitch_stop_gradient_flow = model_config["variance_predictor"]["pitch"]["stop_gradient_flow"]
         self.energy_stop_gradient_flow = model_config["variance_predictor"]["energy"]["stop_gradient_flow"]
         self.duration_stop_gradient_flow = model_config["variance_predictor"]["duration"]["stop_gradient_flow"]
+        self.teacher_forcing = model_config["variance_predictor"]["teacher_forcing"]
 
     def forward(
         self,
@@ -93,7 +94,7 @@ class VarianceAdaptor(nn.Module):
         energy_prediction = self.energy_predictor(energy, mel_mask) * e_control
 
         # pitchを, また次元増やしてhiddenに足す.
-        if pitch_target is not None:
+        if (pitch_target is not None) and (self.teacher_forcing is not False):
             # 正解データがある場合はそちらを利用してあげる.
             pitch = self.pitch_conv1d_2(pitch_target)
             energy = self.energy_conv1d_2(energy_target)

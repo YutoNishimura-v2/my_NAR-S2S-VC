@@ -1058,3 +1058,25 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+        
+        - 予想通り? inferenceの結果通り? pitchとenergyをもらえないとmel系のvalは絶望的だった.
+            - 考えられる理由は二つ
+            - multi-speakerのせい
+                - singleならちゃんとpitch, energyも行けるのかも.
+                    - loss的にはsingleのものよりもmultiのが低くなってるけどね...。
+                    - 音声変換において, lossと質は必ずしも比例しないので実験の価値はあり.
+            - teacher_forcingのせい
+                - これを頼り過ぎてしまったのかもしれないね.
+                - ということで, これを行わない訓練をしてみる.
+
+- NARS2S_new_4回目
+    - date: 20210716
+    - output_folder_name: jsut_jsss_jvs_4
+    - dataset: jsut_jsss_jvs
+    - options
+        - validationの評価をinferenceと同じにした.
+        - pitchとenergyのteacher_forcingをなしにしてみた.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+        

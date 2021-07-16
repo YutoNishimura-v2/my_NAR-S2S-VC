@@ -188,8 +188,12 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     # melたちは, (time, dim)のように, 最後がmel_channel数.
     mel_target = targets[10][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
-    pitch = targets[13][0, :mel_len].detach().cpu().numpy()
-    energy = targets[14][0, :mel_len].detach().cpu().numpy()
+    if model_config["variance_predictor"]["teacher_forcing"] is False:
+        pitch = predictions[2][0, :mel_len].detach().cpu().numpy()
+        energy = predictions[3][0, :mel_len].detach().cpu().numpy()
+    else:
+        pitch = targets[13][0, :mel_len].detach().cpu().numpy()
+        energy = targets[14][0, :mel_len].detach().cpu().numpy()
 
     mel_target = mel_denormalize(mel_target, preprocess_config)
     mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
