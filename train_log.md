@@ -1079,4 +1079,41 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - やはり, teacher_forcingをなしにしたことによって, validationを下げることには成功した.
+        - 一方で, そもそも下がらなくなってしまった. せめて0.2前半は行きたい.
+
+        - もしかしたら, 論文通りonetooneでないと難しいのかもしれないが, とりあえずもう一度チャレンジ
+        - pitchとenergyをがっつり学習させに行く.
+            - energyは5,5にして, pitchはgradient flowをTrueにしてみる↓
         
+- NARS2S_new_5回目
+    - date: 20210716
+    - output_folder_name: jsut_jsss_jvs_5
+    - dataset: jsut_jsss_jvs
+    - options
+        - validationの評価をinferenceと同じにした.
+        - pitchとenergyのteacher_forcingをなしにしてみた.
+        - そのうえでenergy, pitchを強化.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - 結果, 普通に4と同じ. むしろ過学習気味??
+            - こうなってくると, あとできることはあと2つ
+            - 途中まではteacher_forcingをTrueにして, 途中からFalseにして学習
+            - ちゃんとmulti_speakerではなく, one-to-oneで学習
+            - まずは, 前者であってほしいし前者を実験してみる.
+
+
+- NARS2S_new_finetunig_1回目
+    - date: 20210716
+    - output_folder_name: jsut_jsss_jvs_6
+    - dataset: jsut_jsss_jvs
+    - options
+        - jsut_jsss_jvsの85000からスタート.
+        - teacher_forcingをFalseにしている. 果たしてうまく学習できるか.
+        - optimもresetしておいた.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 85000`
