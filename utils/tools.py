@@ -189,11 +189,13 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     mel_target = targets[10][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
     if model_config["variance_predictor"]["teacher_forcing"] is False:
-        pitch = predictions[2][0, :mel_len].detach().cpu().numpy()
-        energy = predictions[3][0, :mel_len].detach().cpu().numpy()
+        pitch_pre = predictions[2][0, :mel_len].detach().cpu().numpy()
+        energy_pre = predictions[3][0, :mel_len].detach().cpu().numpy()
     else:
-        pitch = targets[13][0, :mel_len].detach().cpu().numpy()
-        energy = targets[14][0, :mel_len].detach().cpu().numpy()
+        pitch_pre = targets[13][0, :mel_len].detach().cpu().numpy()
+        energy_pre = targets[14][0, :mel_len].detach().cpu().numpy()
+    pitch = targets[13][0, :mel_len].detach().cpu().numpy()
+    energy = targets[14][0, :mel_len].detach().cpu().numpy()
 
     mel_target = mel_denormalize(mel_target, preprocess_config)
     mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
@@ -207,7 +209,7 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     # pltとして, figを用意.
     fig = plot_mel(
         [
-            (mel_prediction.cpu().numpy(), pitch, energy),
+            (mel_prediction.cpu().numpy(), pitch_pre, energy_pre),
             (mel_target.cpu().numpy(), pitch, energy),
         ],
         stats,
