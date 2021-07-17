@@ -35,3 +35,4 @@ variance_predictor:
   teacher_forcing: True
 
 reduction_factor: 3
+reduction_mean: True

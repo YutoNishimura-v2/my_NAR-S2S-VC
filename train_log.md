@@ -1179,3 +1179,26 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - ただただ悪化してしまった....。
+        - sliceはもったいないので, ちゃんと平均とった入力にしてもいいかもしれない.
+
+- make_dataset
+    - pre_voice: jsut_jsss_jvs
+    - preprocessed_data: jsut_jsss_jvs_2
+
+    - durationだけ, reduction factorのmeanを用いて再計算.
+    - さすがに, 捨てるのはもったいないので, _oldとしてmeanでないものはとっておく
+    - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+- NARS2S_new_1回目
+    - date: 20210717
+    - output_folder_name: jsut_jsss_jvs_8
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction_factor, meanにしてみる.
+        - sliceモードも残しているけどね
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`

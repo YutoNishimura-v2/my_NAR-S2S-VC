@@ -84,7 +84,7 @@ def get_duration(p_config, m_config):
 
     reduction_factor = m_config["reduction_factor"]
 
-    os.makedirs((os.path.join(out_dir, "source", "duration")), exist_ok=True)
+    os.makedirs((os.path.join(out_dir, "source", "duration2")), exist_ok=True)
 
     # sortして, 対応関係が保たれるという仮定を立てている.
     source_wav_paths = np.sort(glob(opth.join(source_in_dir, "*.wav")))
@@ -100,11 +100,41 @@ def get_duration(p_config, m_config):
         source_mel, _ = Audio.tools.get_mel_from_wav(source_wav, STFT)
         target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
 
-        s_slice = np.arange(0, source_mel.shape[1], reduction_factor)
-        t_slice = np.arange(0, target_mel.shape[1], reduction_factor)
-        source_mel = source_mel[:, s_slice]
-        target_mel = target_mel[:, t_slice]
+        source_mel = reduction(source_mel, reduction_factor, m_config["reduction_mean"])
+        target_mel = reduction(source_mel, reduction_factor, m_config["reduction_mean"])
 
         duration = calc_duration([target_mel, source_mel], target_path)
         duration_filename = f"duration-{opth.basename(source_path).replace('.wav', '')}.npy"
-        np.save(os.path.join(out_dir, "source", "duration", duration_filename), duration)
+        np.save(os.path.join(out_dir, "source", "duration2", duration_filename), duration)
+
+
+def reduction(x: np.ndarray, reduction_factor: int, mean_: bool = False) -> np.ndarray:
+    """1D or 2Dに対応.
+
+    2Dの場合: (*, time) を想定.
+    """
+    n_dim = len(x.shape)
+
+    if n_dim > 2:
+        raise ValueError("次元が2以上のarrayは想定されていません.")
+
+    if mean_ is True:
+        if n_dim == 1:
+            x = np.pad(x, (0, (reduction_factor-x.shape[1] % reduction_factor) % reduction_factor), mode='edge')
+            x = x.reshape(x.shape[0]//reduction_factor, reduction_factor)
+
+        else:
+            x = np.pad(x, [(0, 0), (0, (reduction_factor-x.shape[1] % reduction_factor) % reduction_factor)],
+                       mode='edge')
+            x = x.reshape(x.shape[0], x.shape[1]//reduction_factor, reduction_factor)
+
+        x = x.mean(-1)
+
+    else:
+        slice = np.arange(0, x.shape[n_dim-1], reduction_factor)
+        if n_dim == 1:
+            x = x[slice]
+        else:
+            x = x[:, slice]
+
+    return x

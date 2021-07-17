@@ -4,6 +4,7 @@ import numpy as np
 from torch.utils.data import Dataset
 
 from utils.tools import pad_1D, pad_2D
+from preprocessing.calc_duration import reduction
 
 
 class TrainDataset(Dataset):
@@ -30,6 +31,7 @@ class TrainDataset(Dataset):
         print("speakers: ", self.speakers)
 
         self.reduction_factor = model_config["reduction_factor"]
+        self.reduction_factor_mean = model_config["reduction_mean"]
 
     def __len__(self):
         return len(self.basenames[0])
@@ -79,18 +81,9 @@ class TrainDataset(Dataset):
                 )
                 duration = np.load(duration_path)
 
-                slice = np.arange(0, mel.shape[0], self.reduction_factor)
-                mel = mel[slice, :]
-                try:
-                    pitch = pitch[slice]
-                    energy = energy[slice]
-                except IndexError:
-                    print(mel.shape)
-                    print(pitch.shape)
-                    print(energy.shape)
-                    print(slice)
-                    print(slice.shape)
-                    exit(0)
+                mel = reduction(mel.T, self.reduction_factor, self.reduction_factor_mean).T
+                pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
+                energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
             basenames.append(basename)
             if len(self.speakers) > 0:
@@ -265,6 +258,7 @@ class SourceDataset(Dataset):
             self.target_speaker = self.speakers[t_speaker]
 
         self.reduction_factor = model_config["reduction_factor"]
+        self.reduction_factor_mean = model_config["reduction_mean"]
 
     def __len__(self):
         return len(self.basename)
@@ -293,10 +287,9 @@ class SourceDataset(Dataset):
         )
         energy = np.load(energy_path)
 
-        slice = np.arange(0, mel.shape[0], self.reduction_factor)
-        mel = mel[slice, :]
-        pitch = pitch[slice]
-        energy = energy[slice]
+        mel = reduction(mel.T, self.reduction_factor, self.reduction_factor_mean).T
+        pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
+        energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
         if len(self.speakers) > 0:
             speaker_ = basename.split('_')[0]
