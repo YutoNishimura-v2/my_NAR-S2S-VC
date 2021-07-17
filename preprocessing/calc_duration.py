@@ -65,22 +65,24 @@ def calc_duration(ts_src: List[np.ndarray], target_path: str) -> np.ndarray:
     return duration
 
 
-def get_duration(config):
+def get_duration(p_config, m_config):
     print("calc duration...")
 
-    source_in_dir = config["path"]["source_prevoice_path"]
-    target_in_dir = config["path"]["target_prevoice_path"]
-    out_dir = config["path"]["preprocessed_path"]
+    source_in_dir = p_config["path"]["source_prevoice_path"]
+    target_in_dir = p_config["path"]["target_prevoice_path"]
+    out_dir = p_config["path"]["preprocessed_path"]
 
     STFT = Audio.stft.TacotronSTFT(
-        config["preprocessing"]["stft"]["filter_length"],
-        config["preprocessing"]["stft"]["hop_length"],
-        config["preprocessing"]["stft"]["win_length"],
+        p_config["preprocessing"]["stft"]["filter_length"],
+        p_config["preprocessing"]["stft"]["hop_length"],
+        p_config["preprocessing"]["stft"]["win_length"],
         20,  # config["preprocessing"]["mel"]["n_mel_channels"]のところ.
-        config["preprocessing"]["audio"]["sampling_rate"],
-        config["preprocessing"]["mel"]["mel_fmin"],
-        config["preprocessing"]["mel"]["mel_fmax"],
+        p_config["preprocessing"]["audio"]["sampling_rate"],
+        p_config["preprocessing"]["mel"]["mel_fmin"],
+        p_config["preprocessing"]["mel"]["mel_fmax"],
     )
+
+    reduction_factor = m_config["reduction_factor"]
 
     os.makedirs((os.path.join(out_dir, "source", "duration")), exist_ok=True)
 
@@ -92,11 +94,17 @@ def get_duration(config):
         assert opth.basename(source_path) == opth.basename(target_path), "対応関係が壊れています."
 
         source_wav, _ = librosa.load(
-            source_path, sr=config["preprocessing"]["audio"]["sampling_rate"])
+            source_path, sr=p_config["preprocessing"]["audio"]["sampling_rate"])
         target_wav, _ = librosa.load(
-            target_path, sr=config["preprocessing"]["audio"]["sampling_rate"])
+            target_path, sr=p_config["preprocessing"]["audio"]["sampling_rate"])
         source_mel, _ = Audio.tools.get_mel_from_wav(source_wav, STFT)
         target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
+
+        s_slice = np.arange(0, source_mel.shape[1], reduction_factor)
+        t_slice = np.arange(0, target_mel.shape[1], reduction_factor)
+        source_mel = source_mel[:, s_slice]
+        target_mel = target_mel[:, t_slice]
+
         duration = calc_duration([target_mel, source_mel], target_path)
         duration_filename = f"duration-{opth.basename(source_path).replace('.wav', '')}.npy"
         np.save(os.path.join(out_dir, "source", "duration", duration_filename), duration)

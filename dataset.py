@@ -8,7 +8,7 @@ from utils.tools import pad_1D, pad_2D
 
 class TrainDataset(Dataset):
     def __init__(
-        self, filename, preprocess_config, train_config, sort=False, drop_last=False
+        self, filename, preprocess_config, model_config, train_config, sort=False, drop_last=False
     ):
         self.preprocessed_path = preprocess_config["path"]["preprocessed_path"]  # out_pathのこと.
         self.batch_size = train_config["optimizer"]["batch_size"]
@@ -28,6 +28,8 @@ class TrainDataset(Dataset):
                     n = line.strip("\n")
                     self.speakers[n] = i
         print("speakers: ", self.speakers)
+
+        self.reduction_factor = model_config["reduction_factor"]
 
     def __len__(self):
         return len(self.basenames[0])
@@ -76,6 +78,19 @@ class TrainDataset(Dataset):
                     "duration-{}.npy".format(basename),
                 )
                 duration = np.load(duration_path)
+
+                slice = np.arange(0, mel.shape[0], self.reduction_factor)
+                mel = mel[slice, :]
+                try:
+                    pitch = pitch[slice]
+                    energy = energy[slice]
+                except IndexError:
+                    print(mel.shape)
+                    print(pitch.shape)
+                    print(energy.shape)
+                    print(slice)
+                    print(slice.shape)
+                    exit(0)
 
             basenames.append(basename)
             if len(self.speakers) > 0:
@@ -137,7 +152,8 @@ class TrainDataset(Dataset):
 
         # textとmelのlenを取得.
         s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
-        t_mel_lens = np.array([t_mel.shape[0] for t_mel in t_mels])
+        # 2をたしているのは, sliceによるreductionの, lenによるreductionを合わせるため.
+        t_mel_lens = np.array([(t_mel.shape[0]+2) // self.reduction_factor for t_mel in t_mels])
 
         s_sp_ids = np.array(s_sp_ids)
         t_sp_ids = np.array(t_sp_ids)
@@ -215,7 +231,7 @@ class TrainDataset(Dataset):
 
 
 class SourceDataset(Dataset):
-    def __init__(self, filename, filepath, train_config, sort=True, drop_last=False,
+    def __init__(self, filename, filepath, train_config, model_config, sort=True, drop_last=False,
                  duration_force=False, t_speaker=None):
         """
         Args:
@@ -248,6 +264,8 @@ class SourceDataset(Dataset):
                 exit(0)
             self.target_speaker = self.speakers[t_speaker]
 
+        self.reduction_factor = model_config["reduction_factor"]
+
     def __len__(self):
         return len(self.basename)
 
@@ -274,6 +292,11 @@ class SourceDataset(Dataset):
             "energy-{}.npy".format(basename),
         )
         energy = np.load(energy_path)
+
+        slice = np.arange(0, mel.shape[0], self.reduction_factor)
+        mel = mel[slice, :]
+        pitch = pitch[slice]
+        energy = energy[slice]
 
         if len(self.speakers) > 0:
             speaker_ = basename.split('_')[0]
@@ -423,15 +446,18 @@ if __name__ == "__main__":
     preprocess_config = yaml.load(
         open("./config/N2C/preprocess.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
+    model_config = yaml.load(
+        open("./config/N2C/model.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
+    )
     train_config = yaml.load(
         open("./config/N2C/train.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
 
     train_dataset = TrainDataset(
-        "train.txt", preprocess_config, train_config, sort=True, drop_last=False
+        "train.txt", preprocess_config, model_config, train_config, sort=True, drop_last=False
     )
     val_dataset = TrainDataset(
-        "val.txt", preprocess_config, train_config, sort=False, drop_last=False
+        "val.txt", preprocess_config, model_config, train_config, sort=False, drop_last=False
     )
     train_loader = DataLoader(
         train_dataset,

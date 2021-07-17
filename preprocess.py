@@ -17,24 +17,28 @@ from preprocessing.calc_duration import get_duration
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--config", type=str, help="path to preprocess.yaml")
+    parser.add_argument("-p", "--preprocess_config", type=str, help="path to preprocess.yaml")
+    parser.add_argument("-m", "--model_config", type=str, help="path to preprocess.yaml")
     parser.add_argument("--finetuning", action='store_true')
     args = parser.parse_args()
 
-    config = yaml.load(open(args.config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
+    preprocess_config = yaml.load(open(args.preprocess_config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
+    model_config = yaml.load(open(args.model_config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
 
     # 音声に対する前処理
-    voice_preprocess(config)
+    voice_preprocess(preprocess_config)
 
     # melの用意とか
-    preprocessor = Preprocessor(config, finetuning=args.finetuning)
+    preprocessor = Preprocessor(preprocess_config, finetuning=args.finetuning)
     preprocessor.build_from_path()
 
     # durationの用意
-    get_duration(config)
+    get_duration(preprocess_config, model_config)
 
     # ちゃんとconfigを残しておく.
-    pre_voice_path = os.path.dirname(config["path"]["source_prevoice_path"])
-    preprocessed_path = config["path"]["preprocessed_path"]
-    shutil.copy(args.config, pre_voice_path)
-    shutil.copy(args.config, preprocessed_path)
+    pre_voice_path = os.path.dirname(preprocess_config["path"]["source_prevoice_path"])
+    preprocessed_path = preprocess_config["path"]["preprocessed_path"]
+    shutil.copy(args.preprocess_config, pre_voice_path)
+    shutil.copy(args.preprocess_config, preprocessed_path)
+    shutil.copy(args.model_config, pre_voice_path)
+    shutil.copy(args.model_config, preprocessed_path)

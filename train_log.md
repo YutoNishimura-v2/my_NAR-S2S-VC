@@ -931,6 +931,7 @@ make_dataset
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
 
+
 - NARS2S_new_finetuning_1回目
     - date: 20210711
     - output_folder_name: JSSS_2_JSUT_8
@@ -1123,12 +1124,27 @@ make_dataset
 
         - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
 
+- NARS2S_new_finetunig_1回目
+    - date: 20210717
+    - output_folder_name: jsut_jsss_jvs_6
+    - dataset: jsut_jsss_jvs
+    - options
+        - 続き.
+    
+    - memo 
+        - `python train.py -p ./output/log/jsut_jsss_jvs_6/preprocess.yaml -t ./output/log/jsut_jsss_jvs_6/train.yaml -m ./output/log/jsut_jsss_jvs_6/model.yaml --restore_step 97500`
+
+        - jsut_jsss_jvs_4: 0からteacherforcingなしで学習したもの　と比べると、さすがにすぐにlossは追い抜かせたものの, 非常に緩やかな現象.
+        - 一応はいまだ減少傾向にあるが、暫く続けないとダメそう&既に収束しそうなので, いったん保留. 他にやることがなくなったら学習を再開して確認してみたい.
+
+        - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
 
 - NARS2S_new_1回目
-    - date: 20210710
+    - date: 20210717
     - output_folder_name: JSUT_2_JSSS_12
     - dataset: JSUT_JSSS_5
     - options
+        - 評価方法を変えたやつ！！
         - hifiganのパラメタに合わせた設定.
         - vlaidationを, pitchとenergyを用いない評価方法で評価してみる.
         - ということで, 17500から再開してみた.
@@ -1144,17 +1160,22 @@ make_dataset
                 - reduction factorを実装してみる.
                 - 正直詳細はどこにも載っていなくてよくわからないが, 単純にレイヤー数を増減してしまえばよさそう?
 
-- NARS2S_new_finetunig_1回目
+- make_dataset
+    - pre_voice: jsut_jsss_jvs
+    - preprocessed_data: jsut_jsss_jvs_2
+
+    - durationだけ, reduction factorを用いて計算しなおしたもの.
+    - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+- NARS2S_new_1回目
     - date: 20210717
-    - output_folder_name: jsut_jsss_jvs_6
-    - dataset: jsut_jsss_jvs
+    - output_folder_name: jsut_jsss_jvs_7
+    - dataset: jsut_jsss_jvs_2
     - options
-        - 続き.
+        - reduction_factorを初搭載.
+        - teacher_forcing = True
+        - batch_size = 32  # reduction factorすげぇ!
     
     - memo 
-        - `python train.py -p ./output/log/jsut_jsss_jvs_6/preprocess.yaml -t ./output/log/jsut_jsss_jvs_6/train.yaml -m ./output/log/jsut_jsss_jvs_6/model.yaml --restore_step 97500`
-
-        - jsut_jsss_jvs_4: 0からteacherforcingなしで学習したもの　と比べると、さすがにすぐにlossは追い抜かせたものの, 非常に緩やかな現象.
-        - 一応はいまだ減少傾向にあるが、暫く続けないとダメそう&既に収束しそうなので, いったん保留. 他にやることがなくなったら学習を再開して確認してみたい.
-
-        - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`

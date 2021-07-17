@@ -32,6 +32,8 @@ class VarianceAdaptor(nn.Module):
         self.duration_stop_gradient_flow = model_config["variance_predictor"]["duration"]["stop_gradient_flow"]
         self.teacher_forcing = model_config["variance_predictor"]["teacher_forcing"]
 
+        self.reduction_factor = model_config["reduction_factor"]
+
     def forward(
         self,
         x,
@@ -96,8 +98,9 @@ class VarianceAdaptor(nn.Module):
         # pitchを, また次元増やしてhiddenに足す.
         if (pitch_target is not None) and (self.teacher_forcing is not False):
             # 正解データがある場合はそちらを利用してあげる.
-            pitch = self.pitch_conv1d_2(pitch_target)
-            energy = self.energy_conv1d_2(energy_target)
+            slice = torch.arange(0, pitch_target.size(1), self.reduction_factor)
+            pitch = self.pitch_conv1d_2(pitch_target[:, slice])
+            energy = self.energy_conv1d_2(energy_target[:, slice])
         else:
             pitch = self.pitch_conv1d_2(pitch_prediction)
             energy = self.energy_conv1d_2(energy_prediction)
@@ -316,7 +319,7 @@ if __name__ == "__main__":
     )
 
     train_dataset = TrainDataset(
-        "train.txt", preprocess_config, train_config, sort=True, drop_last=False
+        "train.txt", preprocess_config, model_config, train_config, sort=True, drop_last=False
     )
 
     train_loader = DataLoader(
