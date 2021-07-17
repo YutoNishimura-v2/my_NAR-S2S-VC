@@ -16,12 +16,22 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
 
 def save_configs(args, train_config):
-    shutil.copyfile(args.preprocess_config, os.path.join(train_config["path"]["log_path"],
-                                                         os.path.basename(args.preprocess_config)))
-    shutil.copyfile(args.model_config, os.path.join(train_config["path"]["log_path"],
-                                                    os.path.basename(args.model_config)))
-    shutil.copyfile(args.train_config, os.path.join(train_config["path"]["log_path"],
-                                                    os.path.basename(args.train_config)))
+    if os.path.exists(os.path.join(train_config["path"]["log_path"], os.path.basename(args.preprocess_config))):
+        print(os.path.join(train_config["path"]["log_path"],
+              os.path.basename(args.preprocess_config)), " is already exists")
+    else:
+        shutil.copyfile(args.preprocess_config, os.path.join(train_config["path"]["log_path"],
+                                                             os.path.basename(args.preprocess_config)))
+    if os.path.exists(os.path.join(train_config["path"]["log_path"], os.path.basename(args.model_config))):
+        print(os.path.join(train_config["path"]["log_path"], os.path.basename(args.model_config)), " is already exists")
+    else:
+        shutil.copyfile(args.model_config, os.path.join(train_config["path"]["log_path"],
+                                                        os.path.basename(args.model_config)))
+    if os.path.exists(os.path.join(train_config["path"]["log_path"], os.path.basename(args.train_config))):
+        print(os.path.join(train_config["path"]["log_path"], os.path.basename(args.train_config)), " is already exists")
+    else:
+        shutil.copyfile(args.train_config, os.path.join(train_config["path"]["log_path"],
+                                                        os.path.basename(args.train_config)))
 
 
 def to_device(data, device):

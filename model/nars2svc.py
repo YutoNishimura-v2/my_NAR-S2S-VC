@@ -32,8 +32,7 @@ class NARS2SVC(nn.Module):
         )
         self.postnet = PostNet()
 
-        n_speaker = 2
-
+        self.speaker_emb = None
         if os.path.exists(os.path.join(preprocess_config["path"]["preprocessed_path"], "speakers.txt")):
             n_speaker = 0
             with open(os.path.join(preprocess_config["path"]["preprocessed_path"], "speakers.txt"), "r",
@@ -41,10 +40,11 @@ class NARS2SVC(nn.Module):
                 for _ in f.readlines():
                     n_speaker += 1
 
-        self.speaker_emb = nn.Embedding(
-            n_speaker,
-            model_config["conformer"]["encoder_hidden"],
-        )
+            self.speaker_emb = nn.Embedding(
+                n_speaker,
+                model_config["conformer"]["encoder_hidden"],
+            )
+
         assert model_config["conformer"]["encoder_hidden"] == model_config["conformer"]["decoder_hidden"]
 
     def forward(
@@ -76,7 +76,8 @@ class NARS2SVC(nn.Module):
 
         output = self.mel_linear_1(s_mels)
 
-        output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, max_s_mel_len, -1)
+        if self.speaker_emb is not None:
+            output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, max_s_mel_len, -1)
 
         output = self.encoder(output, s_mel_masks)
 
@@ -103,7 +104,8 @@ class NARS2SVC(nn.Module):
             d_control,
         )
 
-        output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, torch.max(t_mel_lens), -1)
+        if self.speaker_emb is not None:
+            output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, torch.max(t_mel_lens), -1)
 
         # ここまでのoutputは, (batch, mel_len+pad, hidden)となっている.
         # masksはtargetのもの.なければmel_lensから作成.

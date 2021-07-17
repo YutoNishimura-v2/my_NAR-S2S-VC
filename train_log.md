@@ -1117,3 +1117,44 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 85000`
+
+        - jsut_jsss_jvs_4: 0からteacherforcingなしで学習したもの　と比べると、さすがにすぐにlossは追い抜かせたものの, 非常に緩やかな現象.
+        - 一応はいまだ減少傾向にあるが、暫く続けないとダメそう&既に収束しそうなので, いったん保留. 他にやることがなくなったら学習を再開して確認してみたい.
+
+        - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
+
+
+- NARS2S_new_1回目
+    - date: 20210710
+    - output_folder_name: JSUT_2_JSSS_12
+    - dataset: JSUT_JSSS_5
+    - options
+        - hifiganのパラメタに合わせた設定.
+        - vlaidationを, pitchとenergyを用いない評価方法で評価してみる.
+        - ということで, 17500から再開してみた.
+    
+    - memo 
+        - `python train.py -p ./output/log/JSUT_2_JSSS_12/preprocess.yaml -t ./output/log/JSUT_2_JSSS_12/train.yaml -m ./output/log/JSUT_2_JSSS_12/model.yaml --restore_step 17500`
+
+        - 結果, だめでした. こいつも一切学習できていなかった...。
+            - これはひとえに、pitchが悪いと思う.
+            - 明らかに, pitchはうまく学習できていないし、逆にpitchさえちゃんとしていれば予測も何とかなるのはわかっているので。
+            - そこで、pitchが悪い原因を考えてみると、やはりギザギザになっているのが良くないと思う。なので何とかして平坦化したい
+            - それ、reduction factorの役目なのでは???
+                - reduction factorを実装してみる.
+                - 正直詳細はどこにも載っていなくてよくわからないが, 単純にレイヤー数を増減してしまえばよさそう?
+
+- NARS2S_new_finetunig_1回目
+    - date: 20210717
+    - output_folder_name: jsut_jsss_jvs_6
+    - dataset: jsut_jsss_jvs
+    - options
+        - 続き.
+    
+    - memo 
+        - `python train.py -p ./output/log/jsut_jsss_jvs_6/preprocess.yaml -t ./output/log/jsut_jsss_jvs_6/train.yaml -m ./output/log/jsut_jsss_jvs_6/model.yaml --restore_step 97500`
+
+        - jsut_jsss_jvs_4: 0からteacherforcingなしで学習したもの　と比べると、さすがにすぐにlossは追い抜かせたものの, 非常に緩やかな現象.
+        - 一応はいまだ減少傾向にあるが、暫く続けないとダメそう&既に収束しそうなので, いったん保留. 他にやることがなくなったら学習を再開して確認してみたい.
+
+        - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
