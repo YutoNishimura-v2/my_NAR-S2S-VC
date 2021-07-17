@@ -204,6 +204,13 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
 - (reduction factor): よくわからない. melのフレームを一回で数フレーム一気に出す話らしい. クオリティ出したいしいらないかも...?
     - [tactron2では, 用いていないらしい](https://paperswithcode.com/method/tacotron-2) のでいったん不要か. 実行時間減少に寄与.
 
+    - 20210717: pitchのprediction精度向上に寄与しそうなので, 実装してみる.
+        - 方法としては単純で, timeを減らすときはsliceで, 増やすときはlrと同じ方法で行う.
+        - durationだけ一工夫が必要そうだが, それ以外は特に問題ない.
+
+        - duration: 作り直し. melをsliceでreduction_factor分にしてから, duration再計算
+        - pitch, energy, mel: モデル内で完結させる. 減らすのも増やすのもモデル内で.
+
 - inference関連の整備: 20210626~20210628
     - inference.pyを動くようにしないと.
     - 結構変えているので注意.
