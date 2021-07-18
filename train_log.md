@@ -1202,3 +1202,119 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - meanにしても何の意味もなかった...。
+        - ここで, ちゃんと元論文と元実装を見返す
+        
+        - Fastspeech2: pitchとenergyは, reductionしたやつ同士でlossをとっていた. melは元通りにしているが.
+        - 元論文: pitch, energyに関してはそもそもreduction factorするとも書いていない. melに関してはするといっているが, lossはどうとるかも書いていない. targetにもreduction factorと言っているのが気になる...。
+        - とりあえず, どちらに対してもreduction_factorしてみるか.
+
+- NARS2S_new_1回目
+    - date: 20210717
+    - output_folder_name: jsut_jsss_jvs_9
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - lossの計算も全てreductionしたもので行ってみる. そのために, targetのもdatasetにてreductionをしてしまい, 図示の時だけ3倍に膨らませるという方針に.
+        - melだけ特別扱いするのもよいと思う。とにかくそれよりもまずはpitchを落とす必要がある気はする.
+            - jsut_jsss_jvs_8にて, teacher forcing Trueにて, melを特別扱い(melはreduction倍に増やしてからpostnetに入れる)を下にもかかわらず、下がらなかった.
+            - これは, melだけはreductionをそもそもやらないほうが良い説がある
+                - 一方で, それは元論文に反すること....うーん。
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - pitchが過去最高に学習できている. pitch, energyに関してもreductionするのは成功と言えそう.
+        - 一方で, melは下がってくれないし、当然ながらtargetですら, ぶつぶつ音に聞こえる...。
+            - 逆にmelだけreductionするべきではない気がする...。もしくは, せめてpost_netを通すか.
+
+        - melぶつぶつ問題は, 元論文ではどうなっているんだろうか. targetにもreduction factorを使ったとあったけども...
+
+        - 一番よさそうなのは, pitchとenergyだけreductionで, melは通常通りやることか??
+        - とりあえずもう少し訓練させてから判断する.
+
+        - 次の選択肢
+            - melのみをreductionから外す
+            - このままで, mel-postの過学習対策に, teacher-forcingをfalseにする.
+
+            - このどちらもが元論文に反しているの、どうにかならないのか...。
+            
+            - あとは, pitchのgradient_flow = True にしてみたい.
+
+        - reduction factorは, sourceのみに行わず、targetにも行うことで初めてうまく学習が進む
+            - はじめ, sourceのmel, pitch, energyを1/3に圧縮し, modelから出るときに3倍にして出してloss計算していたのですが普通に精度が悪くなっただけでした.
+              そこで, 先生からアドバイスいただいたとおりに、targetも圧縮してしまって圧縮した同士でloss計算すると, いままで学習できていなかったpitchもかなりlossが低下しました  
+        - 一方で, mel は vocoderに入れる際に当然3倍に膨らませる必要があるのですが, それによってぶつぶつ音になってしまった
+            - 元論文は、「target melにもreduction factor schemeを適用」し, 「vocoderをground truthのmelで訓練した」とあり、ここでのground truthはさすがに訓練に使っている, 1/3に圧縮し, 3倍に膨張させ戻したもののことを言ってるのでしょうか、そうでないとさすがにぶつぶつ音は直らないとおもうので....
+        - また, mel lossに関して, validationは依然として下がらない
+            - まだ学習途中なのでちゃんとしたことはある程度進んでからいうべきですが、ここまでのところを見るとすでに大分過学習しています...。確かに、pitchもlossが大分下がったとは言え、それでもまだ正解と見比べると差がすごいので、難しそうだなぁと思っています。なので、teacher forcing (学習時は正解のpitchを使ってmelを計算)をやめるべきかなとも考えていますが、こちらも論文にはちゃんと正解のpitchを使ったとあるのでなぞですね....
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_10
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - jsut_jsss_jvs_9で, pitchが0.2より下がらないのと, mel-postが過学習してしまったので, とりあえずは 前者対策: gradient flow復活, 後者: teacher_forcing: false として, やってみる.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - 普通に想像していたよりもいい!
+        - pitchもmelも下がる上に過学習していない. このまままわし続ければいい線行きそう?
+
+        - いい線は行ったが, melがやはり不安. pitchも欲を言えばもう少し下がってほしい.
+            - ちゃんとreductionを見たら, Tacotronでは, reshapeしてmel_numを増やしていた.
+            - なので同じ方法でやってみる.
+            - つまり, 以下のようにやる.
+        
+        - この方法だと, mel-targetに対してreduction factorがなにも影響しない
+            - 元論文ではがっつりtargetにやると書いているので, 正直よくない...。
+        - それでも, これは今までのいいとこどりを全てできている気がするので, 論文を無視するのも悪くないだろう.
+        
+```
+input: (B, time, mel_num)
+↓reshape
+(B, time/3, mel_num*3)
+↓linear
+(B, time/3, 256)
+↓encoder
+(B, time/3, 256)
+↓variance adaptor → pitch, energy, durationはtime/3で予測(正解は平均したものを利用)
+(B, time/3, 256)
+↓decoder
+(B, time/3, 256)
+↓linear
+(B, time/3, mel_num*3)
+↓reshape
+(B, time, mel_num)
+↓postnet
+(B, time, mel_num)
+
+↑
+下の実験では変更した.
+```
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_11
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+            - 説明
+            - melはsource, targetともに, reshapeを行う.
+                - 時間を第一次元にしてreshapeしないと狂うことに注意.
+                - targetもreshapeする理由として, そうしないとt_mel_maskが本来の長さのtimeによって作成されてしまい,
+                - それがpitchなどのvarianceに対してpadとして使われてしまうから.
+                - 確かにその時だけ計算すればよいかもしれないが、
+                - これで自然に論文通り「targetにもsame reduction scheme」することができたので, とても正しそう.
+                - lossに関しても, targetは弄ってないので正しく学習はできるはず.
+            
+            - それ以外は, 今まで通り, reshape → meanという処理で単に時系列を1/3にしてしまう.
+
+            - これらによって, 今までの課題である, 
+                - 1/3にするとmelは難しくなるけどpitchは簡単になる...という矛盾をうまく回避できた. すごい!!!
+        
+        - ほかは, 今まで通り, pitchのgradient flow = True, teacher_forcing = False
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`

@@ -4,7 +4,7 @@ import numpy as np
 from torch.utils.data import Dataset
 
 from utils.tools import pad_1D, pad_2D
-from preprocessing.calc_duration import reduction
+from preprocessing.calc_duration import reduction, mel_reshape
 
 
 class TrainDataset(Dataset):
@@ -72,6 +72,10 @@ class TrainDataset(Dataset):
             )
             energy = np.load(energy_path)
 
+            mel = mel_reshape(mel, self.reduction_factor)
+            pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
+            energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
+
             if source_or_target == "source":
                 duration_path = os.path.join(
                     self.preprocessed_path,
@@ -80,10 +84,6 @@ class TrainDataset(Dataset):
                     "duration-{}.npy".format(basename),
                 )
                 duration = np.load(duration_path)
-
-                mel = reduction(mel.T, self.reduction_factor, self.reduction_factor_mean).T
-                pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
-                energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
             basenames.append(basename)
             if len(self.speakers) > 0:
@@ -146,7 +146,8 @@ class TrainDataset(Dataset):
         # textとmelのlenを取得.
         s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
         # 2をたしているのは, sliceによるreductionの, lenによるreductionを合わせるため.
-        t_mel_lens = np.array([(t_mel.shape[0]+2) // self.reduction_factor for t_mel in t_mels])
+        # t_mel_lens = np.array([(t_mel.shape[0]+2) // self.reduction_factor for t_mel in t_mels])
+        t_mel_lens = np.array([t_mel.shape[0] for t_mel in t_mels])
 
         s_sp_ids = np.array(s_sp_ids)
         t_sp_ids = np.array(t_sp_ids)
@@ -287,7 +288,7 @@ class SourceDataset(Dataset):
         )
         energy = np.load(energy_path)
 
-        mel = reduction(mel.T, self.reduction_factor, self.reduction_factor_mean).T
+        mel = mel_reshape(mel, self.reduction_factor)
         pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
         energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
@@ -429,21 +430,22 @@ if __name__ == "__main__":
     import sys
     import torch
     import yaml
+    from tqdm import tqdm
     from torch.utils.data import DataLoader
 
     sys.path.append('.')
-    from utils.tools import to_device
+    from utils.tools import to_device, get_mask_from_lengths
 
     # JSUTをちゃんと読み込みましょう!
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     preprocess_config = yaml.load(
-        open("./config/N2C/preprocess.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
+        open("./config/jsut_jsss_jvs/preprocess.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
     model_config = yaml.load(
-        open("./config/N2C/model.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
+        open("./config/jsut_jsss_jvs/model.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
     train_config = yaml.load(
-        open("./config/N2C/train.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
+        open("./config/jsut_jsss_jvs/train.yaml", "r", encoding='utf-8'), Loader=yaml.FullLoader
     )
 
     train_dataset = TrainDataset(
@@ -455,7 +457,7 @@ if __name__ == "__main__":
     train_loader = DataLoader(
         train_dataset,
         batch_size=train_config["optimizer"]["batch_size"] * 4,
-        shuffle=True,
+        shuffle=False,
         collate_fn=train_dataset.collate_fn,
     )
     val_loader = DataLoader(
@@ -467,35 +469,39 @@ if __name__ == "__main__":
 
     n_batch = 0
 
-    max_ = -1
-    min_ = 22000
-
-    for batchs in train_loader:
+    for batchs in tqdm(train_loader):
         for batch in batchs:
-            print("source_mel_lens: ", batch[3])
-            print("duration sum: ", np.sum(batch[7], axis=1))
-            print("target_mel_lens: ", batch[9])
-            to_device(batch, device)
-            max_ = max(max_, np.max(batch[9]))
-            min_ = min(min_, np.min(batch[9]))
-            n_batch += 1
+            batch = to_device(batch, device)
+            s_mel_lens = batch[5]
+            max_s_mel_len = batch[6]
+            s_mel_masks = get_mask_from_lengths(s_mel_lens, max_s_mel_len)
+            s_duration = batch[9]
+            try:
+                s_duration = s_duration.masked_select(s_mel_masks)
+            except RuntimeError:
+                print(s_mel_lens)
+                print(s_duration.size())
+                print(s_mel_masks.size())
+                print(batch[0])
+                exit(0)
+
     print(
         "Training set  with size {} is composed of {} batches.".format(
             len(train_dataset), n_batch
         )
     )
 
-    n_batch = 0
-    for batchs in val_loader:
-        for batch in batchs:
-            to_device(batch, device)
-            max_ = max(max_, np.max(batch[9]))
-            min_ = min(min_, np.min(batch[9]))
-            n_batch += 1
-    print(
-        "Validation set  with size {} is composed of {} batches.".format(
-            len(val_dataset), n_batch
-        )
-    )
-    print('max_mel_length: ', max_)
-    print('min_mel_length: ', min_)
+    # n_batch = 0
+    # for batchs in val_loader:
+    #     for batch in batchs:
+    #         to_device(batch, device)
+    #         max_ = max(max_, np.max(batch[9]))
+    #         min_ = min(min_, np.min(batch[9]))
+    #         n_batch += 1
+    # print(
+    #     "Validation set  with size {} is composed of {} batches.".format(
+    #         len(val_dataset), n_batch
+    #     )
+    # )
+    # print('max_mel_length: ', max_)
+    # print('min_mel_length: ', min_)

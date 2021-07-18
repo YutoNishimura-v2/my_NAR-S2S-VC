@@ -98,9 +98,11 @@ class VarianceAdaptor(nn.Module):
         # pitchを, また次元増やしてhiddenに足す.
         if (pitch_target is not None) and (self.teacher_forcing is not False):
             # 正解データがある場合はそちらを利用してあげる.
-            slice = torch.arange(0, pitch_target.size(1), self.reduction_factor)
-            pitch = self.pitch_conv1d_2(pitch_target[:, slice])
-            energy = self.energy_conv1d_2(energy_target[:, slice])
+            # slice = torch.arange(0, pitch_target.size(1), self.reduction_factor)
+            # pitch = self.pitch_conv1d_2(pitch_target[:, slice])
+            pitch = self.pitch_conv1d_2(pitch_target)
+            # energy = self.energy_conv1d_2(energy_target[:, slice])
+            energy = self.energy_conv1d_2(energy_target)
         else:
             pitch = self.pitch_conv1d_2(pitch_prediction)
             energy = self.energy_conv1d_2(energy_prediction)

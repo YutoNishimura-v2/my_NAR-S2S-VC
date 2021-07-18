@@ -1,3 +1,4 @@
+from .modules import VarianceAdaptor
 import os
 import sys
 
@@ -8,7 +9,6 @@ from conformer.Models import Decoder, Encoder
 from utils.tools import get_mask_from_lengths
 
 sys.path.append('.')
-from .modules import VarianceAdaptor, LengthRegulator
 
 
 class NARS2SVC(nn.Module):
@@ -18,22 +18,21 @@ class NARS2SVC(nn.Module):
         super().__init__()
 
         self.model_config = model_config
+        self.reduction_factor = model_config["reduction_factor"]
 
         self.encoder = Encoder(model_config)
         self.variance_adaptor = VarianceAdaptor(model_config)
         self.decoder = Decoder(model_config)
         self.mel_linear_1 = nn.Linear(
-            preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
+            preprocess_config["preprocessing"]["mel"]["n_mel_channels"] * self.reduction_factor,
             model_config["conformer"]["encoder_hidden"],
         )
         self.mel_linear_2 = nn.Linear(
             model_config["conformer"]["decoder_hidden"],
-            preprocess_config["preprocessing"]["mel"]["n_mel_channels"],
+            preprocess_config["preprocessing"]["mel"]["n_mel_channels"] * self.reduction_factor,
         )
-        self.postnet = PostNet()
-
-        self.reduction_factor = model_config["reduction_factor"]
-        self.lr = LengthRegulator()
+        self.postnet = PostNet(
+            n_mel_channels=preprocess_config["preprocessing"]["mel"]["n_mel_channels"] * self.reduction_factor)
 
         self.speaker_emb = None
         if os.path.exists(os.path.join(preprocess_config["path"]["preprocessed_path"], "speakers.txt")):
@@ -76,7 +75,6 @@ class NARS2SVC(nn.Module):
             if t_mel_lens is not None
             else None
         )
-
         output = self.mel_linear_1(s_mels)
 
         if self.speaker_emb is not None:
@@ -110,20 +108,9 @@ class NARS2SVC(nn.Module):
         if self.speaker_emb is not None:
             output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, torch.max(t_mel_lens), -1)
 
-        # ここまでのoutputは, (batch, mel_len+pad, hidden)となっている.
-        # masksはtargetのもの.なければmel_lensから作成.
         output = self.decoder(output, t_mel_masks)
-        # ここは, hiddenの次元をmelのchannel数にあわせる. ここでは256→80
         output = self.mel_linear_2(output)
 
-        if self.reduction_factor > 1:
-            output = self.inverse_reduction(output, t_mel_lens)
-            p_predictions = self.inverse_reduction(p_predictions, t_mel_lens)
-            e_predictions = self.inverse_reduction(e_predictions, t_mel_lens)
-            t_mel_masks = self.inverse_reduction(t_mel_masks, t_mel_lens)
-            t_mel_lens *= self.reduction_factor
-
-        # postnetできれいにするのかな？で完成.
         postnet_output = self.postnet(output) + output
 
         return (
@@ -138,16 +125,3 @@ class NARS2SVC(nn.Module):
             s_mel_lens,
             t_mel_lens,
         )
-
-    def inverse_reduction(self, x, mel_lens):
-        # reduction_factor分, targetを戻していく.
-        x_dim = x.ndim  # 3次元データの引き延ばしにしか対応していないことに注意.
-        if x_dim == 2:
-            x = x.unsqueeze(-1)
-
-        duration = torch.ones(x.size(0), torch.max(mel_lens)) * self.reduction_factor
-        x, _ = self.lr(x, duration, None)
-
-        if x_dim == 2:
-            x = x.squeeze(-1)
-        return x

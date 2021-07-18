@@ -84,7 +84,7 @@ def get_duration(p_config, m_config):
 
     reduction_factor = m_config["reduction_factor"]
 
-    os.makedirs((os.path.join(out_dir, "source", "duration2")), exist_ok=True)
+    os.makedirs((os.path.join(out_dir, "source", "duration")), exist_ok=True)
 
     # sortして, 対応関係が保たれるという仮定を立てている.
     source_wav_paths = np.sort(glob(opth.join(source_in_dir, "*.wav")))
@@ -101,11 +101,11 @@ def get_duration(p_config, m_config):
         target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
 
         source_mel = reduction(source_mel, reduction_factor, m_config["reduction_mean"])
-        target_mel = reduction(source_mel, reduction_factor, m_config["reduction_mean"])
+        target_mel = reduction(target_mel, reduction_factor, m_config["reduction_mean"])
 
         duration = calc_duration([target_mel, source_mel], target_path)
         duration_filename = f"duration-{opth.basename(source_path).replace('.wav', '')}.npy"
-        np.save(os.path.join(out_dir, "source", "duration2", duration_filename), duration)
+        np.save(os.path.join(out_dir, "source", "duration", duration_filename), duration)
 
 
 def reduction(x: np.ndarray, reduction_factor: int, mean_: bool = False) -> np.ndarray:
@@ -120,7 +120,7 @@ def reduction(x: np.ndarray, reduction_factor: int, mean_: bool = False) -> np.n
 
     if mean_ is True:
         if n_dim == 1:
-            x = np.pad(x, (0, (reduction_factor-x.shape[1] % reduction_factor) % reduction_factor), mode='edge')
+            x = np.pad(x, (0, (reduction_factor-x.shape[0] % reduction_factor) % reduction_factor), mode='edge')
             x = x.reshape(x.shape[0]//reduction_factor, reduction_factor)
 
         else:
@@ -136,5 +136,20 @@ def reduction(x: np.ndarray, reduction_factor: int, mean_: bool = False) -> np.n
             x = x[slice]
         else:
             x = x[:, slice]
+
+    return x
+
+
+def mel_reshape(x: np.ndarray, reduction_factor: int):
+    """
+    (time, mel_num)→(time/reduction_factor, mel_num*reduction_factor)
+    """
+    if len(x.shape) != 2:
+        raise ValueError("未対応です")
+
+    x = np.pad(x, [(0, (reduction_factor-x.shape[0] % reduction_factor) % reduction_factor), (0, 0)],
+               mode='constant')
+
+    x = x.reshape(x.shape[0]//reduction_factor, x.shape[1]*reduction_factor)
 
     return x

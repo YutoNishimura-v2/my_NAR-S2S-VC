@@ -26,6 +26,7 @@ if __name__ == "__main__":
     model_config = yaml.load(open(args.model_config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
 
     # 音声に対する前処理
+    # ちょっとでもpre_voiceを間違って作ってしまうと, no_voice処理のせいで, durationとずれる.
     voice_preprocess(preprocess_config)
 
     # melの用意とか
