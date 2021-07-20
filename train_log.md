@@ -1514,17 +1514,75 @@ make_dataset
             - melを求めるところで, 実はreturn_complexを, future warningが出るからって勝手にfalseにしていた...あほすぎる.
             - おそらくここさえまた修正すれば問題なさそう.
 
+        - 途中で止まった.
+        - さらによく見たら, schedulerも弄ってしまっていた事に気づく....
+        - それも直したらちゃんと再現できた. やったね.
+
+        - 一応念のため, return_complex=Falseにして再度実験.
+            - schedulerとどっちが致命的だったのかを調べるため.
+        
+        - 実験の結果, 無意味であることが判明. あとで挙動を調べよう.
+            - なので, schedulerを弄ってしまっていたのが致命的だった...。
+
 - makedataset
     - 懲りずに, 論文と同じパラメタでmelを作ってみる.
     - pre_voice: jsut_jsss_jvs_2
     - preprocessed_data: jsut_jsss_jvs_3
 
-    - fmax: 8000. ここは悩んだが, 成功したときに, fmax: nullだとhifiganではどうしようもない.
+    - fmax: 8000. ここは悩んだが, 成功したときに, fmax: nullだとhifiganではどうしようもない.  ← nullはおそらく関係なかったかも...。
     - また, parallel wave ganも見ると, mel rangeは80-7600とあるので, おそらく8000としても問題ないはず.
     - さらに言えば, 今回の目的であるpitchには, 高周波成分はそこまで影響しなさそう. F0を予測するものなので.
     - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
 
 
+- NARS2S_new_1回目
+    - date: 20210720
+    - output_folder_name: jsut_jsss_jvs_13
+    - dataset: jsut_jsss_jvs_3
+    - options
+        - パラメタを論文準拠で行ってみる. そもそもパラメタの影響が大きいと思ったのは, nullのせいだっけ. 勘違いだったけどね.
+        - reduction_factorもちゃんとつけたので, 実験ということで.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - まさかのパラメタ無影響...まったく変わらず....パラメタ以外はjsut_jsss_jvs_12と同じなのでね.
+        - 正直他にできることが...
+
+
+- NARS2S_new_1回目
+    - date: 20210720
+    - output_folder_name: jsut_jsss_jvs_14
+    - dataset: jsut_jsss_jvs_3
+    - options
+        - conv1dのところで, kernel=3とかにしてみた。微調整過ぎて...。
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - 当然こんなので変わるわけもなく. むしろ悪化してるんやが...
+
+        - まだ一度も100kまでまわしていなかった気がする. なので, ちょっと信じてまわしてみることにする.
+
+        - 一応, 100kレベルのスケールで見れば, pitchは全然収束していない.
+        - teacher_forcingのvalも, pitchがいい感じになってきたら減っていくと信じる.
+
+- NARS2S_new_1回目
+    - date: 20210720
+    - output_folder_name: jsut_jsss_jvs_12(続き)
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+        
+        - pitchのgradient flow = False, teacher_forcing = True
+
+        - つまり, ほぼ論文通りのパラメタ. valが高いのを我慢して, 100k, やってみる.
+
+        - pitchがうまく学習できれば, valも落ちてくれると信じる. それまで耐える.
+            - 100k行ってみよう.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 3000`
 
 
 
@@ -1534,23 +1592,12 @@ make_dataset
         - なのに, train時もtrain, val.txtがmel_wav_pathにあること前提になってしまっている.
             - それはfinetuning時のみ覗く設定にする.
             - train時はtrain.txt, val.txtをmake_datasetで作れるように.
-    
-    - VCでmelを0.2近くまで下げるようにしたい
-        - あとやれること
 
-        - stftのパラメタを, 元論文と同じにしてみる. srもついでに.
-
-        - pitch, energyもreduction factor shemeしてみる?
-            - とにかくpitchを下げないことにはmelは下がらない.
-        
-        - convの共有をしてみる.
-
-        - 途中までteacher forcingしてから, finetuning
-            - これも結局, pitch問題が付きまとう.
-        
-        - とにかくpitchをちゃんと学習できるよう, 頑張る. pitchが完璧ならmelもちゃんと出せることはわかっている.
-            - おそらく元論文では, pitchもちゃんと学習できたものと推察される. だからteacher forcingでもvalidationもtestもうまくいったのだろう.
+    - return_complexの挙動確認
 
 
 # 処理系を勝手にいじくるな! まずは論文の再現をちゃんとしてから考察を始めよ！
     - よくわかってないくせに, load_wavをlibrosaのものに変えて, それなのに37000で割り算して超微小なaudioにしているの, あほすぎる.
+
+    - 酷い. schedulerの位置も勝手に変えている...そんなことしちゃダメでしょ....
+    - return_complexも勝手に変えてるし...
