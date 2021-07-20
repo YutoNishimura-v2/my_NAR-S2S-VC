@@ -1,13 +1,13 @@
 dataset: "JSUT_JSSS"
 
 path:
-  source_raw_path: "./raw_data/JSUT_JSSS/JSSS"
-  source_prevoice_path: "./pre_voice/JSUT_JSSS_5/JSSS"
-  target_raw_path: "./raw_data/JSUT_JSSS/JSUT"
-  target_prevoice_path: "./pre_voice/JSUT_JSSS_5/JSUT"
-  preprocessed_path: "./preprocessed_data/JSSS_2_JSUT_4"  # out_dir. こっちはsource, targetで自動で分ける.
-  source_stats_path: "./preprocessed_data/JSUT_JSSS_5/source/stats.json"  # finetuningのみ利用
-  target_stats_path: "./preprocessed_data/JSUT_JSSS_5/target/stats.json"  # finetuningのみ利用
+  source_raw_path: "./raw_data/JSUT_JSSS/JSUT"
+  source_prevoice_path: "./pre_voice/JSUT_JSSS_5/JSUT"
+  target_raw_path: "./raw_data/JSUT_JSSS/JSSS"
+  target_prevoice_path: "./pre_voice/JSUT_JSSS_5/JSSS"
+  preprocessed_path: "./preprocessed_data/JSUT_JSSS_6"  # out_dir. こっちはsource, targetで自動で分ける.
+  source_stats_path: null  # finetuningのみ利用
+  target_stats_path: null  # finetuningのみ利用
 
 preprocessing:
   val_size: 229 # 元は512  # 全データが3229個.

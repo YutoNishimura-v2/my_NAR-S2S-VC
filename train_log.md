@@ -1318,3 +1318,239 @@ input: (B, time, mel_num)
     
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - うーんなんか微妙? スタートダッシュがあまりよろしくないので, ちゃんと論文のパラメタでやってみる.
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_12
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+        
+        - pitchのgradient flow = False, teacher_forcing = True
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - 微妙...。
+        - one-to-oneを一応試しておく...。
+
+make_dataset
+- durationだけ作り直し.
+    - prevoice: JSUT_JSSS_5
+    - preprocessed_data: JSUT_JSSS_6(JSUT_JSSS_5からコピー)
+    - `python preprocess.py -p ./config/JSUT_JSSS/preprocess.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: JSUT_2_JSSS_13
+    - dataset: JSUT_JSSS_6
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+        
+        - pitchのgradient flow = False, teacher_forcing = True
+
+        - multi_speaker = falseで, ほぼ論文通りのはず. さてどうなるか.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+        - 全然ダメダメ. 単なる悪化....。
+        - 論文, 信用ならぬ......。
+            - もしかしたら100kまわしたら下がりきるのかもしれんが...。初手で悪すぎる.
+        
+        - 唯一いい線を行っていた, ↓こいつの続きをやる.
+
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_11
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - 続きをやる.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 2000`
+
+        - 45kくらい学習させたが,　さすがに永遠にlossが下がるわけもなく.
+            - まぁちょっとノイズが激しいくらい? になったので, 試しにhifiganに突っ込んで学習させてみて, どこまでいい音質で出せるかを聞いてみる.
+            - それでよければ終了し, N2Cで訓練する.
+                - これも, finetuningでやるか, 最初から混ぜてやるかは考えるべき.
+                - 可能ならfinetuningでやりたい.
+            - 悪ければ, モデルを見直す.
+
+
+- make_mel_for_hifigan
+    - `python inference.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 46000 --input_path ./preprocessed_data/jsut_jsss_jvs_2/source --output_path ./output/mel_for_hifi-gan/jsut_jsss_jvs --get_mel_for_hifigan --target_mel_path ./preprocessed_data/jsut_jsss_jvs_2/target/mel`
+
+    - 推論だけしてmelを用意.
+
+    - 注意: reduction_factorのせいで, target_melと, inference_melでは, 最後のいくつかのフレームがpadされてるされてない問題が生じてしまう...。
+        - inference時は, その分削ってあげる必要がありそう...。
+        - 元のtarget_melを読み込み, そのlenで切ればok.
+        - 出力されたmelは一番長い長さでpaddingされているので, 単にassertでずれが3未満ならおｋとできない.
+        - まぁもうここまで来たら信じるしかない.
+
+- hifigan_finetuning_1回目
+    - date: 20210719
+    - output_folder_name: jsut_jsss_jvs
+    - dataset: jsut_jsss_jvs
+    - options
+        - 推論結果のmelを使ってfinetuningしてみる.
+        - optimはresetしてみる.
+    
+    - memo
+
+        - finetuningやり方再掲
+            - ↓のように, optionを指定する
+                - mel_pathは, train, val.txtの入った一個上の階層をさすこと.
+            - checkpoint_pathに, pretrainの重みを入れておくこと.
+        
+
+        - 謎に学習できない問題が発生したが, それはmax_wav_valueのせい.
+        - librosaは最初から正規化してwavを出す(floatとして)ので割ると意味不明になる.
+        - 一方, 元の実装ではscipyを利用していて, それを使うとintで読み込む.
+            - なので, 割る必要があった. ただそれだけ.
+            - vocoder inferでも, ちゃんと*max_wav_valueしたあと, int16に直している.
+        
+        - configは, ちゃんとuniversalと同じもので.
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/jsut_jsss_jvs --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/jsut_jsss_jvs --config ./hifigan/config.json --fine_tuning --load_model_only`
+
+- hifigan_finetuning_2回目
+    - date: 20210719
+    - output_folder_name: jsut_jsss_jvs_2
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - ちゃんとtargetから作られたきれいなmelでfinetuningしてみる.
+        - これでできなかったらやばい.
+    
+    - memo
+
+        - そのまま, preprocessed_dataのパスを指定することはできない. 先頭にmel-とかついてるし, フォルダ名もmelになっているので.
+        - ~~めんどくさいが, renameしてコピーしたほうがよさそう.~~
+            - 転置まで必要...。超めんどくさいね, 互換性なさすぎ.
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/jsut_jsss_jvs_2 --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/jsut_jsss_jvs_2 --config ./hifigan/config.json --fine_tuning --load_model_only`
+
+        - うーん, 下がりきらず, ノイズも取れず.
+        - いっぽう, ボイチャコミュニティの人の結果を見ると, 250kもまわしてはいるけど, loss = 0.3でノイズのないきれいな結果になっている.
+        - これは何か間違っている可能性がなくもない...lossが打ち止めになるのは変だよね
+        
+        - ここで, まず学習が進まない原因は?
+            - 今回のものは, melの計算をhifigan製でないもので行っている.
+                - 正直, mel計算に大きなロジックの差はないはずなので, 致命的な違いとは思っていない.
+            - じゃあ, mel計算をhifigan製で行ったUniversalはなぜダメだった??
+                - 今日発見した, max_value問題があった.
+                - これは, wavの値を限りなく0に近づけるもの. melの計算はなぜかできるという特徴がある.
+                - なので, これを修正した今はちゃんと学習できるのではないかという仮説.
+
+            - ではなぜUniversalの重みによるpre_trainはダメだった?
+                - 正直, ドメインが違うから, というのがありそう
+                - ここまでわかった音声タスクの特徴として, lossが低い=クオリティが高いとは一概に言えないということ.
+                - なので, loss自体はUniversalから始めたから低いが, ドメイン, ひいてはノイズの乗り方とかが違うため, クオリティは出なかったと思われる.
+
+            - なので, 以上の仮説が正しければ, 
+                - Universalの訓練がうまくいく
+                - そして, lossは0.3程度でも, ノイズは少なくとも乗らないはず
+
+            - これを確かめるために, 以前のUniversal_5の設定でそのままやり直してみる. 違うのは, max_valueのところ.
+
+
+- Hifi-gan_12回目
+    - date: 20210720
+    - output_folder_name: Universal_6
+    - dataset: Universal_3
+    - options
+        - max_wav_valueで割るのをやめたもの.
+    
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_3 --input_wav_path ./pre_voice/Universal_2 --checkpoint_path ./hifigan/output/Universal_6 --config ./hifigan/configs/config_Universal_2.json --checkpoint_interval 10000 --summary_interval 250 --validation_interval 2500`
+
+        - ダメでした. まったく同じ.
+        
+        - max_value 問題は, trainの時はまったく問題なかった!!!!
+            - なぜなら, normalizeをしていたから...まじか... targetの音が普通の時点で気づくべき。
+        
+        - ではなぜ学習がうまくいかないのか??
+            - 仮説
+            - 日本語と英語のデータセットは思っている以上にドメインが違う! 学習が困難!!
+            - なので, 日本語だけならVCコミュニティの人のようにうまくいくはず!!
+
+
+
+- Hifi-gan_13回目
+    - date: 20210720
+    - output_folder_name: Universal_7
+    - dataset: jsut_jsss_jvs
+    - options
+        - 日本語のみのデータセットで学習させ空てみることにした。
+    
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/jsut_jsss_jvs/target --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/Universal_7 --config ./hifigan/config.json --checkpoint_interval 5000 --summary_interval 100 --validation_interval 1000`
+
+        - うまくいった.
+        - 完全に, 「fmax = null」が悪さをしていたと予想される.
+            - ドメイン仮説は偽
+                - LJSpeech単体の実験でも同じvalに落ち着いていたことを思い出したい.
+            - 今回は, Universalと同じパラメタ, つまりfmax=8000で行っているので.
+            - 他のstft系のパラメタも悪さをしていないとは言い切れないことに注意しよう.
+        
+        - これでもvalがすぐ打ち止めになった....下がりはしたけど。
+        - ちょっと原因不明. ちゃんとLJSpeechで再現可能か見てみる.
+
+- Hifi-gan_14回目
+    - date: 20210720
+    - output_folder_name: LJSpeech_2
+    - dataset: LJSpeech
+    - options
+        - configはhifiganのuniversal. 再現実験ということですね.
+    
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./raw_data/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_2 --config ./hifigan/config.json --checkpoint_interval 5000 --summary_interval 100 --validation_interval 1000`
+
+
+        - めっちゃうまくいった....。
+        - 他にも無意識に勝手にいじっていたところを思い出した。
+            - melを求めるところで, 実はreturn_complexを, future warningが出るからって勝手にfalseにしていた...あほすぎる.
+            - おそらくここさえまた修正すれば問題なさそう.
+
+- makedataset
+    - 懲りずに, 論文と同じパラメタでmelを作ってみる.
+    - pre_voice: jsut_jsss_jvs_2
+    - preprocessed_data: jsut_jsss_jvs_3
+
+    - fmax: 8000. ここは悩んだが, 成功したときに, fmax: nullだとhifiganではどうしようもない.
+    - また, parallel wave ganも見ると, mel rangeは80-7600とあるので, おそらく8000としても問題ないはず.
+    - さらに言えば, 今回の目的であるpitchには, 高周波成分はそこまで影響しなさそう. F0を予測するものなので.
+    - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+
+
+
+- todo
+    - hifiganのdataset周り変更
+        - 現状, makedataset含め, melを作る前提になっているが, trainの時は, sr揃えるのだけやればよい.
+        - なのに, train時もtrain, val.txtがmel_wav_pathにあること前提になってしまっている.
+            - それはfinetuning時のみ覗く設定にする.
+            - train時はtrain.txt, val.txtをmake_datasetで作れるように.
+    
+    - VCでmelを0.2近くまで下げるようにしたい
+        - あとやれること
+
+        - stftのパラメタを, 元論文と同じにしてみる. srもついでに.
+
+        - pitch, energyもreduction factor shemeしてみる?
+            - とにかくpitchを下げないことにはmelは下がらない.
+        
+        - convの共有をしてみる.
+
+        - 途中までteacher forcingしてから, finetuning
+            - これも結局, pitch問題が付きまとう.
+        
+        - とにかくpitchをちゃんと学習できるよう, 頑張る. pitchが完璧ならmelもちゃんと出せることはわかっている.
+            - おそらく元論文では, pitchもちゃんと学習できたものと推察される. だからteacher forcingでもvalidationもtestもうまくいったのだろう.
+
+
+# 処理系を勝手にいじくるな! まずは論文の再現をちゃんとしてから考察を始めよ！
+    - よくわかってないくせに, load_wavをlibrosaのものに変えて, それなのに37000で割り算して超微小なaudioにしているの, あほすぎる.

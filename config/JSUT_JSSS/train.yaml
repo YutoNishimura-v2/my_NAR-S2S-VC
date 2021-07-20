@@ -1,8 +1,8 @@
 path:
-  ckpt_path: "./output/ckpt/JSSS_2_JSUT_8"
-  log_path: "./output/log/JSSS_2_JSUT_8"
+  ckpt_path: "./output/ckpt/JSUT_2_JSSS_13"
+  log_path: "./output/log/JSUT_2_JSSS_13"
 optimizer:
-  batch_size: 12  # default: 32
+  batch_size: 32  # default: 32
   betas: [0.9, 0.98]
   eps: 0.000000001
   weight_decay: 0.0
@@ -11,11 +11,11 @@ optimizer:
   warm_up_step: 4000
   anneal_steps: [300000, 400000, 500000]
   anneal_rate: 0.3
-  reset_optim: True
+  reset_optim: False
   init_lr: 1  # 最初のlearning rateにinit_lr倍します.
 step:
   total_step: 100000  # default: 900000
-  log_step: 100  # default: 100
-  synth_step: 1000  # default: 1000
-  val_step: 1000  # default: 1000
-  save_step: 2500  # default: 10000
+  log_step: 50  # default: 100
+  synth_step: 500  # default: 1000
+  val_step: 500  # default: 1000
+  save_step: 1000  # default: 10000

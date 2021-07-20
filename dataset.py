@@ -323,7 +323,7 @@ class SourceDataset(Dataset):
             sample = {
                 "id": basename,
                 "s_speaker_id": speaker,
-                "t_speaker_id": t_speaker,
+                "t_speaker_id": self.speakers[t_speaker],
                 "s_mel": mel,
                 "s_pitch": pitch,
                 "s_energy": energy,

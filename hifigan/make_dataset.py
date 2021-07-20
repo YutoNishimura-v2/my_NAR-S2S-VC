@@ -5,12 +5,12 @@ import sys
 from glob import glob
 
 import numpy as np
-import torch
+# import torch
 import yaml
-from tqdm import tqdm
+# from tqdm import tqdm
 
 sys.path.append('.')
-from hifigan.meldataset import load_wav, mel_spectrogram
+# from hifigan.meldataset import load_wav, mel_spectrogram
 from preprocessing.n2c_voiceprocess import load_and_save
 
 
@@ -24,34 +24,34 @@ def main(args, preprocess_config):
     print("\nchanging sampling rate")
     load_and_save(args.input_path, args.pre_voice_path, sr)
 
-    # melにする.
     wav_paths = glob(os.path.join(args.pre_voice_path, '*.wav'))
 
-    mels_dir = os.path.join(args.output_path, 'mels')
-    os.makedirs(mels_dir, exist_ok=True)
+    # # melにする.
+    # mels_dir = os.path.join(args.output_path, 'mels')
+    # os.makedirs(mels_dir, exist_ok=True)
 
-    print("\nmel save...")
+    # print("\nmel save...")
 
-    n_fft = preprocess_config["preprocessing"]["stft"]["filter_length"]
-    num_mels = preprocess_config["preprocessing"]["mel"]["n_mel_channels"]
-    hop_size = preprocess_config["preprocessing"]["stft"]["hop_length"]
-    win_size = preprocess_config["preprocessing"]["stft"]["win_length"]
-    fmin = preprocess_config["preprocessing"]["mel"]["mel_fmin"]
-    fmax = preprocess_config["preprocessing"]["mel"]["mel_fmax"]
+    # n_fft = preprocess_config["preprocessing"]["stft"]["filter_length"]
+    # num_mels = preprocess_config["preprocessing"]["mel"]["n_mel_channels"]
+    # hop_size = preprocess_config["preprocessing"]["stft"]["hop_length"]
+    # win_size = preprocess_config["preprocessing"]["stft"]["win_length"]
+    # fmin = preprocess_config["preprocessing"]["mel"]["mel_fmin"]
+    # fmax = preprocess_config["preprocessing"]["mel"]["mel_fmax"]
 
-    for wav_path in tqdm(wav_paths):
-        audio, sampling_rate = load_wav(wav_path, sr)
-        assert sampling_rate == sr
-        if args.audio_clip is True:
-            audio = audio / 32768.0
-        audio = torch.FloatTensor(audio).to("cuda")
-        audio = audio.unsqueeze(0)
+    # for wav_path in tqdm(wav_paths):
+    #     audio, sampling_rate = load_wav(wav_path, sr)
+    #     assert sampling_rate == sr
+    #     # if args.audio_clip is True:
+    #     #     audio = audio / 32768.0
+    #     audio = torch.FloatTensor(audio).to("cuda")
+    #     audio = audio.unsqueeze(0)
 
-        mel = mel_spectrogram(audio, n_fft, num_mels, sr,
-                              hop_size, win_size, fmin, fmax)
-        mel = mel.cpu().numpy()
-        file_name = os.path.basename(wav_path).replace('.wav', '')
-        np.save(os.path.join(mels_dir, file_name), mel)
+    #     mel = mel_spectrogram(audio, n_fft, num_mels, sr,
+    #                           hop_size, win_size, fmin, fmax)
+    #     mel = mel.cpu().numpy()
+    #     file_name = os.path.basename(wav_path).replace('.wav', '')
+    #     np.save(os.path.join(mels_dir, file_name), mel)
 
     # train, valに分ける.
     indexes = np.random.permutation(len(wav_paths))
@@ -94,10 +94,10 @@ if __name__ == '__main__':
         type=int,
         default=2000
     )
-    parser.add_argument(
-        '--audio_clip',
-        action='store_true'
-    )
+    # parser.add_argument(
+    #     '--audio_clip',
+    #     action='store_true'
+    # )
 
     args = parser.parse_args()
 

@@ -41,7 +41,7 @@ def synthesize(model, configs, vocoder, loader, control_values, output_path):
                 )
 
 
-def inference_mel(model, loader, control_values, output_path, reduction_factor):
+def inference_mel(model, loader, control_values, output_path, reduction_factor, target_mel_path):
     pitch_control, energy_control, duration_control = control_values
 
     for batchs in tqdm(loader):
@@ -56,11 +56,11 @@ def inference_mel(model, loader, control_values, output_path, reduction_factor):
                     d_control=duration_control
                 )
                 mel_predictions = output[1].transpose(1, 2)  # (batch, dim, time)へ.
-                mel_lens = output[9].cpu().numpy()
                 basenames = batch[0]
                 for i, mel in enumerate(mel_predictions):
-                    mel = mel[:, :mel_lens[i]]
                     mel = inverse_reshape(mel, reduction_factor, True)
+                    t_mel = np.load(os.path.join(target_mel_path, "mel-"+basenames[i]+'.npy'))
+                    mel = mel[:, :t_mel.shape[0]]
                     mel = mel_denormalize(mel, preprocess_config)
                     mel = mel.cpu().numpy()
                     # vocoderとしてのinputは, dim, timeが想定されているみたい.
@@ -128,6 +128,10 @@ if __name__ == "__main__":
         "--get_mel_for_hifigan",
         action='store_true'
     )
+    parser.add_argument(
+        "--target_mel_path",
+        default=None
+    )
     args = parser.parse_args()
 
     os.makedirs(args.output_path, exist_ok=True)
@@ -168,6 +172,10 @@ if __name__ == "__main__":
         shutil.copy(os.path.join(args.input_path, "train.txt"), args.output_path)
         shutil.copy(os.path.join(args.input_path, "val.txt"), args.output_path)
 
+        # speakersもあればcopyしておく.
+        if os.path.exists(os.path.join(os.path.dirname(args.input_path), "speakers.txt")):
+            shutil.copy(os.path.join(os.path.dirname(args.input_path), "speakers.txt"), args.input_path)
+
         dataset = SourceDataset("inference.txt", args.input_path, train_config, model_config,
                                 duration_force=True)
 
@@ -175,7 +183,7 @@ if __name__ == "__main__":
 
     dataloader = DataLoader(
         dataset,
-        batch_size=8,
+        batch_size=train_config["optimizer"]["batch_size"],
         collate_fn=dataset.collate_fn,
     )
 
@@ -184,4 +192,5 @@ if __name__ == "__main__":
     if args.get_mel_for_hifigan is not True:
         synthesize(model, configs, vocoder, dataloader, control_values, args.output_path)
     else:
-        inference_mel(model, dataloader, control_values, args.output_path, model_config["reduction_factor"])
+        inference_mel(model, dataloader, control_values, args.output_path,
+                      model_config["reduction_factor"], args.target_mel_path)

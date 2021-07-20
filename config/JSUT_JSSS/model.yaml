@@ -32,3 +32,7 @@ variance_predictor:
     kernel_size: 5
     layer_num: 5
     stop_gradient_flow: True
+  teacher_forcing: True
+
+reduction_factor: 3
+reduction_mean: True
