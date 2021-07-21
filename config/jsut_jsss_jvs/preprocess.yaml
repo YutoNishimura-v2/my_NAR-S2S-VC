@@ -5,7 +5,7 @@ path:
   source_prevoice_path: "./pre_voice/jsut_jsss_jvs/source"
   target_raw_path: "./raw_data/jsut_jsss_jvs/target"
   target_prevoice_path: "./pre_voice/jsut_jsss_jvs/target"
-  preprocessed_path: "./preprocessed_data/jsut_jsss_jvs_2"  # out_dir. こっちはsource, targetで自動で分ける.
+  preprocessed_path: "./preprocessed_data/jsut_jsss_jvs_3"  # out_dir. こっちはsource, targetで自動で分ける.
   source_stats_path: null  # finetuningのみ利用
   target_stats_path: null  # finetuningのみ利用
 

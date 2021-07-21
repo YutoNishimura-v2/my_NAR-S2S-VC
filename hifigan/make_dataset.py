@@ -1,5 +1,3 @@
-# wavが大量に入ったフォルダに対して, mel化の処理を施す.
-# もちろん, configはNARS2Sのものを利用する.
 import os
 import sys
 from glob import glob
@@ -15,43 +13,20 @@ from preprocessing.n2c_voiceprocess import load_and_save
 
 
 def main(args, preprocess_config):
+    """
+    まったく新しいデータを, trainデータとして使いたい場合.
+    sampling rateを変更して, train, valでtextファイル作るだけ.
+    """
     sr = preprocess_config["preprocessing"]["audio"]["sampling_rate"]
 
-    os.makedirs(args.pre_voice_path, exist_ok=True)
+    os.makedirs(args.output_path, exist_ok=True)
 
     # sampling rateを変更する.
     # そのために, 一時フォルダを用意.
     print("\nchanging sampling rate")
-    load_and_save(args.input_path, args.pre_voice_path, sr)
+    load_and_save(args.input_path, args.output_path, sr)
 
-    wav_paths = glob(os.path.join(args.pre_voice_path, '*.wav'))
-
-    # # melにする.
-    # mels_dir = os.path.join(args.output_path, 'mels')
-    # os.makedirs(mels_dir, exist_ok=True)
-
-    # print("\nmel save...")
-
-    # n_fft = preprocess_config["preprocessing"]["stft"]["filter_length"]
-    # num_mels = preprocess_config["preprocessing"]["mel"]["n_mel_channels"]
-    # hop_size = preprocess_config["preprocessing"]["stft"]["hop_length"]
-    # win_size = preprocess_config["preprocessing"]["stft"]["win_length"]
-    # fmin = preprocess_config["preprocessing"]["mel"]["mel_fmin"]
-    # fmax = preprocess_config["preprocessing"]["mel"]["mel_fmax"]
-
-    # for wav_path in tqdm(wav_paths):
-    #     audio, sampling_rate = load_wav(wav_path, sr)
-    #     assert sampling_rate == sr
-    #     # if args.audio_clip is True:
-    #     #     audio = audio / 32768.0
-    #     audio = torch.FloatTensor(audio).to("cuda")
-    #     audio = audio.unsqueeze(0)
-
-    #     mel = mel_spectrogram(audio, n_fft, num_mels, sr,
-    #                           hop_size, win_size, fmin, fmax)
-    #     mel = mel.cpu().numpy()
-    #     file_name = os.path.basename(wav_path).replace('.wav', '')
-    #     np.save(os.path.join(mels_dir, file_name), mel)
+    wav_paths = glob(os.path.join(args.output_path, '*.wav'))
 
     # train, valに分ける.
     indexes = np.random.permutation(len(wav_paths))
@@ -77,10 +52,6 @@ if __name__ == '__main__':
         type=str
     )
     parser.add_argument(
-        '--pre_voice_path',
-        type=str,
-    )
-    parser.add_argument(
         '--output_path',
         type=str,
     )
@@ -94,10 +65,6 @@ if __name__ == '__main__':
         type=int,
         default=2000
     )
-    # parser.add_argument(
-    #     '--audio_clip',
-    #     action='store_true'
-    # )
 
     args = parser.parse_args()
 

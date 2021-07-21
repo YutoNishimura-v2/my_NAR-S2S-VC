@@ -1584,17 +1584,39 @@ make_dataset
     - memo 
         - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 3000`
 
+        - 50kまでやってみたが, 望み薄. だめですね.
+        - お手上げだったのでslackで相談したら, 大分改善策が生えてきたので, 順次行っていく.
+
+        - 特に, 高道先生のpitchのお話は直接的だったので, まずは試すことにする.
+
+- makedataset
+    - pre_voice: jsut_jsss_jvs
+    - preprocessed_data: jsut_jsss_jvs_3 ( 被って実行してしまった. なので泣く泣く元のは削除 )
+
+    - 個人的には，ピッチの "0" の値が邪魔をしているのではと疑っています．最新版のFastSpeech2でも近いことをやっていますが，音声合成ではしばしば，ピッチを連続ピッチと有声無声フラグに分割する処理を行います．これらは， 連続ピッチとは，ピッチの"0"の値を欠損値だと見做して線形補間して得られる連続的な一次元系列．有声無声フラグとは，ピッチの値が"0" かそれ以外かを表す二値ラベルという特徴量系列です．試しにこれらに分離してみて，連続ピッチの予測性能だけを見てみても良いかも？ 
+
+    - ということで, continuous_pitchという関数名で, 0を線形補完することにした.
+    - これを使って綺麗にしてみる.
+
+
+- Hifi-gan_15回目
+    - date: 20210721
+    - output_folder_name: jsut_jsss_jvs_3
+    - dataset: jsut_jsss_jvs( pre_voice: jsut_jsss_jvsはuniversalと同じsr. preprocessedのほうのjsut_jsss_jvs2は, durationをreduction factor用に再計算したもの. )
+    - options
+        - configはhifiganのuniversal.
+        - schedulerが悪さしていたので, それを戻した. これでちゃんと学習できるはずなので, NARS2Sから出るmelの事前学習用として, 訓練しておく.
+        - Universalから始めてみる.
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/jsut_jsss_jvs_2/target --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/jsut_jsss_jvs_3 --config ./hifigan/config.json --checkpoint_interval 5000 --summary_interval 100 --validation_interval 1000 --load_model_only`
+
 
 
 - todo
-    - hifiganのdataset周り変更
-        - 現状, makedataset含め, melを作る前提になっているが, trainの時は, sr揃えるのだけやればよい.
-        - なのに, train時もtrain, val.txtがmel_wav_pathにあること前提になってしまっている.
-            - それはfinetuning時のみ覗く設定にする.
-            - train時はtrain.txt, val.txtをmake_datasetで作れるように.
-
     - return_complexの挙動確認
 
+    - scheduler, 4kepochで大きくなるのを逆に小さくするべき
+    - pitchのlossを大きくするべき.
 
 # 処理系を勝手にいじくるな! まずは論文の再現をちゃんとしてから考察を始めよ！
     - よくわかってないくせに, load_wavをlibrosaのものに変えて, それなのに37000で割り算して超微小なaudioにしているの, あほすぎる.

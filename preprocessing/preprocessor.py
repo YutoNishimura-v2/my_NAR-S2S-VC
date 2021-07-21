@@ -4,6 +4,7 @@ import json
 
 import librosa
 import numpy as np
+import pandas as pd
 import pyworld as pw
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
@@ -245,6 +246,9 @@ def process_utterance(input_dir, out_dir, basename,
         # ここで一致していないと, 後でエラーになりますので.
         return None
 
+    # お試し実装, continuous pitcj
+    pitch = continuous_pitch(pitch)
+
     # energyとpitchはここでlogをとる.
     pitch = np.log(pitch+1e-6)
     energy = np.log(energy+1e-6)
@@ -303,3 +307,18 @@ def mel_normalize(in_dir, mel_means, mel_stds):
         for idx, (mean, std) in enumerate(zip(mel_means, mel_stds)):
             mel[idx, :] = (mel[idx, :] - mean) / std
         np.save(filename, mel.T)
+
+
+def continuous_pitch(pitch: np.ndarray) -> np.ndarray:
+    # 0の値をとったらnan扱いとして, 線形補完を行ってみる.
+    pitch = np.where(pitch < 1e-6, np.nan, pitch)
+
+    df = pd.Series(pitch)
+    df = df.interpolate()
+
+    first_value = pitch[df.isnull().values.tolist().index(False)]
+    df = df.fillna(first_value)
+
+    pitch = df.values
+
+    return pitch

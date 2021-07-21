@@ -27,9 +27,13 @@ if __name__ == "__main__":
 
     # 音声に対する前処理
     # ちょっとでもpre_voiceを間違って作ってしまうと, no_voice処理のせいで, durationとずれる.
+    assert os.path.exists(preprocess_config["path"]["source_prevoice_path"]) is False, \
+        "すでに存在しているpre_voiceです. 再度実行すると事故が起こるので, 注意してください."
     voice_preprocess(preprocess_config)
 
     # melの用意とか
+    assert os.path.exists(preprocess_config["path"]["preprocessed_path"]) is False, \
+        "すでに存在しているpreprocessed_dataです. 再度実行すると事故が起こるので, 注意してください."
     preprocessor = Preprocessor(preprocess_config, finetuning=args.finetuning)
     preprocessor.build_from_path()
 
