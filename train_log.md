@@ -1611,6 +1611,74 @@ make_dataset
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/jsut_jsss_jvs_2/target --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/jsut_jsss_jvs_3 --config ./hifigan/config.json --checkpoint_interval 5000 --summary_interval 100 --validation_interval 1000 --load_model_only`
 
 
+        - 大成功. クッソクオリティが高い. 今後はこれを用いていきたい.
+        - N2Cはまた別にやるの? まぁそれでいや.
+
+
+- NARS2S_new_1回目
+    - date: 20210722
+    - output_folder_name: jsut_jsss_jvs_15
+    - dataset: jsut_jsss_jvs_3(pre_voiceはjsut_jsss_jvs)
+    - options
+        - pitchを高道先生に教わった通り線形補完して作成. それで訓練してみる感じ.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - うーん、めっちゃ学習難しくなっている. melもpitchもダダ上がり.
+        - 一方で, 画像を見るとpitchはいい感じになだらかになっているけど...。
+        - 一応, pitchの2次元化も進める.
+
+- NARS2S_new_1回目
+    - date: 20210722
+    - output_folder_name: jsut_jsss_jvs_16
+    - dataset: jsut_jsss_jvs_3(pre_voiceはjsut_jsss_jvs)
+    - options
+        - pitchを高道先生に教わった通り線形補完して作成. それで訓練してみる感じ.
+        - pitchに対してmelと同じreduction_factorを.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+        - ダメ. 15と変わらず,,,。もう何が悪いのかまったくわからん.....
+
+
+- NARS2S_new_1回目
+    - date: 20210722
+    - output_folder_name: jsut_jsss_jvs_17
+    - dataset: jsut_jsss_jvs_3(pre_voiceはjsut_jsss_jvs)
+    - options
+        - 16に加えて, teacher forcing falseと, gradient flow = Trueに.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+        - 先生曰く, pitchは正直, multiだと難しいらしい. lossは確かに下がるんだけどね...
+
+        - 読み上げ音声の場合，パワーと継続長の個人性は大きくない（＝話者非依存の変換モデルでも結構動く）のですが，ピッチはそうじゃない（＝話者対依存の変換モデルが必要）
+
+        - はい、予想通りこんなもんでは変わりませんでした。
+
+        - 今の実装ではまだ試していないし, one-to-oneやってもいいかもね. N2Cも用意できたので.
+
+
+- makedataset
+    - pre_voice: N2C_2: 全部そろったver. 22050で.
+    - preprocessed_data: N2C_2: durationはreductionで. pitchも連続pitch利用を継続
+    - multi speakerはFalse.
+    - `python preprocess.py -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml`
+
+
+- N2C_new_1回目
+    - date: 20210722
+    - output_folder_name: N2C_1
+    - dataset: N2C_2
+    - options
+        - teacher forcing True, gradient flow falseの, 論文仕様.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
+
 
 - todo
     - return_complexの挙動確認

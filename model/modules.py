@@ -17,13 +17,19 @@ class VarianceAdaptor(nn.Module):
 
     def __init__(self, model_config):
         super(VarianceAdaptor, self).__init__()
+
+        self.reduction_factor = model_config["reduction_factor"]
+
         # duration, pitch, energyで共通なのね.
         self.duration_predictor = VariancePredictor(model_config, "duration")
         self.length_regulator = LengthRegulator()
-        self.pitch_predictor = VariancePredictor(model_config, "pitch")
+        # self.pitch_predictor = VariancePredictor(model_config, "pitch")
+        self.pitch_predictor = VariancePredictor(model_config, "pitch", output_dim=self.reduction_factor)
         self.energy_predictor = VariancePredictor(model_config, "energy")
-        self.pitch_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])  # inputをhiddenに.
-        self.pitch_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])  # predictをhiddenに.
+        # self.pitch_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])  # inputをhiddenに.
+        # self.pitch_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])  # predictをhiddenに.
+        self.pitch_conv1d_1 = Conv(self.reduction_factor, model_config["conformer"]["encoder_hidden"])  # inputをhiddenに.
+        self.pitch_conv1d_2 = Conv(self.reduction_factor, model_config["variance_predictor"]["filter_size"])
         self.energy_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])
         self.energy_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])
 
@@ -31,8 +37,6 @@ class VarianceAdaptor(nn.Module):
         self.energy_stop_gradient_flow = model_config["variance_predictor"]["energy"]["stop_gradient_flow"]
         self.duration_stop_gradient_flow = model_config["variance_predictor"]["duration"]["stop_gradient_flow"]
         self.teacher_forcing = model_config["variance_predictor"]["teacher_forcing"]
-
-        self.reduction_factor = model_config["reduction_factor"]
 
     def forward(
         self,
@@ -204,8 +208,10 @@ class VariancePredictor(nn.Module):
     durationに関してはもっといい奴が必要そうな気はする.
     """
 
-    def __init__(self, model_config, mode="duration"):
+    def __init__(self, model_config, mode="duration", output_dim=1):
         super(VariancePredictor, self).__init__()
+
+        self.output_dim = output_dim
 
         assert mode in ["duration", "pitch", "energy"]
         self.input_size = model_config["conformer"]["encoder_hidden"]
@@ -238,15 +244,19 @@ class VariancePredictor(nn.Module):
 
         self.conv_layer = nn.Sequential(*conv_layers)
 
-        self.linear_layer = nn.Linear(self.conv_output_size, 1)
+        self.linear_layer = nn.Linear(self.conv_output_size, output_dim)
 
     def forward(self, encoder_output, mask):
         out = self.conv_layer(encoder_output)
         out = self.linear_layer(out)
-        out = out.squeeze(-1)
+        if self.output_dim == 1:
+            out = out.squeeze(-1)
 
         if mask is not None:
-            out = out.masked_fill(mask, 0.0)
+            if self.output_dim == 1:
+                out = out.masked_fill(mask, 0.0)
+            else:
+                out = out.masked_fill(mask.unsqueeze(-1).expand(mask.size(0), mask.size(1), self.output_dim), 0.0)
 
         return out
 

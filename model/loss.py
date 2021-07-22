@@ -48,8 +48,11 @@ class NARS2SVCLoss(nn.Module):
         energy_targets.requires_grad = False
         mel_targets.requires_grad = False
 
-        pitch_predictions = pitch_predictions.masked_select(mel_masks)
-        pitch_targets = pitch_targets.masked_select(mel_masks)
+        # pitch_predictions = pitch_predictions.masked_select(mel_masks)
+        # pitch_targets = pitch_targets.masked_select(mel_masks)
+        mel_mask_expand = mel_masks.unsqueeze(-1).expand(-1, pitch_predictions.size(1), pitch_predictions.size(2))
+        pitch_predictions = pitch_predictions.masked_select(mel_mask_expand)
+        pitch_targets = pitch_targets.masked_select(mel_mask_expand)
 
         energy_predictions = energy_predictions.masked_select(mel_masks)
         energy_targets = energy_targets.masked_select(mel_masks)

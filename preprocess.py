@@ -10,7 +10,7 @@ import os
 
 import yaml
 
-from preprocessing.preprocessor import Preprocessor
+from preprocessing.preprocessor import Preprocessor, wav_path_matching
 from preprocessing.n2c_voiceprocess import voice_preprocess
 from preprocessing.calc_duration import get_duration
 
@@ -24,6 +24,9 @@ if __name__ == "__main__":
 
     preprocess_config = yaml.load(open(args.preprocess_config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
     model_config = yaml.load(open(args.model_config, "r", encoding="utf-8"), Loader=yaml.FullLoader)
+
+    # 入力ファイルの対応チェック
+    wav_path_matching(preprocess_config["path"]["source_raw_path"], preprocess_config["path"]["target_raw_path"])
 
     # 音声に対する前処理
     # ちょっとでもpre_voiceを間違って作ってしまうと, no_voice処理のせいで, durationとずれる.

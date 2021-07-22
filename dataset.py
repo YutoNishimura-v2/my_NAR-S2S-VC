@@ -73,7 +73,8 @@ class TrainDataset(Dataset):
             energy = np.load(energy_path)
 
             mel = mel_reshape(mel, self.reduction_factor)
-            pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
+            pitch = mel_reshape(pitch.reshape(-1, 1), self.reduction_factor)
+            # pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
             energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
             if source_or_target == "source":
@@ -155,11 +156,13 @@ class TrainDataset(Dataset):
         # padding. tools.pyにあり.
         # 与えられたtext内からmax_sizeを探し出して, padしてくれる.
         s_mels = pad_2D(s_mels)
-        s_pitches = pad_1D(s_pitches)
+        # s_pitches = pad_1D(s_pitches)
+        s_pitches = pad_2D(s_pitches)
         s_energies = pad_1D(s_energies)
         s_durations = pad_1D(s_durations)
         t_mels = pad_2D(t_mels)
-        t_pitches = pad_1D(t_pitches)
+        # t_pitches = pad_1D(t_pitches)
+        t_pitches = pad_2D(t_pitches)
         t_energies = pad_1D(t_energies)
 
         # ついでにmaxの値も返す.

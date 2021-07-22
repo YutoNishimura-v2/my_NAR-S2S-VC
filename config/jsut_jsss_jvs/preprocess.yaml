@@ -10,7 +10,7 @@ path:
   target_stats_path: null  # finetuningのみ利用
 
 preprocessing:
-  val_size: 1000 # 元は512  # 全データが3229個.
+  val_size: 50 # 元は512  # 全データが3229個.
   multi_speaker: True
   audio:
     sampling_rate: 22050

@@ -8,6 +8,7 @@ import pandas as pd
 import pyworld as pw
 from sklearn.preprocessing import StandardScaler
 from tqdm import tqdm
+from glob import glob
 
 import audio as Audio
 
@@ -322,3 +323,20 @@ def continuous_pitch(pitch: np.ndarray) -> np.ndarray:
     pitch = df.values
 
     return pitch
+
+
+def wav_path_matching(source_wav_path, target_wav_path):
+    source_wavs = set([os.path.basename(p) for p in glob(os.path.join(source_wav_path, "*.wav"))])
+    target_wavs = set([os.path.basename(p) for p in glob(os.path.join(target_wav_path, "*.wav"))])
+
+    union = source_wavs & target_wavs
+
+    if len(union) < len(source_wavs):
+        print("こちらに対応するwavがtargetにないようです: ", source_wavs-union)
+        exit(0)
+
+    if len(union) < len(target_wavs):
+        print("こちらに対応するwavがsourceにないようです: ", target_wavs-union)
+        exit(0)
+
+    print("sourceとtargetのファイル名に問題はありませんでした")

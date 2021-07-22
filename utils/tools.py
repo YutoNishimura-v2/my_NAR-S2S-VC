@@ -180,22 +180,26 @@ def inverse_reduction(x: Union[np.ndarray, torch.Tensor], reduction_factor: int)
     return x if is_numpy is False else x.numpy()
 
 
-def inverse_reshape(x: torch.Tensor, reduction_factor: int, transpose: bool = False) -> torch.Tensor:
+def inverse_reshape(x: Union[np.ndarray, torch.Tensor], reduction_factor: int, transpose: bool = False) -> torch.Tensor:
     # (time/reduction_factor, mel_num*reduction_factor)→(time, mel_num)
-    if len(x.size()) == 2:
+    is_numpy = False
+    if type(x) is np.ndarray:
+        x = torch.Tensor(x)
+
+    if len(x.size()) == 2:  # type: ignore
         if transpose is True:
             x = x.transpose(0, 1)
 
-        x = torch.reshape(x, (x.size(0)*reduction_factor, x.size(1)//reduction_factor))
+        x = torch.reshape(x, (x.size(0)*reduction_factor, x.size(1)//reduction_factor))  # type: ignore
 
         if transpose is True:
             x = x.transpose(0, 1)
 
-    elif len(x.size()) == 3:
+    elif len(x.size()) == 3:  # type: ignore
         if transpose is True:
             x = x.transpose(1, 2)
 
-        x = torch.reshape(x, (-1, x.size(1)*reduction_factor, x.size(2)//reduction_factor))
+        x = torch.reshape(x, (-1, x.size(1)*reduction_factor, x.size(2)//reduction_factor))  # type: ignore
 
         if transpose is True:
             x = x.transpose(1, 2)
@@ -203,7 +207,7 @@ def inverse_reshape(x: torch.Tensor, reduction_factor: int, transpose: bool = Fa
     else:
         raise ValueError("未対応です")
 
-    return x
+    return x if is_numpy is False else x.numpy()
 
 
 def mel_denormalize(mels: torch.Tensor, preprocess_config):
@@ -246,9 +250,11 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
 
     mel_target = inverse_reshape(mel_target, reduction_factor, transpose=True)
     mel_prediction = inverse_reshape(mel_prediction, reduction_factor, transpose=True)
-    pitch_pre = inverse_reduction(pitch_pre, reduction_factor)
+    pitch_pre = inverse_reshape(pitch_pre, reduction_factor)
+    # pitch_pre = inverse_reduction(pitch_pre, reduction_factor)
     energy_pre = inverse_reduction(energy_pre, reduction_factor)
-    pitch = inverse_reduction(pitch, reduction_factor)
+    pitch = inverse_reshape(pitch, reduction_factor)
+    # pitch = inverse_reduction(pitch, reduction_factor)
     energy = inverse_reduction(energy, reduction_factor)
 
     mel_target = mel_denormalize(mel_target, preprocess_config)
