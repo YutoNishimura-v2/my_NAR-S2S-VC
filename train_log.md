@@ -1679,6 +1679,18 @@ make_dataset
     - memo 
         - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
 
+- Hifi-gan_15回目
+    - date: 20210723
+    - output_folder_name: N2C_1
+    - dataset: N2C
+    - options
+        - jsut_jsss_jvs_3の続きからfinetuningする.
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/N2C_2/target --input_wav_path ./pre_voice/N2C_2/target --checkpoint_path ./hifigan/output/N2C --config ./hifigan/config.json --checkpoint_interval 2500 --summary_interval 100 --validation_interval 1000 --load_model_only`
+
+
+        - 大成功. クッソクオリティが高い. 今後はこれを用いていきたい.
+        - N2Cはまた別にやるの? まぁそれでいや.
 
 - todo
     - return_complexの挙動確認
