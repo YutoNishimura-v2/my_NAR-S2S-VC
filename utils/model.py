@@ -68,7 +68,7 @@ def get_param_num(model):
     return num_param
 
 
-def get_vocoder(device):
+def get_vocoder(device, train_config):
     """
     vocoderを用意.
 
@@ -81,7 +81,11 @@ def get_vocoder(device):
         config = json.load(f)
     config = hifigan.AttrDict(config)
     vocoder = hifigan.Generator(config)
-    ckpt = torch.load("hifigan/generator_universal.pth.tar", map_location=device)
+
+    weight_path = "hifigan/generator_universal.pth.tar"
+    if train_config["path"]["vocoder_weight"] is not None:
+        weight_path = train_config["path"]["vocoder_weight"]
+    ckpt = torch.load(weight_path, map_location=device)
     vocoder.load_state_dict(ckpt["generator"])
     vocoder.eval()
     vocoder.remove_weight_norm()

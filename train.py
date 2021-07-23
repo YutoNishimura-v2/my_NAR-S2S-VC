@@ -50,7 +50,7 @@ def main(args, configs):
 
     # Load vocoder
     # evalモードにして読み込む. 用いる重みなどはハードコードされている.
-    vocoder = get_vocoder(device)
+    vocoder = get_vocoder(device, train_config)
 
     # Init logger
     for p in train_config["path"].values():
