@@ -6,8 +6,8 @@ path:
   target_raw_path: "./raw_data/N2C/target"
   target_prevoice_path: "./pre_voice/N2C_2/target"
   preprocessed_path: "./preprocessed_data/N2C_2"  # out_dir. こっちはsource, targetで自動で分ける.
-  source_stats_path: null  # finetuningのみ利用
-  target_stats_path: null  # finetuningのみ利用
+  source_stats_path: "./preprocessed_data/jsut_jsss_jvs_3/source/stats.json"  # finetuningのみ利用
+  target_stats_path: "./preprocessed_data/jsut_jsss_jvs_3/target/stats.json" # finetuningのみ利用
 
 preprocessing:
   val_size: 1000 # 元は512  # 全データが3229個.

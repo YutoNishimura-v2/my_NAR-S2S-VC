@@ -1689,8 +1689,18 @@ make_dataset
         - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/N2C_2/target --input_wav_path ./pre_voice/N2C_2/target --checkpoint_path ./hifigan/output/N2C --config ./hifigan/config.json --checkpoint_interval 2500 --summary_interval 100 --validation_interval 1000 --load_model_only`
 
 
-        - 大成功. クッソクオリティが高い. 今後はこれを用いていきたい.
-        - N2Cはまた別にやるの? まぁそれでいや.
+        - 大成功. 吐息系？はちょっと不安定だけど, それ以外は完璧. この重みを使っていきたい。
+
+- N2C_finetuning
+    - date: 20210723
+    - output_folder_name: N2C_2
+    - dataset: N2C_2
+    - options
+        - jsut_jsss_jvs_16の途中から, finetuningをしてみる.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 10000`
+        - ダメ. 15と変わらず,,,。もう何が悪いのかまったくわからん.....
 
 - todo
     - return_complexの挙動確認
