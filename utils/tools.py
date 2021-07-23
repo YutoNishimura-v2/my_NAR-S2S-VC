@@ -308,7 +308,8 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
         reduction_factor = model_config["reduction_factor"]
 
         mel_prediction = inverse_reshape(mel_prediction, reduction_factor, transpose=True)
-        pitch = inverse_reduction(pitch, reduction_factor)
+        pitch = inverse_reshape(pitch, reduction_factor)
+        # pitch = inverse_reduction(pitch, reduction_factor)
         energy = inverse_reduction(energy, reduction_factor)
 
         mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
