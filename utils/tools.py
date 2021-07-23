@@ -333,6 +333,7 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
     from .model import vocoder_infer
 
     mel_predictions = predictions[1].transpose(1, 2)
+    mel_predictions = inverse_reshape(mel_predictions, reduction_factor, transpose=True)
     # これで, (batch, dim, time)になっている.
     # mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
     # mel_denormalizeは一度やったら保存されるので不要.
