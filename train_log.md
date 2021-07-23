@@ -1722,6 +1722,9 @@ make_dataset
     - memo
         - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/N2C --input_wav_path ./pre_voice/N2C_2/target --checkpoint_path ./hifigan/output/N2C_2 --config ./hifigan/config.json --checkpoint_interval 2500 --summary_interval 100 --validation_interval 1000`
 
+- うおおおテスト
+    - `python inference.py --restore_step 20000 --input_path ./test_input/test --output_path ./test -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml -t ./config/N2C/train.yaml`
+
 - todo
     - return_complexの挙動確認
 
