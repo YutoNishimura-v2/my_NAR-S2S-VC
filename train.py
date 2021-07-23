@@ -54,7 +54,10 @@ def main(args, configs):
 
     # Init logger
     for p in train_config["path"].values():
-        os.makedirs(p, exist_ok=True)  # ここでresultフォルダも作成されている.
+        try:
+            os.makedirs(p, exist_ok=True)  # ここでresultフォルダも作成されている.
+        except FileExistsError:
+            continue
     save_configs(args, train_config)  # configを保存する.
 
     train_log_path = os.path.join(train_config["path"]["log_path"], "train")
