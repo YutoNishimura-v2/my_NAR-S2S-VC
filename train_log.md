@@ -1713,6 +1713,14 @@ make_dataset
 - make_mel_for_inference
     - `python inference.py --restore_step 20000 --input_path ./preprocessed_data/N2C_2/source --output_path ./output/mel_for_hifi-gan/N2C -p ./output/log/N2C/preprocess.yaml -m ./output/log/N2C/model.yaml -t ./output/log/N2C/train.yaml --get_mel_for_hifigan`
 
+- hifigan_finetuning
+    - date: 20210723
+    - output_folder_name: N2C_2
+    - dataset: N2C
+    - options
+        - inferenceのmelを使ってfinetuningする.
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/N2C --input_wav_path ./pre_voice/N2C_2/target --checkpoint_path ./hifigan/output/N2C_2 --config ./hifigan/config.json --checkpoint_interval 2500 --summary_interval 100 --validation_interval 1000`
 
 - todo
     - return_complexの挙動確認
