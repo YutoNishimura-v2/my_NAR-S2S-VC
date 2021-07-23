@@ -1711,7 +1711,7 @@ make_dataset
 
 
 - make_mel_for_inference
-    - `python inference.py --restore_step 20000 --input_path ./preprocessed_data/N2C_2/source --output_path ./output/mel_for_hifi-gan/N2C -p ./output/log/N2C/preprocess.yaml -m ./output/log/N2C/model.yaml -t ./output/log/N2C/train.yaml --get_mel_for_hifigan`
+    - `python inference.py --restore_step 20000 --input_path ./preprocessed_data/N2C_2/source --output_path ./output/mel_for_hifi-gan/N2C -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml -t ./config/N2C/train.yaml --get_mel_for_hifigan`
 
 - hifigan_finetuning
     - date: 20210723
