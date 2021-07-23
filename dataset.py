@@ -292,7 +292,8 @@ class SourceDataset(Dataset):
         energy = np.load(energy_path)
 
         mel = mel_reshape(mel, self.reduction_factor)
-        pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
+        pitch = mel_reshape(pitch.reshape(-1, 1), self.reduction_factor)
+        # pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
         energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
         if len(self.speakers) > 0:
