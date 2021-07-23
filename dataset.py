@@ -316,17 +316,20 @@ class SourceDataset(Dataset):
             )
             duration = np.load(duration_path)
 
-            assert len(self.speakers) > 0
-            # duration_forceをするのは, for_hifiganの時のみ.
-            # この時は, NARS2Sの訓練に使ったデータを利用するので,
-            # ファイル名もsource_target_になっていることに注意.
-            t_speaker = basename.split('_')[1]
+            if len(self.speakers) > 0:
+                # duration_forceをするのは, for_hifiganの時のみ.
+                # この時は, NARS2Sの訓練に使ったデータを利用するので,
+                # ファイル名もsource_target_になっていることに注意.
+                t_speaker = basename.split('_')[1]
 
-            assert t_speaker in self.speakers.keys()
+                assert t_speaker in self.speakers.keys()
+                t_speaker_id = self.speakers[t_speaker]
+            else:
+                t_speaker_id = 1
             sample = {
                 "id": basename,
                 "s_speaker_id": speaker,
-                "t_speaker_id": self.speakers[t_speaker],
+                "t_speaker_id": t_speaker_id,
                 "s_mel": mel,
                 "s_pitch": pitch,
                 "s_energy": energy,
