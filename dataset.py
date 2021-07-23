@@ -379,7 +379,8 @@ class SourceDataset(Dataset):
         # padding. tools.pyにあり.
         # 与えられたtext内からmax_sizeを探し出して, padしてくれる.
         s_mels = pad_2D(s_mels)
-        s_pitches = pad_1D(s_pitches)
+        s_pitches = pad_2D(s_pitches)
+        # s_pitches = pad_1D(s_pitches)
         s_energies = pad_1D(s_energies)
 
         # ついでにmaxの値も返す.
