@@ -334,10 +334,11 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
 
     mel_predictions = predictions[1].transpose(1, 2)
     mel_predictions = inverse_reshape(mel_predictions, reduction_factor, transpose=True)
+    mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
     # これで, (batch, dim, time)になっている.
     # mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
     # mel_denormalizeは一度やったら保存されるので不要.
-    lengths = predictions[9] * preprocess_config["preprocessing"]["stft"]["hop_length"]
+    lengths = predictions[9] * preprocess_config["preprocessing"]["stft"]["hop_length"] * reduction_factor
     wav_predictions = vocoder_infer(
         mel_predictions, vocoder, preprocess_config, lengths=lengths
     )
