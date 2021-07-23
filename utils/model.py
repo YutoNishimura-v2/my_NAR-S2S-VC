@@ -18,6 +18,7 @@ def my_load_state_dict(model, state_dict):
                       f"loaded shape: {state_dict[k].shape}")
                 state_dict[k] = model_state_dict[k]
         else:
+            state_dict.pop(k)
             print(f"Dropping parameter {k}")
     model.load_state_dict(state_dict)
 
