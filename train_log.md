@@ -1700,7 +1700,19 @@ make_dataset
     
     - memo 
         - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 10000`
-        - ダメ. 15と変わらず,,,。もう何が悪いのかまったくわからん.....
+
+        - 結果: lossに関しては, 単独学習と同じかそれより悪いくらいだけど, 音質に関しては普通に大丈夫そう! 多少は言葉がつぶれてしまっている部分もあるけれど, もうこれ以上はしょうがなさそうですね。結局, multiでは難しいんでしょうね. 
+
+        - mel: multiより圧倒的に低い. valも, 0.2台に乗ってくれている. finetuningではないものと比べると, ほとんど同じかlossは少し悪化しているかな？って感じだけど, 音質は向上している.
+
+        - pitch: multiより大幅悪化しているように見えるが, melに悪影響を及ぼしていないみたい. それにしても低いのは気になるけど, しかもvalidは高いけど, melは低いのでそこまで問題じゃないのかな?
+
+        - 結論: reduction_factor, 連続pitchの利用, multiで事前学習→one-to-one この3要素でクオリティを確保できたと思われる！
+
+
+- make_mel_for_inference
+    - `python inference.py --restore_step 20000 --input_path ./preprocessed_data/N2C_2/source --output_path ./output/mel_for_hifi-gan/N2C -p ./output/log/N2C/preprocess.yaml -m ./output/log/N2C/model.yaml -t ./output/log/N2C/train.yaml --get_mel_for_hifigan`
+
 
 - todo
     - return_complexの挙動確認

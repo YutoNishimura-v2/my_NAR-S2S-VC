@@ -149,7 +149,7 @@ if __name__ == "__main__":
 
     if args.get_mel_for_hifigan is not True:
         # Load vocoder
-        vocoder = get_vocoder(device)
+        vocoder = get_vocoder(device, train_config)
         # preprocess
         inference_preprocess(args.input_path, args.output_path, preprocess_config)
         # Get dataset
