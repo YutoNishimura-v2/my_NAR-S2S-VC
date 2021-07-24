@@ -1,6 +1,6 @@
 path:
-  ckpt_path: "./output/ckpt/N2C_2"
-  log_path: "./output/log/N2C_2"
+  ckpt_path: "./output/ckpt/N2C_3"
+  log_path: "./output/log/N2C_3"
   vocoder_weight: "./hifigan/output/N2C_2/g_00080000"
   # vocoder_weight: "./hifigan/output/N2C/g_00055000"
 optimizer:
@@ -13,7 +13,7 @@ optimizer:
   warm_up_step: 4000
   anneal_steps: [300000, 400000, 500000]
   anneal_rate: 0.3
-  reset_optim: True
+  reset_optim: False
   init_lr: 1  # 最初のlearning rateにinit_lr倍します.
 step:
   total_step: 100000  # default: 900000

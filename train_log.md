@@ -1709,6 +1709,10 @@ make_dataset
 
         - 結論: reduction_factor, 連続pitchの利用, multiで事前学習→one-to-one この3要素でクオリティを確保できたと思われる！
 
+        - 完全未知のinferenceに対しては微妙すぎた...。
+        - 敗因としては, まぁ過学習のしすぎがありそう.
+        - teacher forcingなしにしてみる?
+
 
 - make_mel_for_inference
     - `python inference.py --restore_step 20000 --input_path ./preprocessed_data/N2C_2/source --output_path ./output/mel_for_hifi-gan/N2C -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml -t ./config/N2C/train.yaml --get_mel_for_hifigan --target_mel_path ./preprocessed_data/N2C_2/target/mel`
@@ -1724,6 +1728,18 @@ make_dataset
 
 - うおおおテスト
     - `python inference.py --restore_step 20000 --input_path ./test_input/test --output_path ./test -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml -t ./config/N2C/train.yaml`
+
+
+- N2C_new_1回目
+    - date: 20210724
+    - output_folder_name: N2C_3
+    - dataset: N2C_2
+    - options
+        - teacher forcingをfalse, stop gradient flow は false.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
+
 
 - todo
     - return_complexの挙動確認
