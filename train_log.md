@@ -1740,6 +1740,18 @@ make_dataset
     - memo 
         - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
 
+        - 最初からteacher forcingなしだと, ちょっと学習がうまくいかないみたいですね
+        - finetuningだけど, teacher forcing trueにしてみる?
+
+- N2C_finetuning
+    - date: 20210724
+    - output_folder_name: N2C_4
+    - dataset: N2C_2
+    - options
+        - jsut_jsss_jvs_16の途中から, finetuningをしてみる. teacher forcing false で.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 10000`
 
 - todo
     - return_complexの挙動確認
