@@ -130,7 +130,6 @@ def main(args, configs):
                         batch,
                         output,
                         vocoder,
-                        model_config,
                         preprocess_config,
                     )
                     log(

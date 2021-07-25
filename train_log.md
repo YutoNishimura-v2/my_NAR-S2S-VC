@@ -1758,6 +1758,43 @@ make_dataset
         - espnetのfastspeech2の実装をなぜかみつけ, reduction factorなども少し実装が違っていた.
         - TTS用ではあるのでVC用にうまく変えてみる.
         - [参考](https://espnet.github.io/espnet/_modules/espnet2/tts/fastspeech2.html)
+            - pitchは, continuousに加えて, 音素ごとに平均をとるやつをやっているらしいが, VCでは無理なので割愛.
+
+            - うえの参考では, decoderに対して短くなったmaskを突っ込んでいる.
+                - でも同じように真似すると, maskのshapeが当然合わない...。
+            - [かといって, pitchは普通にtimeで計算されているっぽい?](https://espnet.github.io/espnet/_modules/espnet2/tts/feats_extract/dio.html#Dio)
+            - [maskをたどっていったら, 同じように, masked_fillで使われていた.](https://github.com/espnet/espnet/blob/3de98cec5d2bfe39ab4f7bbe8baa2a531e694ce3/espnet/nets/pytorch_backend/transformer/attention.py#L64)
+
+            - fastspeech2の流れ
+                - duration: 音素(token)の長さの配列を用意
+                - `feats_extract.dio`にて, durtion*reduction_factorをして, そのdurationごとに計算されている. これは, この段階でdurationが既にreduction_factorを考慮して作られている??
+
+                - そのあとは普通. pitch_lengthもmaxとるのにしか使わず, [length regulator](https://github.com/espnet/espnet/blob/3de98cec5d2bfe39ab4f7bbe8baa2a531e694ce3/espnet/nets/pytorch_backend/fastspeech/length_regulator.py#L16)も, 普通. ここで. `repeat_interleave`という, まさに使いたかった関数が利用されている.
+
+                - ↑そうすると, すべて合う気がする. このfastspeech2では, 上述したように, tokenごとのmeanを使っているため, duration使って伸ばす前のもの同士でlossをとっていたりする...。
+
+            - なので, 結局, durationはreduction factor適用後のものが用意されているということ. つまり大きな変更点はない. inferenceモードだけ作ろう!
+                - inferenceモード: さすがに, 単にt_mel_maskがないかあるかだけでしかなかった...。つまり, inferenceもreduction factorは普通に利用する.
+                - 変更点, model内でreduction factorを完結させる, dropoutを追加, くらいで, ほとんど変更点なし...かなしい....。
+
+- makedataset
+    - pre_voice: N2C_2: pre_voiceは一緒.
+    - preprocessed_data: N2C_3: durationはreductionで. pitchも連続pitch利用を継続
+    - multi speakerはFalse.
+    - `python preprocess.py -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml`
+
+- N2C_new_1回目
+    - date: 20210725
+    - output_folder_name: N2C_4
+    - dataset: N2C_3
+    - options
+        - 大分やり方を変えて, espnetと同じにしてみた. 果たして.
+        - model内でreduction factorを完結させた。
+        - それによって, postnetを広がってから通るようになった.
+        - pitchもちゃんと(B, time)でlossをとるようになった.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
 
 - todo
     - return_complexの挙動確認

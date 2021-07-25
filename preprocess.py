@@ -1,7 +1,6 @@
 """
 Examples:
 >>> python preprocess.py config/JSUT_JSSS/preprocess.yaml
-
 """
 
 import argparse

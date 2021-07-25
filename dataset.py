@@ -4,7 +4,6 @@ import numpy as np
 from torch.utils.data import Dataset
 
 from utils.tools import pad_1D, pad_2D
-from preprocessing.calc_duration import reduction, mel_reshape
 
 
 class TrainDataset(Dataset):
@@ -31,7 +30,6 @@ class TrainDataset(Dataset):
         print("speakers: ", self.speakers)
 
         self.reduction_factor = model_config["reduction_factor"]
-        self.reduction_factor_mean = model_config["reduction_mean"]
 
     def __len__(self):
         return len(self.basenames[0])
@@ -71,11 +69,6 @@ class TrainDataset(Dataset):
                 "energy-{}.npy".format(basename),
             )
             energy = np.load(energy_path)
-
-            mel = mel_reshape(mel, self.reduction_factor)
-            pitch = mel_reshape(pitch.reshape(-1, 1), self.reduction_factor)
-            # pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
-            energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
             if source_or_target == "source":
                 duration_path = os.path.join(
@@ -147,7 +140,6 @@ class TrainDataset(Dataset):
         # textとmelのlenを取得.
         s_mel_lens = np.array([s_mel.shape[0] for s_mel in s_mels])
         # 2をたしているのは, sliceによるreductionの, lenによるreductionを合わせるため.
-        # t_mel_lens = np.array([(t_mel.shape[0]+2) // self.reduction_factor for t_mel in t_mels])
         t_mel_lens = np.array([t_mel.shape[0] for t_mel in t_mels])
 
         s_sp_ids = np.array(s_sp_ids)
@@ -156,13 +148,11 @@ class TrainDataset(Dataset):
         # padding. tools.pyにあり.
         # 与えられたtext内からmax_sizeを探し出して, padしてくれる.
         s_mels = pad_2D(s_mels)
-        # s_pitches = pad_1D(s_pitches)
-        s_pitches = pad_2D(s_pitches)
+        s_pitches = pad_1D(s_pitches)
         s_energies = pad_1D(s_energies)
         s_durations = pad_1D(s_durations)
         t_mels = pad_2D(t_mels)
-        # t_pitches = pad_1D(t_pitches)
-        t_pitches = pad_2D(t_pitches)
+        t_pitches = pad_1D(t_pitches)
         t_energies = pad_1D(t_energies)
 
         # ついでにmaxの値も返す.
@@ -262,7 +252,6 @@ class SourceDataset(Dataset):
             self.target_speaker = self.speakers[t_speaker]
 
         self.reduction_factor = model_config["reduction_factor"]
-        self.reduction_factor_mean = model_config["reduction_mean"]
 
     def __len__(self):
         return len(self.basename)
@@ -290,11 +279,6 @@ class SourceDataset(Dataset):
             "energy-{}.npy".format(basename),
         )
         energy = np.load(energy_path)
-
-        mel = mel_reshape(mel, self.reduction_factor)
-        pitch = mel_reshape(pitch.reshape(-1, 1), self.reduction_factor)
-        # pitch = reduction(pitch, self.reduction_factor, self.reduction_factor_mean)
-        energy = reduction(energy, self.reduction_factor, self.reduction_factor_mean)
 
         if len(self.speakers) > 0:
             speaker_ = basename.split('_')[0]
@@ -379,8 +363,7 @@ class SourceDataset(Dataset):
         # padding. tools.pyにあり.
         # 与えられたtext内からmax_sizeを探し出して, padしてくれる.
         s_mels = pad_2D(s_mels)
-        s_pitches = pad_2D(s_pitches)
-        # s_pitches = pad_1D(s_pitches)
+        s_pitches = pad_1D(s_pitches)
         s_energies = pad_1D(s_energies)
 
         # ついでにmaxの値も返す.

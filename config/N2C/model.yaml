@@ -23,7 +23,7 @@ variance_predictor:
   duration:
     kernel_size: 3
     layer_num: 2
-    stop_gradient_flow: True
+    stop_gradient_flow: False
   energy:
     kernel_size: 3
     layer_num: 2
@@ -32,7 +32,6 @@ variance_predictor:
     kernel_size: 5
     layer_num: 5
     stop_gradient_flow: True
-  teacher_forcing: False
+  teacher_forcing: True
 
 reduction_factor: 3
-reduction_mean: True

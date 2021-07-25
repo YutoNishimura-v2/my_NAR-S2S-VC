@@ -19,20 +19,22 @@ class NARS2SVC(nn.Module):
 
         self.model_config = model_config
         self.reduction_factor = model_config["reduction_factor"]
+        self.mel_num = preprocess_config["preprocessing"]["mel"]["n_mel_channels"]
 
         self.encoder = Encoder(model_config)
         self.variance_adaptor = VarianceAdaptor(model_config)
         self.decoder = Decoder(model_config)
+
         self.mel_linear_1 = nn.Linear(
-            preprocess_config["preprocessing"]["mel"]["n_mel_channels"] * self.reduction_factor,
+            self.mel_num * self.reduction_factor,
             model_config["conformer"]["encoder_hidden"],
         )
         self.mel_linear_2 = nn.Linear(
             model_config["conformer"]["decoder_hidden"],
-            preprocess_config["preprocessing"]["mel"]["n_mel_channels"] * self.reduction_factor,
+            self.mel_num * self.reduction_factor,
         )
         self.postnet = PostNet(
-            n_mel_channels=preprocess_config["preprocessing"]["mel"]["n_mel_channels"] * self.reduction_factor)
+            n_mel_channels=self.mel_num)
 
         self.speaker_emb = None
         if os.path.exists(os.path.join(preprocess_config["path"]["preprocessed_path"], "speakers.txt")):
@@ -69,16 +71,28 @@ class NARS2SVC(nn.Module):
         d_control=1.0,
     ):
         s_mel_masks = get_mask_from_lengths(s_mel_lens, max_s_mel_len)
-        # PAD前の, 元データが入っている部分がTrueになっているmaskの取得
         t_mel_masks = (
             get_mask_from_lengths(t_mel_lens, max_t_mel_len)
             if t_mel_lens is not None
             else None
         )
-        output = self.mel_linear_1(s_mels)
+        if self.reduction_factor > 1:
+            max_s_mel_len = max_s_mel_len // self.reduction_factor
+            s_mel_lens = torch.trunc(s_mel_lens / self.reduction_factor)
+            s_mel_masks = get_mask_from_lengths(s_mel_lens, max_s_mel_len)
+            s_mels = s_mels[:, :max_s_mel_len*self.reduction_factor, :]
+
+            if t_mel_lens is not None:
+                max_t_mel_len = max_t_mel_len // self.reduction_factor
+                t_mel_lens = torch.trunc(t_mel_lens / self.reduction_factor)
+                t_mel_masks = get_mask_from_lengths(t_mel_lens, max_t_mel_len)
+
+        output = self.mel_linear_1(
+            s_mels.contiguous().view(s_mels.size(0), -1, self.mel_num * self.reduction_factor)
+        )
 
         if self.speaker_emb is not None:
-            output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, max_s_mel_len, -1)
+            output = output + self.speaker_emb(s_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
 
         output = self.encoder(output, s_mel_masks)
 
@@ -93,6 +107,7 @@ class NARS2SVC(nn.Module):
         ) = self.variance_adaptor(
             output,
             s_mel_masks,
+            max_s_mel_len,
             s_pitches,
             s_energies,
             s_durations,
@@ -106,12 +121,15 @@ class NARS2SVC(nn.Module):
         )
 
         if self.speaker_emb is not None:
-            output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, torch.max(t_mel_lens), -1)
+            output = output + self.speaker_emb(t_sp_ids).unsqueeze(1).expand(-1, output.size(1), -1)
 
         output = self.decoder(output, t_mel_masks)
-        output = self.mel_linear_2(output)
+        output = self.mel_linear_2(output).contiguous().view(output.size(0), -1, self.mel_num)
 
         postnet_output = self.postnet(output) + output
+
+        t_mel_lens *= self.reduction_factor
+        t_mel_masks = get_mask_from_lengths(t_mel_lens, torch.max(t_mel_lens).item())
 
         return (
             output,

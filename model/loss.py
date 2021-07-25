@@ -35,24 +35,19 @@ class NARS2SVCLoss(nn.Module):
         mel_masks = ~mel_masks
         log_duration_targets = torch.log(duration_targets.float() + 1)
 
-        assert (mel_predictions.size(1) - mel_targets.size(1)) < 3, f"{mel_predictions.size(1)}, {mel_targets.size(1)}"
-        assert (mel_predictions.size(1) - mel_targets.size(1)) >= 0, f"{mel_predictions.size(1)}, {mel_targets.size(1)}"
-        mel_predictions = mel_predictions[:, :mel_targets.size(1), :]
-        postnet_mel_predictions = postnet_mel_predictions[:, :mel_targets.size(1), :]
-        pitch_predictions = pitch_predictions[:, :mel_targets.size(1)]
-        energy_predictions = energy_predictions[:, :mel_targets.size(1)]
-        mel_masks = mel_masks[:, :mel_targets.size(1)]
+        assert (mel_targets.size(1) - mel_predictions.size(1)) < 3, f"{mel_predictions.size(1)}, {mel_targets.size(1)}"
+        assert (mel_targets.size(1) - mel_predictions.size(1)) >= 0, f"{mel_predictions.size(1)}, {mel_targets.size(1)}"
+        mel_targets = mel_targets[:, :mel_predictions.size(1), :]
+        pitch_targets = pitch_targets[:, :mel_predictions.size(1)]
+        energy_targets = energy_targets[:, :mel_predictions.size(1)]
 
         log_duration_targets.requires_grad = False
         pitch_targets.requires_grad = False
         energy_targets.requires_grad = False
         mel_targets.requires_grad = False
 
-        # pitch_predictions = pitch_predictions.masked_select(mel_masks)
-        # pitch_targets = pitch_targets.masked_select(mel_masks)
-        mel_mask_expand = mel_masks.unsqueeze(-1).expand(-1, pitch_predictions.size(1), pitch_predictions.size(2))
-        pitch_predictions = pitch_predictions.masked_select(mel_mask_expand)
-        pitch_targets = pitch_targets.masked_select(mel_mask_expand)
+        pitch_predictions = pitch_predictions.masked_select(mel_masks)
+        pitch_targets = pitch_targets.masked_select(mel_masks)
 
         energy_predictions = energy_predictions.masked_select(mel_masks)
         energy_targets = energy_targets.masked_select(mel_masks)

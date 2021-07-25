@@ -100,17 +100,16 @@ def get_duration(p_config, m_config):
         source_mel, _ = Audio.tools.get_mel_from_wav(source_wav, STFT)
         target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
 
-        source_mel = reduction(source_mel, reduction_factor, m_config["reduction_mean"])
-        target_mel = reduction(target_mel, reduction_factor, m_config["reduction_mean"])
+        source_mel = reduction(source_mel, reduction_factor)
+        target_mel = reduction(target_mel, reduction_factor)
 
         duration = calc_duration([target_mel, source_mel], target_path)
         duration_filename = f"duration-{opth.basename(source_path).replace('.wav', '')}.npy"
         np.save(os.path.join(out_dir, "source", "duration", duration_filename), duration)
 
 
-def reduction(x: np.ndarray, reduction_factor: int, mean_: bool = False) -> np.ndarray:
+def reduction(x: np.ndarray, reduction_factor: int) -> np.ndarray:
     """1D or 2Dに対応.
-
     2Dの場合: (*, time) を想定.
     """
     n_dim = len(x.shape)
@@ -118,38 +117,14 @@ def reduction(x: np.ndarray, reduction_factor: int, mean_: bool = False) -> np.n
     if n_dim > 2:
         raise ValueError("次元が2以上のarrayは想定されていません.")
 
-    if mean_ is True:
-        if n_dim == 1:
-            x = np.pad(x, (0, (reduction_factor-x.shape[0] % reduction_factor) % reduction_factor), mode='edge')
-            x = x.reshape(x.shape[0]//reduction_factor, reduction_factor)
-
-        else:
-            x = np.pad(x, [(0, 0), (0, (reduction_factor-x.shape[1] % reduction_factor) % reduction_factor)],
-                       mode='edge')
-            x = x.reshape(x.shape[0], x.shape[1]//reduction_factor, reduction_factor)
-
-        x = x.mean(-1)
+    if n_dim == 1:
+        x = x[:(x.shape[0]//reduction_factor)*reduction_factor]
+        x = x.reshape(x.shape[0]//reduction_factor, reduction_factor)
 
     else:
-        slice = np.arange(0, x.shape[n_dim-1], reduction_factor)
-        if n_dim == 1:
-            x = x[slice]
-        else:
-            x = x[:, slice]
+        x = x[:, :(x.shape[1]//reduction_factor)*reduction_factor]
+        x = x.reshape(x.shape[0], x.shape[1]//reduction_factor, reduction_factor)
 
-    return x
-
-
-def mel_reshape(x: np.ndarray, reduction_factor: int):
-    """
-    (time, mel_num)→(time/reduction_factor, mel_num*reduction_factor)
-    """
-    if len(x.shape) != 2:
-        raise ValueError("未対応です")
-
-    x = np.pad(x, [(0, (reduction_factor-x.shape[0] % reduction_factor) % reduction_factor), (0, 0)],
-               mode='constant')
-
-    x = x.reshape(x.shape[0]//reduction_factor, x.shape[1]*reduction_factor)
+    x = x.mean(-1)
 
     return x
