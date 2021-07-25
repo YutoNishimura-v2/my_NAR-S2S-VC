@@ -1753,6 +1753,12 @@ make_dataset
     - memo 
         - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 10000`
 
+        - teacher forcingとか関係なかった...。
+        - 推論時のクオリティがやっぱり低い...。
+        - espnetのfastspeech2の実装をなぜかみつけ, reduction factorなども少し実装が違っていた.
+        - TTS用ではあるのでVC用にうまく変えてみる.
+        - [参考](https://espnet.github.io/espnet/_modules/espnet2/tts/fastspeech2.html)
+
 - todo
     - return_complexの挙動確認
 
