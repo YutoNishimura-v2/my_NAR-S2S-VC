@@ -1,6 +1,7 @@
 import os
 import json
 import shutil
+from typing import Union
 
 import torch
 import torch.nn.functional as F
@@ -160,11 +161,53 @@ def get_mask_from_lengths(lengths, max_len=None):
     return mask
 
 
-def expand(values, durations):
-    out = list()
-    for value, d in zip(values, durations):
-        out += [value] * max(0, int(d))
-    return np.array(out)
+def inverse_reduction(x: Union[np.ndarray, torch.Tensor], reduction_factor: int) -> Union[np.ndarray, torch.Tensor]:
+    # reduction_factor分, targetを戻していく.
+
+    is_numpy = False
+    if type(x) is np.ndarray:
+        x = torch.Tensor(x)
+
+    sort_index = np.array([np.arange(0, x.shape[-1]) + x.shape[-1]*i for i in range(reduction_factor)]).T.reshape(-1)
+    if len(x.size()) == 1:  # type: ignore
+        x = torch.tile(x, (reduction_factor,))[sort_index]  # type: ignore
+    elif len(x.size()) == 2:  # type: ignore
+        x = torch.tile(x, (1, reduction_factor))[:, sort_index]  # type: ignore
+    elif len(x.size()) == 3:  # type: ignore
+        x = torch.tile(x, (1, 1, reduction_factor))[:, :, sort_index]  # type: ignore
+    else:
+        raise ValueError("未対応です")
+    return x if is_numpy is False else x.numpy()
+
+
+def inverse_reshape(x: Union[np.ndarray, torch.Tensor], reduction_factor: int, transpose: bool = False) -> torch.Tensor:
+    # (time/reduction_factor, mel_num*reduction_factor)→(time, mel_num)
+    is_numpy = False
+    if type(x) is np.ndarray:
+        x = torch.Tensor(x)
+
+    if len(x.size()) == 2:  # type: ignore
+        if transpose is True:
+            x = x.transpose(0, 1)
+
+        x = torch.reshape(x, (x.size(0)*reduction_factor, x.size(1)//reduction_factor))  # type: ignore
+
+        if transpose is True:
+            x = x.transpose(0, 1)
+
+    elif len(x.size()) == 3:  # type: ignore
+        if transpose is True:
+            x = x.transpose(1, 2)
+
+        x = torch.reshape(x, (-1, x.size(1)*reduction_factor, x.size(2)//reduction_factor))  # type: ignore
+
+        if transpose is True:
+            x = x.transpose(1, 2)
+
+    else:
+        raise ValueError("未対応です")
+
+    return x if is_numpy is False else x.numpy()
 
 
 def mel_denormalize(mels: torch.Tensor, preprocess_config):
@@ -198,14 +241,21 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
     # melたちは, (time, dim)のように, 最後がmel_channel数.
     mel_target = targets[10][0, :mel_len].detach().transpose(0, 1)
     mel_prediction = predictions[1][0, :mel_len].detach().transpose(0, 1)
-    if model_config["variance_predictor"]["teacher_forcing"] is False:
-        pitch_pre = predictions[2][0, :mel_len].detach().cpu().numpy()
-        energy_pre = predictions[3][0, :mel_len].detach().cpu().numpy()
-    else:
-        pitch_pre = targets[13][0, :mel_len].detach().cpu().numpy()
-        energy_pre = targets[14][0, :mel_len].detach().cpu().numpy()
+    pitch_pre = predictions[2][0, :mel_len].detach().cpu().numpy()
+    energy_pre = predictions[3][0, :mel_len].detach().cpu().numpy()
     pitch = targets[13][0, :mel_len].detach().cpu().numpy()
     energy = targets[14][0, :mel_len].detach().cpu().numpy()
+
+    reduction_factor = model_config["reduction_factor"]
+
+    mel_target = inverse_reshape(mel_target, reduction_factor, transpose=True)
+    mel_prediction = inverse_reshape(mel_prediction, reduction_factor, transpose=True)
+    pitch_pre = inverse_reshape(pitch_pre, reduction_factor)
+    # pitch_pre = inverse_reduction(pitch_pre, reduction_factor)
+    energy_pre = inverse_reduction(energy_pre, reduction_factor)
+    pitch = inverse_reshape(pitch, reduction_factor)
+    # pitch = inverse_reduction(pitch, reduction_factor)
+    energy = inverse_reduction(energy, reduction_factor)
 
     mel_target = mel_denormalize(mel_target, preprocess_config)
     mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
@@ -248,12 +298,19 @@ def synth_one_sample(targets, predictions, vocoder, model_config, preprocess_con
 
 def synth_samples(targets, predictions, vocoder, model_config, preprocess_config, path):
     basenames = targets[0]
+    reduction_factor = model_config["reduction_factor"]
+
     for i in range(len(predictions[0])):
         basename = basenames[i]
         mel_len = predictions[9][i].item()
         mel_prediction = predictions[1][i, :mel_len].detach().transpose(0, 1)
         pitch = predictions[2][i, :mel_len].detach().cpu().numpy()
         energy = predictions[3][i, :mel_len].detach().cpu().numpy()
+
+        mel_prediction = inverse_reshape(mel_prediction, reduction_factor, transpose=True)
+        pitch = inverse_reshape(pitch, reduction_factor)
+        # pitch = inverse_reduction(pitch, reduction_factor)
+        energy = inverse_reduction(energy, reduction_factor)
 
         mel_prediction = mel_denormalize(mel_prediction, preprocess_config)
 
@@ -276,10 +333,12 @@ def synth_samples(targets, predictions, vocoder, model_config, preprocess_config
     from .model import vocoder_infer
 
     mel_predictions = predictions[1].transpose(1, 2)
+    mel_predictions = inverse_reshape(mel_predictions, reduction_factor, transpose=True)
+    mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
     # これで, (batch, dim, time)になっている.
     # mel_predictions = mel_denormalize(mel_predictions, preprocess_config)
     # mel_denormalizeは一度やったら保存されるので不要.
-    lengths = predictions[9] * preprocess_config["preprocessing"]["stft"]["hop_length"]
+    lengths = predictions[9] * preprocess_config["preprocessing"]["stft"]["hop_length"] * reduction_factor
     wav_predictions = vocoder_infer(
         mel_predictions, vocoder, preprocess_config, lengths=lengths
     )
@@ -366,7 +425,7 @@ def pad_2D(inputs, maxlen=None):
         )
         return x_padded[:, :s]
 
-    if maxlen:
+    if maxlen is not None:
         output = np.stack([pad(x, maxlen) for x in inputs])
     else:
         max_len = max(np.shape(x)[0] for x in inputs)

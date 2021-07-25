@@ -1,8 +1,10 @@
 path:
-  ckpt_path: "./output/ckpt/N2C"
-  log_path: "./output/log/N2C"
+  ckpt_path: "./output/ckpt/N2C_4"
+  log_path: "./output/log/N2C_4"
+  vocoder_weight: "./hifigan/output/N2C_2/g_00080000"
+  # vocoder_weight: "./hifigan/output/N2C/g_00055000"
 optimizer:
-  batch_size: 8  # default: 32
+  batch_size: 32  # default: 32
   betas: [0.9, 0.98]
   eps: 0.000000001
   weight_decay: 0.0
@@ -14,8 +16,8 @@ optimizer:
   reset_optim: True
   init_lr: 1  # 最初のlearning rateにinit_lr倍します.
 step:
-  total_step: 120000  # default: 900000
+  total_step: 100000  # default: 900000
   log_step: 50  # default: 100
   synth_step: 500  # default: 1000
   val_step: 500  # default: 1000
-  save_step: 1500  # default: 10000
+  save_step: 1000  # default: 10000

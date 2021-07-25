@@ -931,6 +931,7 @@ make_dataset
     - memo 
         - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
 
+
 - NARS2S_new_finetuning_1回目
     - date: 20210711
     - output_folder_name: JSSS_2_JSUT_8
@@ -1123,12 +1124,27 @@ make_dataset
 
         - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
 
+- NARS2S_new_finetunig_1回目
+    - date: 20210717
+    - output_folder_name: jsut_jsss_jvs_6
+    - dataset: jsut_jsss_jvs
+    - options
+        - 続き.
+    
+    - memo 
+        - `python train.py -p ./output/log/jsut_jsss_jvs_6/preprocess.yaml -t ./output/log/jsut_jsss_jvs_6/train.yaml -m ./output/log/jsut_jsss_jvs_6/model.yaml --restore_step 97500`
+
+        - jsut_jsss_jvs_4: 0からteacherforcingなしで学習したもの　と比べると、さすがにすぐにlossは追い抜かせたものの, 非常に緩やかな現象.
+        - 一応はいまだ減少傾向にあるが、暫く続けないとダメそう&既に収束しそうなので, いったん保留. 他にやることがなくなったら学習を再開して確認してみたい.
+
+        - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
 
 - NARS2S_new_1回目
-    - date: 20210710
+    - date: 20210717
     - output_folder_name: JSUT_2_JSSS_12
     - dataset: JSUT_JSSS_5
     - options
+        - 評価方法を変えたやつ！！
         - hifiganのパラメタに合わせた設定.
         - vlaidationを, pitchとenergyを用いない評価方法で評価してみる.
         - ということで, 17500から再開してみた.
@@ -1144,17 +1160,613 @@ make_dataset
                 - reduction factorを実装してみる.
                 - 正直詳細はどこにも載っていなくてよくわからないが, 単純にレイヤー数を増減してしまえばよさそう?
 
-- NARS2S_new_finetunig_1回目
+- make_dataset
+    - pre_voice: jsut_jsss_jvs
+    - preprocessed_data: jsut_jsss_jvs_2
+
+    - durationだけ, reduction factorを用いて計算しなおしたもの.
+    - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+- NARS2S_new_1回目
     - date: 20210717
-    - output_folder_name: jsut_jsss_jvs_6
-    - dataset: jsut_jsss_jvs
+    - output_folder_name: jsut_jsss_jvs_7
+    - dataset: jsut_jsss_jvs_2
     - options
-        - 続き.
+        - reduction_factorを初搭載.
+        - teacher_forcing = True
+        - batch_size = 32  # reduction factorすげぇ!
     
     - memo 
-        - `python train.py -p ./output/log/jsut_jsss_jvs_6/preprocess.yaml -t ./output/log/jsut_jsss_jvs_6/train.yaml -m ./output/log/jsut_jsss_jvs_6/model.yaml --restore_step 97500`
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
 
-        - jsut_jsss_jvs_4: 0からteacherforcingなしで学習したもの　と比べると、さすがにすぐにlossは追い抜かせたものの, 非常に緩やかな現象.
-        - 一応はいまだ減少傾向にあるが、暫く続けないとダメそう&既に収束しそうなので, いったん保留. 他にやることがなくなったら学習を再開して確認してみたい.
+        - ただただ悪化してしまった....。
+        - sliceはもったいないので, ちゃんと平均とった入力にしてもいいかもしれない.
 
-        - それよりも, とりあえずは論文の再現, one-to-oneならちゃんとvalが低いのかを調べてみる.
+- make_dataset
+    - pre_voice: jsut_jsss_jvs
+    - preprocessed_data: jsut_jsss_jvs_2
+
+    - durationだけ, reduction factorのmeanを用いて再計算.
+    - さすがに, 捨てるのはもったいないので, _oldとしてmeanでないものはとっておく
+    - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+- NARS2S_new_1回目
+    - date: 20210717
+    - output_folder_name: jsut_jsss_jvs_8
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction_factor, meanにしてみる.
+        - sliceモードも残しているけどね
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - meanにしても何の意味もなかった...。
+        - ここで, ちゃんと元論文と元実装を見返す
+        
+        - Fastspeech2: pitchとenergyは, reductionしたやつ同士でlossをとっていた. melは元通りにしているが.
+        - 元論文: pitch, energyに関してはそもそもreduction factorするとも書いていない. melに関してはするといっているが, lossはどうとるかも書いていない. targetにもreduction factorと言っているのが気になる...。
+        - とりあえず, どちらに対してもreduction_factorしてみるか.
+
+- NARS2S_new_1回目
+    - date: 20210717
+    - output_folder_name: jsut_jsss_jvs_9
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - lossの計算も全てreductionしたもので行ってみる. そのために, targetのもdatasetにてreductionをしてしまい, 図示の時だけ3倍に膨らませるという方針に.
+        - melだけ特別扱いするのもよいと思う。とにかくそれよりもまずはpitchを落とす必要がある気はする.
+            - jsut_jsss_jvs_8にて, teacher forcing Trueにて, melを特別扱い(melはreduction倍に増やしてからpostnetに入れる)を下にもかかわらず、下がらなかった.
+            - これは, melだけはreductionをそもそもやらないほうが良い説がある
+                - 一方で, それは元論文に反すること....うーん。
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - pitchが過去最高に学習できている. pitch, energyに関してもreductionするのは成功と言えそう.
+        - 一方で, melは下がってくれないし、当然ながらtargetですら, ぶつぶつ音に聞こえる...。
+            - 逆にmelだけreductionするべきではない気がする...。もしくは, せめてpost_netを通すか.
+
+        - melぶつぶつ問題は, 元論文ではどうなっているんだろうか. targetにもreduction factorを使ったとあったけども...
+
+        - 一番よさそうなのは, pitchとenergyだけreductionで, melは通常通りやることか??
+        - とりあえずもう少し訓練させてから判断する.
+
+        - 次の選択肢
+            - melのみをreductionから外す
+            - このままで, mel-postの過学習対策に, teacher-forcingをfalseにする.
+
+            - このどちらもが元論文に反しているの、どうにかならないのか...。
+            
+            - あとは, pitchのgradient_flow = True にしてみたい.
+
+        - reduction factorは, sourceのみに行わず、targetにも行うことで初めてうまく学習が進む
+            - はじめ, sourceのmel, pitch, energyを1/3に圧縮し, modelから出るときに3倍にして出してloss計算していたのですが普通に精度が悪くなっただけでした.
+              そこで, 先生からアドバイスいただいたとおりに、targetも圧縮してしまって圧縮した同士でloss計算すると, いままで学習できていなかったpitchもかなりlossが低下しました  
+        - 一方で, mel は vocoderに入れる際に当然3倍に膨らませる必要があるのですが, それによってぶつぶつ音になってしまった
+            - 元論文は、「target melにもreduction factor schemeを適用」し, 「vocoderをground truthのmelで訓練した」とあり、ここでのground truthはさすがに訓練に使っている, 1/3に圧縮し, 3倍に膨張させ戻したもののことを言ってるのでしょうか、そうでないとさすがにぶつぶつ音は直らないとおもうので....
+        - また, mel lossに関して, validationは依然として下がらない
+            - まだ学習途中なのでちゃんとしたことはある程度進んでからいうべきですが、ここまでのところを見るとすでに大分過学習しています...。確かに、pitchもlossが大分下がったとは言え、それでもまだ正解と見比べると差がすごいので、難しそうだなぁと思っています。なので、teacher forcing (学習時は正解のpitchを使ってmelを計算)をやめるべきかなとも考えていますが、こちらも論文にはちゃんと正解のpitchを使ったとあるのでなぞですね....
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_10
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - jsut_jsss_jvs_9で, pitchが0.2より下がらないのと, mel-postが過学習してしまったので, とりあえずは 前者対策: gradient flow復活, 後者: teacher_forcing: false として, やってみる.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - 普通に想像していたよりもいい!
+        - pitchもmelも下がる上に過学習していない. このまままわし続ければいい線行きそう?
+
+        - いい線は行ったが, melがやはり不安. pitchも欲を言えばもう少し下がってほしい.
+            - ちゃんとreductionを見たら, Tacotronでは, reshapeしてmel_numを増やしていた.
+            - なので同じ方法でやってみる.
+            - つまり, 以下のようにやる.
+        
+        - この方法だと, mel-targetに対してreduction factorがなにも影響しない
+            - 元論文ではがっつりtargetにやると書いているので, 正直よくない...。
+        - それでも, これは今までのいいとこどりを全てできている気がするので, 論文を無視するのも悪くないだろう.
+        
+```
+input: (B, time, mel_num)
+↓reshape
+(B, time/3, mel_num*3)
+↓linear
+(B, time/3, 256)
+↓encoder
+(B, time/3, 256)
+↓variance adaptor → pitch, energy, durationはtime/3で予測(正解は平均したものを利用)
+(B, time/3, 256)
+↓decoder
+(B, time/3, 256)
+↓linear
+(B, time/3, mel_num*3)
+↓reshape
+(B, time, mel_num)
+↓postnet
+(B, time, mel_num)
+
+↑
+下の実験では変更した.
+```
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_11
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+            - 説明
+            - melはsource, targetともに, reshapeを行う.
+                - 時間を第一次元にしてreshapeしないと狂うことに注意.
+                - targetもreshapeする理由として, そうしないとt_mel_maskが本来の長さのtimeによって作成されてしまい,
+                - それがpitchなどのvarianceに対してpadとして使われてしまうから.
+                - 確かにその時だけ計算すればよいかもしれないが、
+                - これで自然に論文通り「targetにもsame reduction scheme」することができたので, とても正しそう.
+                - lossに関しても, targetは弄ってないので正しく学習はできるはず.
+            
+            - それ以外は, 今まで通り, reshape → meanという処理で単に時系列を1/3にしてしまう.
+
+            - これらによって, 今までの課題である, 
+                - 1/3にするとmelは難しくなるけどpitchは簡単になる...という矛盾をうまく回避できた. すごい!!!
+        
+        - ほかは, 今まで通り, pitchのgradient flow = True, teacher_forcing = False
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - うーんなんか微妙? スタートダッシュがあまりよろしくないので, ちゃんと論文のパラメタでやってみる.
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_12
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+        
+        - pitchのgradient flow = False, teacher_forcing = True
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - 微妙...。
+        - one-to-oneを一応試しておく...。
+
+make_dataset
+- durationだけ作り直し.
+    - prevoice: JSUT_JSSS_5
+    - preprocessed_data: JSUT_JSSS_6(JSUT_JSSS_5からコピー)
+    - `python preprocess.py -p ./config/JSUT_JSSS/preprocess.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: JSUT_2_JSSS_13
+    - dataset: JSUT_JSSS_6
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+        
+        - pitchのgradient flow = False, teacher_forcing = True
+
+        - multi_speaker = falseで, ほぼ論文通りのはず. さてどうなるか.
+    
+    - memo 
+        - `python train.py -p ./config/JSUT_JSSS/preprocess.yaml -t ./config/JSUT_JSSS/train.yaml -m ./config/JSUT_JSSS/model.yaml`
+
+        - 全然ダメダメ. 単なる悪化....。
+        - 論文, 信用ならぬ......。
+            - もしかしたら100kまわしたら下がりきるのかもしれんが...。初手で悪すぎる.
+        
+        - 唯一いい線を行っていた, ↓こいつの続きをやる.
+
+
+- NARS2S_new_1回目
+    - date: 20210718
+    - output_folder_name: jsut_jsss_jvs_11
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - 続きをやる.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 2000`
+
+        - 45kくらい学習させたが,　さすがに永遠にlossが下がるわけもなく.
+            - まぁちょっとノイズが激しいくらい? になったので, 試しにhifiganに突っ込んで学習させてみて, どこまでいい音質で出せるかを聞いてみる.
+            - それでよければ終了し, N2Cで訓練する.
+                - これも, finetuningでやるか, 最初から混ぜてやるかは考えるべき.
+                - 可能ならfinetuningでやりたい.
+            - 悪ければ, モデルを見直す.
+
+
+- make_mel_for_hifigan
+    - `python inference.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 46000 --input_path ./preprocessed_data/jsut_jsss_jvs_2/source --output_path ./output/mel_for_hifi-gan/jsut_jsss_jvs --get_mel_for_hifigan --target_mel_path ./preprocessed_data/jsut_jsss_jvs_2/target/mel`
+
+    - 推論だけしてmelを用意.
+
+    - 注意: reduction_factorのせいで, target_melと, inference_melでは, 最後のいくつかのフレームがpadされてるされてない問題が生じてしまう...。
+        - inference時は, その分削ってあげる必要がありそう...。
+        - 元のtarget_melを読み込み, そのlenで切ればok.
+        - 出力されたmelは一番長い長さでpaddingされているので, 単にassertでずれが3未満ならおｋとできない.
+        - まぁもうここまで来たら信じるしかない.
+
+- hifigan_finetuning_1回目
+    - date: 20210719
+    - output_folder_name: jsut_jsss_jvs
+    - dataset: jsut_jsss_jvs
+    - options
+        - 推論結果のmelを使ってfinetuningしてみる.
+        - optimはresetしてみる.
+    
+    - memo
+
+        - finetuningやり方再掲
+            - ↓のように, optionを指定する
+                - mel_pathは, train, val.txtの入った一個上の階層をさすこと.
+            - checkpoint_pathに, pretrainの重みを入れておくこと.
+        
+
+        - 謎に学習できない問題が発生したが, それはmax_wav_valueのせい.
+        - librosaは最初から正規化してwavを出す(floatとして)ので割ると意味不明になる.
+        - 一方, 元の実装ではscipyを利用していて, それを使うとintで読み込む.
+            - なので, 割る必要があった. ただそれだけ.
+            - vocoder inferでも, ちゃんと*max_wav_valueしたあと, int16に直している.
+        
+        - configは, ちゃんとuniversalと同じもので.
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/jsut_jsss_jvs --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/jsut_jsss_jvs --config ./hifigan/config.json --fine_tuning --load_model_only`
+
+- hifigan_finetuning_2回目
+    - date: 20210719
+    - output_folder_name: jsut_jsss_jvs_2
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - ちゃんとtargetから作られたきれいなmelでfinetuningしてみる.
+        - これでできなかったらやばい.
+    
+    - memo
+
+        - そのまま, preprocessed_dataのパスを指定することはできない. 先頭にmel-とかついてるし, フォルダ名もmelになっているので.
+        - ~~めんどくさいが, renameしてコピーしたほうがよさそう.~~
+            - 転置まで必要...。超めんどくさいね, 互換性なさすぎ.
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/jsut_jsss_jvs_2 --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/jsut_jsss_jvs_2 --config ./hifigan/config.json --fine_tuning --load_model_only`
+
+        - うーん, 下がりきらず, ノイズも取れず.
+        - いっぽう, ボイチャコミュニティの人の結果を見ると, 250kもまわしてはいるけど, loss = 0.3でノイズのないきれいな結果になっている.
+        - これは何か間違っている可能性がなくもない...lossが打ち止めになるのは変だよね
+        
+        - ここで, まず学習が進まない原因は?
+            - 今回のものは, melの計算をhifigan製でないもので行っている.
+                - 正直, mel計算に大きなロジックの差はないはずなので, 致命的な違いとは思っていない.
+            - じゃあ, mel計算をhifigan製で行ったUniversalはなぜダメだった??
+                - 今日発見した, max_value問題があった.
+                - これは, wavの値を限りなく0に近づけるもの. melの計算はなぜかできるという特徴がある.
+                - なので, これを修正した今はちゃんと学習できるのではないかという仮説.
+
+            - ではなぜUniversalの重みによるpre_trainはダメだった?
+                - 正直, ドメインが違うから, というのがありそう
+                - ここまでわかった音声タスクの特徴として, lossが低い=クオリティが高いとは一概に言えないということ.
+                - なので, loss自体はUniversalから始めたから低いが, ドメイン, ひいてはノイズの乗り方とかが違うため, クオリティは出なかったと思われる.
+
+            - なので, 以上の仮説が正しければ, 
+                - Universalの訓練がうまくいく
+                - そして, lossは0.3程度でも, ノイズは少なくとも乗らないはず
+
+            - これを確かめるために, 以前のUniversal_5の設定でそのままやり直してみる. 違うのは, max_valueのところ.
+
+
+- Hifi-gan_12回目
+    - date: 20210720
+    - output_folder_name: Universal_6
+    - dataset: Universal_3
+    - options
+        - max_wav_valueで割るのをやめたもの.
+    
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/Universal_3 --input_wav_path ./pre_voice/Universal_2 --checkpoint_path ./hifigan/output/Universal_6 --config ./hifigan/configs/config_Universal_2.json --checkpoint_interval 10000 --summary_interval 250 --validation_interval 2500`
+
+        - ダメでした. まったく同じ.
+        
+        - max_value 問題は, trainの時はまったく問題なかった!!!!
+            - なぜなら, normalizeをしていたから...まじか... targetの音が普通の時点で気づくべき。
+        
+        - ではなぜ学習がうまくいかないのか??
+            - 仮説
+            - 日本語と英語のデータセットは思っている以上にドメインが違う! 学習が困難!!
+            - なので, 日本語だけならVCコミュニティの人のようにうまくいくはず!!
+
+
+
+- Hifi-gan_13回目
+    - date: 20210720
+    - output_folder_name: Universal_7
+    - dataset: jsut_jsss_jvs
+    - options
+        - 日本語のみのデータセットで学習させ空てみることにした。
+    
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/jsut_jsss_jvs/target --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/Universal_7 --config ./hifigan/config.json --checkpoint_interval 5000 --summary_interval 100 --validation_interval 1000`
+
+        - うまくいった.
+        - 完全に, 「fmax = null」が悪さをしていたと予想される.
+            - ドメイン仮説は偽
+                - LJSpeech単体の実験でも同じvalに落ち着いていたことを思い出したい.
+            - 今回は, Universalと同じパラメタ, つまりfmax=8000で行っているので.
+            - 他のstft系のパラメタも悪さをしていないとは言い切れないことに注意しよう.
+        
+        - これでもvalがすぐ打ち止めになった....下がりはしたけど。
+        - ちょっと原因不明. ちゃんとLJSpeechで再現可能か見てみる.
+
+- Hifi-gan_14回目
+    - date: 20210720
+    - output_folder_name: LJSpeech_2
+    - dataset: LJSpeech
+    - options
+        - configはhifiganのuniversal. 再現実験ということですね.
+    
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/LJSpeech --input_wav_path ./raw_data/LJSpeech --checkpoint_path ./hifigan/output/LJSpeech_2 --config ./hifigan/config.json --checkpoint_interval 5000 --summary_interval 100 --validation_interval 1000`
+
+
+        - めっちゃうまくいった....。
+        - 他にも無意識に勝手にいじっていたところを思い出した。
+            - melを求めるところで, 実はreturn_complexを, future warningが出るからって勝手にfalseにしていた...あほすぎる.
+            - おそらくここさえまた修正すれば問題なさそう.
+
+        - 途中で止まった.
+        - さらによく見たら, schedulerも弄ってしまっていた事に気づく....
+        - それも直したらちゃんと再現できた. やったね.
+
+        - 一応念のため, return_complex=Falseにして再度実験.
+            - schedulerとどっちが致命的だったのかを調べるため.
+        
+        - 実験の結果, 無意味であることが判明. あとで挙動を調べよう.
+            - なので, schedulerを弄ってしまっていたのが致命的だった...。
+
+- makedataset
+    - 懲りずに, 論文と同じパラメタでmelを作ってみる.
+    - pre_voice: jsut_jsss_jvs_2
+    - preprocessed_data: jsut_jsss_jvs_3
+
+    - fmax: 8000. ここは悩んだが, 成功したときに, fmax: nullだとhifiganではどうしようもない.  ← nullはおそらく関係なかったかも...。
+    - また, parallel wave ganも見ると, mel rangeは80-7600とあるので, おそらく8000としても問題ないはず.
+    - さらに言えば, 今回の目的であるpitchには, 高周波成分はそこまで影響しなさそう. F0を予測するものなので.
+    - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+- NARS2S_new_1回目
+    - date: 20210720
+    - output_folder_name: jsut_jsss_jvs_13
+    - dataset: jsut_jsss_jvs_3
+    - options
+        - パラメタを論文準拠で行ってみる. そもそもパラメタの影響が大きいと思ったのは, nullのせいだっけ. 勘違いだったけどね.
+        - reduction_factorもちゃんとつけたので, 実験ということで.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - まさかのパラメタ無影響...まったく変わらず....パラメタ以外はjsut_jsss_jvs_12と同じなのでね.
+        - 正直他にできることが...
+
+
+- NARS2S_new_1回目
+    - date: 20210720
+    - output_folder_name: jsut_jsss_jvs_14
+    - dataset: jsut_jsss_jvs_3
+    - options
+        - conv1dのところで, kernel=3とかにしてみた。微調整過ぎて...。
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - 当然こんなので変わるわけもなく. むしろ悪化してるんやが...
+
+        - まだ一度も100kまでまわしていなかった気がする. なので, ちょっと信じてまわしてみることにする.
+
+        - 一応, 100kレベルのスケールで見れば, pitchは全然収束していない.
+        - teacher_forcingのvalも, pitchがいい感じになってきたら減っていくと信じる.
+
+- NARS2S_new_1回目
+    - date: 20210720
+    - output_folder_name: jsut_jsss_jvs_12(続き)
+    - dataset: jsut_jsss_jvs_2
+    - options
+        - reduction factor schemeを, ちゃんとTacotron準拠で行ってみた.
+        
+        - pitchのgradient flow = False, teacher_forcing = True
+
+        - つまり, ほぼ論文通りのパラメタ. valが高いのを我慢して, 100k, やってみる.
+
+        - pitchがうまく学習できれば, valも落ちてくれると信じる. それまで耐える.
+            - 100k行ってみよう.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml --restore_step 3000`
+
+        - 50kまでやってみたが, 望み薄. だめですね.
+        - お手上げだったのでslackで相談したら, 大分改善策が生えてきたので, 順次行っていく.
+
+        - 特に, 高道先生のpitchのお話は直接的だったので, まずは試すことにする.
+
+- makedataset
+    - pre_voice: jsut_jsss_jvs
+    - preprocessed_data: jsut_jsss_jvs_3 ( 被って実行してしまった. なので泣く泣く元のは削除 )
+
+    - 個人的には，ピッチの "0" の値が邪魔をしているのではと疑っています．最新版のFastSpeech2でも近いことをやっていますが，音声合成ではしばしば，ピッチを連続ピッチと有声無声フラグに分割する処理を行います．これらは， 連続ピッチとは，ピッチの"0"の値を欠損値だと見做して線形補間して得られる連続的な一次元系列．有声無声フラグとは，ピッチの値が"0" かそれ以外かを表す二値ラベルという特徴量系列です．試しにこれらに分離してみて，連続ピッチの予測性能だけを見てみても良いかも？ 
+
+    - ということで, continuous_pitchという関数名で, 0を線形補完することにした.
+    - これを使って綺麗にしてみる.
+
+
+- Hifi-gan_15回目
+    - date: 20210721
+    - output_folder_name: jsut_jsss_jvs_3
+    - dataset: jsut_jsss_jvs( pre_voice: jsut_jsss_jvsはuniversalと同じsr. preprocessedのほうのjsut_jsss_jvs2は, durationをreduction factor用に再計算したもの. )
+    - options
+        - configはhifiganのuniversal.
+        - schedulerが悪さしていたので, それを戻した. これでちゃんと学習できるはずなので, NARS2Sから出るmelの事前学習用として, 訓練しておく.
+        - Universalから始めてみる.
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/jsut_jsss_jvs_2/target --input_wav_path ./pre_voice/jsut_jsss_jvs/target --checkpoint_path ./hifigan/output/jsut_jsss_jvs_3 --config ./hifigan/config.json --checkpoint_interval 5000 --summary_interval 100 --validation_interval 1000 --load_model_only`
+
+
+        - 大成功. クッソクオリティが高い. 今後はこれを用いていきたい.
+        - N2Cはまた別にやるの? まぁそれでいや.
+
+
+- NARS2S_new_1回目
+    - date: 20210722
+    - output_folder_name: jsut_jsss_jvs_15
+    - dataset: jsut_jsss_jvs_3(pre_voiceはjsut_jsss_jvs)
+    - options
+        - pitchを高道先生に教わった通り線形補完して作成. それで訓練してみる感じ.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+        - うーん、めっちゃ学習難しくなっている. melもpitchもダダ上がり.
+        - 一方で, 画像を見るとpitchはいい感じになだらかになっているけど...。
+        - 一応, pitchの2次元化も進める.
+
+- NARS2S_new_1回目
+    - date: 20210722
+    - output_folder_name: jsut_jsss_jvs_16
+    - dataset: jsut_jsss_jvs_3(pre_voiceはjsut_jsss_jvs)
+    - options
+        - pitchを高道先生に教わった通り線形補完して作成. それで訓練してみる感じ.
+        - pitchに対してmelと同じreduction_factorを.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+        - ダメ. 15と変わらず,,,。もう何が悪いのかまったくわからん.....
+
+
+- NARS2S_new_1回目
+    - date: 20210722
+    - output_folder_name: jsut_jsss_jvs_17
+    - dataset: jsut_jsss_jvs_3(pre_voiceはjsut_jsss_jvs)
+    - options
+        - 16に加えて, teacher forcing falseと, gradient flow = Trueに.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+
+        - 先生曰く, pitchは正直, multiだと難しいらしい. lossは確かに下がるんだけどね...
+
+        - 読み上げ音声の場合，パワーと継続長の個人性は大きくない（＝話者非依存の変換モデルでも結構動く）のですが，ピッチはそうじゃない（＝話者対依存の変換モデルが必要）
+
+        - はい、予想通りこんなもんでは変わりませんでした。
+
+        - 今の実装ではまだ試していないし, one-to-oneやってもいいかもね. N2Cも用意できたので.
+
+
+- makedataset
+    - pre_voice: N2C_2: 全部そろったver. 22050で.
+    - preprocessed_data: N2C_2: durationはreductionで. pitchも連続pitch利用を継続
+    - multi speakerはFalse.
+    - `python preprocess.py -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml`
+
+
+- N2C_new_1回目
+    - date: 20210722
+    - output_folder_name: N2C_1
+    - dataset: N2C_2
+    - options
+        - teacher forcing True, gradient flow falseの, 論文仕様.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
+
+- Hifi-gan_15回目
+    - date: 20210723
+    - output_folder_name: N2C_1
+    - dataset: N2C
+    - options
+        - jsut_jsss_jvs_3の続きからfinetuningする.
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./preprocessed_data/N2C_2/target --input_wav_path ./pre_voice/N2C_2/target --checkpoint_path ./hifigan/output/N2C --config ./hifigan/config.json --checkpoint_interval 2500 --summary_interval 100 --validation_interval 1000 --load_model_only`
+
+
+        - 大成功. 吐息系？はちょっと不安定だけど, それ以外は完璧. この重みを使っていきたい。
+
+- N2C_finetuning
+    - date: 20210723
+    - output_folder_name: N2C_2
+    - dataset: N2C_2
+    - options
+        - jsut_jsss_jvs_16の途中から, finetuningをしてみる.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 10000`
+
+        - 結果: lossに関しては, 単独学習と同じかそれより悪いくらいだけど, 音質に関しては普通に大丈夫そう! 多少は言葉がつぶれてしまっている部分もあるけれど, もうこれ以上はしょうがなさそうですね。結局, multiでは難しいんでしょうね. 
+
+        - mel: multiより圧倒的に低い. valも, 0.2台に乗ってくれている. finetuningではないものと比べると, ほとんど同じかlossは少し悪化しているかな？って感じだけど, 音質は向上している.
+
+        - pitch: multiより大幅悪化しているように見えるが, melに悪影響を及ぼしていないみたい. それにしても低いのは気になるけど, しかもvalidは高いけど, melは低いのでそこまで問題じゃないのかな?
+
+        - 結論: reduction_factor, 連続pitchの利用, multiで事前学習→one-to-one この3要素でクオリティを確保できたと思われる！
+
+        - 完全未知のinferenceに対しては微妙すぎた...。
+        - 敗因としては, まぁ過学習のしすぎがありそう.
+        - teacher forcingなしにしてみる?
+
+
+- make_mel_for_inference
+    - `python inference.py --restore_step 20000 --input_path ./preprocessed_data/N2C_2/source --output_path ./output/mel_for_hifi-gan/N2C -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml -t ./config/N2C/train.yaml --get_mel_for_hifigan --target_mel_path ./preprocessed_data/N2C_2/target/mel`
+
+- hifigan_finetuning
+    - date: 20210723
+    - output_folder_name: N2C_2
+    - dataset: N2C
+    - options
+        - inferenceのmelを使ってfinetuningする.
+    - memo
+        - `python ./hifigan/train.py --input_mel_path ./output/mel_for_hifi-gan/N2C --input_wav_path ./pre_voice/N2C_2/target --checkpoint_path ./hifigan/output/N2C_2 --config ./hifigan/config.json --checkpoint_interval 2500 --summary_interval 100 --validation_interval 1000`
+
+- うおおおテスト
+    - `python inference.py --restore_step 20000 --input_path ./test_input/test --output_path ./test -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml -t ./config/N2C/train.yaml`
+
+
+- N2C_new_1回目
+    - date: 20210724
+    - output_folder_name: N2C_3
+    - dataset: N2C_2
+    - options
+        - teacher forcingをfalse, stop gradient flow は false.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
+
+        - 最初からteacher forcingなしだと, ちょっと学習がうまくいかないみたいですね
+        - finetuningだけど, teacher forcing trueにしてみる?
+
+- N2C_finetuning
+    - date: 20210724
+    - output_folder_name: N2C_4
+    - dataset: N2C_2
+    - options
+        - jsut_jsss_jvs_16の途中から, finetuningをしてみる. teacher forcing false で.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 10000`
+
+        - teacher forcingとか関係なかった...。
+        - 推論時のクオリティがやっぱり低い...。
+        - espnetのfastspeech2の実装をなぜかみつけ, reduction factorなども少し実装が違っていた.
+        - TTS用ではあるのでVC用にうまく変えてみる.
+        - [参考](https://espnet.github.io/espnet/_modules/espnet2/tts/fastspeech2.html)
+
+- todo
+    - return_complexの挙動確認
+
+    - scheduler, 4kepochで大きくなるのを逆に小さくするべき
+    - pitchのlossを大きくするべき.
+
+# 処理系を勝手にいじくるな! まずは論文の再現をちゃんとしてから考察を始めよ！
+    - よくわかってないくせに, load_wavをlibrosaのものに変えて, それなのに37000で割り算して超微小なaudioにしているの, あほすぎる.
+
+    - 酷い. schedulerの位置も勝手に変えている...そんなことしちゃダメでしょ....
+    - return_complexも勝手に変えてるし...

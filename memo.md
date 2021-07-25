@@ -209,7 +209,12 @@ FastSpeech2のコードの一部を変更する形で, VCを実装していく.
         - durationだけ一工夫が必要そうだが, それ以外は特に問題ない.
 
         - duration: 作り直し. melをsliceでreduction_factor分にしてから, duration再計算
-        - pitch, energy, mel: モデル内で完結させる. 減らすのも増やすのもモデル内で.
+        - ~~pitch, energy, mel: モデル内で完結させる. 減らすのも増やすのもモデル内で.~~
+            - いや, mask計算などもあるので, それを考えるとdatasetでやったほうが良い.
+            - sourceはすべて、targetはt_mel_lenだけ反映する.
+            - なので, pitchもenergyも, teacher forcingするならモデル内でスライスは必要.
+
+            - 斎藤先生曰く, 音素ごとに計算する場合は, lossの時に, targetを平均化するらしいが, 後処理を考えると, モデルから出てくるものはちゃんと時間がt_melと同じになっていてほしい.
 
 - inference関連の整備: 20210626~20210628
     - inference.pyを動くようにしないと.

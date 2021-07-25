@@ -1,6 +1,7 @@
 import math
 import os
 import random
+import warnings
 
 import librosa
 import numpy as np
@@ -9,13 +10,10 @@ import torch.utils.data
 from librosa.filters import mel as librosa_mel_fn
 from librosa.util import normalize
 
-from audio.stft import TacotronSTFT
-
-MAX_WAV_VALUE = 32768.0
+warnings.simplefilter('ignore', UserWarning)  # return_complexで出てくるwarning.
 
 
 def load_wav(full_path, sr):
-    # sampling_rate, data = read(full_path)
     wav, _ = librosa.load(
         full_path, sr=sr)
     return wav, sr
@@ -69,7 +67,7 @@ def mel_spectrogram(y, n_fft, num_mels, sampling_rate, hop_size, win_size, fmin,
     y = y.squeeze(1)
 
     spec = torch.stft(y, n_fft, hop_length=hop_size, win_length=win_size, window=hann_window[str(y.device)],
-                      center=center, pad_mode='reflect', normalized=False, onesided=True, return_complex=False)
+                      center=center, pad_mode='reflect', normalized=False, onesided=True)
 
     spec = torch.sqrt(spec.pow(2).sum(-1)+(1e-9))
 
@@ -77,34 +75,6 @@ def mel_spectrogram(y, n_fft, num_mels, sampling_rate, hop_size, win_size, fmin,
     spec = spectral_normalize_torch(spec)
 
     return spec
-
-
-def mel_spectrogram_nars2s(y, n_fft, num_mels, sampling_rate, hop_size, win_size, fmin, fmax, max_audio_len=None):
-    # y: audio
-    # valは9000で切り取らないので, melにするとズレうる. なのでここで調整.
-    def get_mel_from_wav(audio, _stft, max_audio_len):
-        if max_audio_len is not None:
-            audio = audio[:, :max_audio_len]  # batchで来る想定.
-        audio = torch.clip(audio, -1, 1)
-        audio = torch.autograd.Variable(audio, requires_grad=False)
-        melspec, _ = _stft.mel_spectrogram(audio)
-        melspec = torch.squeeze(melspec, 0)
-
-        return melspec
-
-    STFT = TacotronSTFT(
-        n_fft,
-        hop_size,
-        win_size,
-        num_mels,
-        sampling_rate,
-        fmin,
-        fmax
-    )
-
-    mel = get_mel_from_wav(y, STFT, max_audio_len).to(y.device)
-
-    return mel.unsqueeze(0) if mel.dim() == 2 else mel
 
 
 def get_dataset_filelist(a):
@@ -148,7 +118,6 @@ class MelDataset(torch.utils.data.Dataset):
         filename = self.audio_files[index]
         if self._cache_ref_count == 0:
             audio, sampling_rate = load_wav(filename, self.sampling_rate)
-            audio = audio / MAX_WAV_VALUE
             if self.fine_tuning is not True:  # もはやここでしかfinetuning使わない.
                 audio = normalize(audio) * 0.95
             self.cached_wav = audio

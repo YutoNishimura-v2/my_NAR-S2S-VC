@@ -31,5 +31,8 @@ variance_predictor:
   pitch:
     kernel_size: 5
     layer_num: 5
-    stop_gradient_flow: True
+    stop_gradient_flow: False
   teacher_forcing: False
+
+reduction_factor: 3
+reduction_mean: True

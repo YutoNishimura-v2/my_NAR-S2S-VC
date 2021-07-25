@@ -24,7 +24,7 @@ def main(args, configs):
 
     # Get dataset
     dataset = TrainDataset(
-        "train.txt", preprocess_config, train_config, sort=True, drop_last=True
+        "train.txt", preprocess_config, model_config, train_config, sort=True, drop_last=True
     )
     batch_size = train_config["optimizer"]["batch_size"]
     group_size = 1  # Set this larger than 1 to enable sorting in Dataset
@@ -50,11 +50,14 @@ def main(args, configs):
 
     # Load vocoder
     # evalモードにして読み込む. 用いる重みなどはハードコードされている.
-    vocoder = get_vocoder(device)
+    vocoder = get_vocoder(device, train_config)
 
     # Init logger
     for p in train_config["path"].values():
-        os.makedirs(p, exist_ok=True)  # ここでresultフォルダも作成されている.
+        try:
+            os.makedirs(p, exist_ok=True)  # ここでresultフォルダも作成されている.
+        except FileExistsError:
+            continue
     save_configs(args, train_config)  # configを保存する.
 
     train_log_path = os.path.join(train_config["path"]["log_path"], "train")

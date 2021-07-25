@@ -161,6 +161,9 @@ def train(rank, a, h):
             y_g_hat = generator(x)
             y_g_hat_mel = mel_spectrogram(y_g_hat.squeeze(1), h.n_fft, h.num_mels, h.sampling_rate, h.hop_size,
                                           h.win_size, h.fmin, h.fmax_for_loss)
+
+            optim_d.zero_grad()
+
             # MPD: multi period descriminator
             y_df_hat_r, y_df_hat_g, _, _ = mpd(y, y_g_hat.detach())
             loss_disc_f, losses_disc_f_r, losses_disc_f_g = discriminator_loss(y_df_hat_r, y_df_hat_g)
@@ -173,10 +176,9 @@ def train(rank, a, h):
 
             loss_disc_all.backward()
             optim_d.step()
-            scheduler_d.step()
-            optim_d.zero_grad()
 
             # Generator
+            optim_g.zero_grad()
 
             # L1 Mel-Spectrogram Loss  # melのlossもみるみたい.
             loss_mel = F.l1_loss(y_mel, y_g_hat_mel) * 45
@@ -191,8 +193,6 @@ def train(rank, a, h):
 
             loss_gen_all.backward()
             optim_g.step()
-            scheduler_g.step()
-            optim_g.zero_grad()
 
             if rank == 0:
                 # STDOUT logging
@@ -258,6 +258,9 @@ def train(rank, a, h):
             steps += 1
             inner_bar.update(1)
             outer_bar.update(1)
+
+        scheduler_g.step()
+        scheduler_d.step()
 
 
 def main():

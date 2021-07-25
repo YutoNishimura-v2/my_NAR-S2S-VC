@@ -18,15 +18,27 @@
 
 ## 使い方
 ### train
-- trainするときはさすがにcwdはhifi-ganにしようね.
+- 事前に用意するもの: 音声ファイル(srなど成型済み), train.txt, val.txt
 
-- また, input_pathも作り, 想定は上述.
+- train.pyを実行時, cwdはhifiganではなく一番上.
 
-- そして, configもinput_path内にあると良さそう.
+- 各引数に以下を与える
+- input_mel_path: train.txt, val.txtが入っているフォルダ. melとか言ってるけどmelはいらん.
+- input_wav_path: wavが入っているフォルダ.
+- checkpoint_path: 保存したいフォルダパス
+- config: jsonで書かれたconfig
 
-- ここまで用意出来たら, 
-`python train.py --input_path $input_path --checkpoint_path $output_path --config $config_path --fine_tuning`
-これを実行.
+あとはお好み.
+
+### finetuning
+- 自前で用意したmelを用いてfinetuningしたいとき↓
+    - input_mel_path: txtに加えて, melsというフォルダがあり, そこにmelがたまっている.
+        - NARS2Sのものを利用したい場合, フォルダ名をmelsにして, ファイル名も"mel-"を外し, melを転置して再保存する必要あり
+    - fine_tuning: これはつけるだけ.
+    - load_model_only: これによってoptimizerをリセットすることが可能. お好み.
+
+- melは用意していないが, Unicersalとかのpretrainからfinetuningしたい場合
+    - ただ重みをoutputフォルダにぶち込んでおくだけ. 勝手に認識して始めてくれる.
 
 ### inference
 - これはNARS2Sを通して利用する場合
