@@ -1785,7 +1785,7 @@ make_dataset
 
 - N2C_new_1回目
     - date: 20210725
-    - output_folder_name: N2C_4
+    - output_folder_name: N2C_5
     - dataset: N2C_3
     - options
         - 大分やり方を変えて, espnetと同じにしてみた. 果たして.

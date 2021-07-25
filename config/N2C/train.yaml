@@ -1,6 +1,6 @@
 path:
-  ckpt_path: "./output/ckpt/N2C_4"
-  log_path: "./output/log/N2C_4"
+  ckpt_path: "./output/ckpt/N2C_5"
+  log_path: "./output/log/N2C_5"
   # vocoder_weight: "./hifigan/generator_universal.pth.tar"
   vocoder_weight: "./hifigan/output/N2C/g_00055000"
 optimizer:
