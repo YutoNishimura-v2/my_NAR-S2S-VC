@@ -5,13 +5,14 @@ path:
   source_prevoice_path: "./pre_voice/jsut_jsss_jvs/source"
   target_raw_path: "./raw_data/jsut_jsss_jvs/target"
   target_prevoice_path: "./pre_voice/jsut_jsss_jvs/target"
-  preprocessed_path: "./preprocessed_data/jsut_jsss_jvs_3"  # out_dir. こっちはsource, targetで自動で分ける.
+  preprocessed_path: "./preprocessed_data/jsut_jsss_jvs_4"  # out_dir. こっちはsource, targetで自動で分ける.
   source_stats_path: null  # finetuningのみ利用
-  target_stats_path: null  # finetuningのみ利用
+  target_stats_path: null # finetuningのみ利用
 
 preprocessing:
-  val_size: 50 # 元は512  # 全データが3229個.
+  val_size: 1000 # 元は512  # 全データが3229個.
   multi_speaker: True
+  continuous_pitch: True
   audio:
     sampling_rate: 22050
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.

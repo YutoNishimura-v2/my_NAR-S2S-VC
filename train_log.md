@@ -1796,6 +1796,42 @@ make_dataset
     - memo 
         - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
 
+        - 今回は割とloss通りの音声の結果になっている.
+        - pitchが多少マシになった. その一方で, 難しくなったのかenergyとmelのlossが上がった.
+        - その影響で, N2C_1に比べてイントネーションはよく, 発話自体はうんちという, まさにloss通りの結果に.
+        - これはmelやenergyの難易度上昇に依りそう. finetuningしてみる.
+
+- makedataset
+    - pre_voice: jsut_jsss_jvs
+    - preprocessed_data: jsut_jsss_jvs_4
+    - multi speakerはFalse.
+    - `python preprocess.py -p ./config/jsut_jsss_jvs/preprocess.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+- jsut_jsss_jvs_new_1回目
+    - date: 20210726
+    - output_folder_name: jsut_jsss_jvs_18
+    - dataset: jsut_jsss_jvs_4
+    - options
+        - pitchを綺麗にした. energyでもミスっていたので, それを簡単にするためにpretrain.
+    
+    - memo 
+        - `python train.py -p ./config/jsut_jsss_jvs/preprocess.yaml -t ./config/jsut_jsss_jvs/train.yaml -m ./config/jsut_jsss_jvs/model.yaml`
+
+- N2C_finetuning_1回目
+    - date: 20210726
+    - output_folder_name: N2C_6
+    - dataset: N2C_3
+    - options
+        - 試しにfinetuningとして. さて.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml --restore_step 10000`
+
+        - だめですね. おわり...。
+        - 特にmelを増やした意味もあまりなく. 逆につらくなっているという印象. batchも増やすことになってしまったし.
+        - これ以上は, pitchにwaveのほうを実装するくらいしかやることないし, そんなのなくてもできるはずだったので, 
+        - とりあえず終了. 今度見せてもらえるFastSpeech2-VCを読んでまた再開する.
+
 - todo
     - return_complexの挙動確認
 

@@ -248,13 +248,14 @@ def process_utterance(input_dir, out_dir, basename,
         # ここで一致していないと, 後でエラーになりますので.
         return None
 
-    # お試し実装, continuous pitcj
+    energy = np.log(energy+1e-6)
+
     if is_continuous_pitch is True:
+        no_voice_indexes = np.where(energy < -4)
+        pitch[no_voice_indexes] = np.min(pitch)
         pitch = continuous_pitch(pitch)
 
-    # energyとpitchはここでlogをとる.
     pitch = np.log(pitch+1e-6)
-    energy = np.log(energy+1e-6)
 
     # Save files
     pitch_filename = "pitch-{}.npy".format(basename)
