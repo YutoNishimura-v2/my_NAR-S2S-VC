@@ -127,13 +127,13 @@ def devide_voice(config):
 
             for s_num_ in range(s_num):
                 s_wav_path_ = s_wav_path.replace(".wav", f"_{s_num_}.wav")
-                os.remove(s_wav_path_)
+                # os.remove(s_wav_path_)
             for t_num_ in range(t_num):
                 t_wav_path_ = t_wav_path.replace(".wav", f"_{t_num_}.wav")
-                os.remove(t_wav_path_)
+                # os.remove(t_wav_path_)
 
-        os.remove(s_wav_path)
-        os.remove(t_wav_path)
+        # os.remove(s_wav_path)
+        # os.remove(t_wav_path)
 
 
 def delete_novoice(config):

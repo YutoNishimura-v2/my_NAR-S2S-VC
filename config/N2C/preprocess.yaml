@@ -1,9 +1,9 @@
 dataset: "N2C"
 
 path:
-  source_raw_path: "./raw_data/N2C/source"
+  source_raw_path: "./raw_data/N2C_test/source"
   source_prevoice_path: "./pre_voice/N2C_3/source"
-  target_raw_path: "./raw_data/N2C/target"
+  target_raw_path: "./raw_data/N2C_test/target"
   target_prevoice_path: "./pre_voice/N2C_3/target"
   preprocessed_path: "./preprocessed_data/N2C_4"  # out_dir. こっちはsource, targetで自動で分ける.
   source_stats_path: null  # finetuningのみ利用
@@ -16,7 +16,7 @@ preprocessing:
   audio:
     sampling_rate: 22050
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
-    min_silence_len: 300
+    min_silence_len: 1000
     silence_thresh: -80
     silence_thresh_head: -40
     keep_silence: 10
