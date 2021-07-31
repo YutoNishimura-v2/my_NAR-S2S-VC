@@ -1,6 +1,6 @@
 # duration prepareで作った, 簡易版.
 
-from typing import List, Optional, Union
+from typing import List, Union
 
 import librosa
 import librosa.display
@@ -11,7 +11,13 @@ from tqdm import tqdm
 import audio as Audio
 
 
-def plot_mels(mels: List[np.ndarray], wav_paths: List[str], sr: int, sharex: bool = True) -> None:
+def plot_mels(wav_paths: List[str], mels: List[np.ndarray] = None, config: dict = None,
+              sr: int = 22050, sharex: bool = True) -> None:
+
+    if mels is None:
+        assert config is not None
+        mels = get_mels(wav_paths, config=config)
+
     fig, ax = plt.subplots(len(mels), 1, sharex=sharex, figsize=(15, 10))
 
     if len(mels) == 1:
@@ -26,8 +32,8 @@ def plot_mels(mels: List[np.ndarray], wav_paths: List[str], sr: int, sharex: boo
     plt.show()
 
 
-def get_mels(wav_paths: Union[str, List[str]], mel_num: Optional[int], config: dict
-             ) -> Union[np.ndarray, List[np.ndarray]]:
+def get_mels(wav_paths: Union[str, List[str]], config: dict, mel_num: int = None
+             ) -> List[np.ndarray]:
     """
     Examples:
       wav_paths = ["./input/c_beyond_26.wav", "./input/n_beyond_26.wav"]
@@ -50,7 +56,7 @@ def get_mels(wav_paths: Union[str, List[str]], mel_num: Optional[int], config: d
         wav, _ = librosa.load(
             wav_paths, sr=config["preprocessing"]["audio"]["sampling_rate"])
         mel_spectrogram, _ = Audio.tools.get_mel_from_wav(wav, STFT)
-        return mel_spectrogram
+        return [mel_spectrogram]
     else:
         for wav_path in tqdm(wav_paths):
             wav, _ = librosa.load(

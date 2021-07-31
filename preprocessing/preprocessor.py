@@ -251,7 +251,7 @@ def process_utterance(input_dir, out_dir, basename,
     energy = np.log(energy+1e-6)
 
     if is_continuous_pitch is True:
-        no_voice_indexes = np.where(energy < -4)
+        no_voice_indexes = np.where(energy < -5.0)
         pitch[no_voice_indexes] = np.min(pitch)
         pitch = continuous_pitch(pitch)
 

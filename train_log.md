@@ -1832,6 +1832,33 @@ make_dataset
         - これ以上は, pitchにwaveのほうを実装するくらいしかやることないし, そんなのなくてもできるはずだったので, 
         - とりあえず終了. 今度見せてもらえるFastSpeech2-VCを読んでまた再開する.
 
+- makedataset
+    - pre_voice: N2C_3
+    - preprocessed_data: N2C_4: durationはreductionで. pitchも連続pitch利用を継続
+    - multi speakerはFalse.
+
+    - durationについて, 対角になるように工夫.
+    - 加えて, 無音区間を減らすために, ある程度(0.3s)長い無音で切ることにする.
+    - `python preprocess.py -p ./config/N2C/preprocess.yaml -m ./config/N2C/model.yaml`
+
+- N2C_new_1回目
+    - date: 20210731
+    - output_folder_name: N2C_7
+    - dataset: N2C_4
+    - options
+        - 大分やり方を変えて, espnetと同じにしてみた. 果たして.
+        - model内でreduction factorを完結させた。
+        - それによって, postnetを広がってから通るようになった.
+        - pitchもちゃんと(B, time)でlossをとるようになった.
+    
+    - memo 
+        - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
+
+        - 今回は割とloss通りの音声の結果になっている.
+        - pitchが多少マシになった. その一方で, 難しくなったのかenergyとmelのlossが上がった.
+        - その影響で, N2C_1に比べてイントネーションはよく, 発話自体はうんちという, まさにloss通りの結果に.
+        - これはmelやenergyの難易度上昇に依りそう. finetuningしてみる.
+
 - todo
     - return_complexの挙動確認
 

@@ -13,12 +13,14 @@ from tqdm import tqdm
 import audio as Audio
 
 
-def calc_duration(ts_src: List[np.ndarray], target_path: str) -> np.ndarray:
+def calc_duration(ts_src: List[np.ndarray], target_path: str, diagonal_index: np.ndarray = None) -> np.ndarray:
     """
     Args:
       ts_src: アライメントさせたい対象.
         その中身は, (d, time)の時系列のリスト.
         最初のがtarget, 次にsorceが入っている.
+      diagonal_index: 対角化させたいindex. False, Trueの値が入っている.
+        対角化とは, sourceとtargetのtime indexをx, y軸とでもしたときに, 斜めになるようにすること.
 
     source : target = 多 : 1 のケース
         - 該当するsourceの最初を1, それ以外は0として削除してしまう.
@@ -57,10 +59,29 @@ def calc_duration(ts_src: List[np.ndarray], target_path: str) -> np.ndarray:
 
     duration[b_p_s] += count if count > 0 else 0
 
+    if diagonal_index is not None:
+        assert s_src.shape[1] == len(
+            diagonal_index), f"s_src.shape: {s_src.shape}, len(diagonal_index): {len(diagonal_index)}"
+        index_list = get_s_e_index_from_bools(diagonal_index)
+        for index_s_t in index_list:
+            duration_part = duration[index_s_t[0]:index_s_t[1]]
+            if np.sum(duration_part) > len(duration_part):
+                # targetの無音区間の方が長いケース.
+                delta = int(np.sum(duration_part)-len(duration_part))
+                duration_part[:delta] = 2
+                duration_part[delta:] = 1
+            else:
+                # sourceの方が長いケース.
+                s_index = int(np.sum(duration_part))
+                duration_part[:s_index] = 1
+                duration_part[s_index:] = 0
+
+            duration[index_s_t[0]:index_s_t[1]] = duration_part
+
     assert np.sum(duration) == t_src.shape[1], f"""{target_path}にてdurationの不一致がおきました\n
     duration: {duration}\n
     np.sum(duration): {np.sum(duration)}\n
-    len(t_src): {len(t_src)}"""
+    t_src.shape: {t_src.shape}"""
 
     return duration
 
@@ -97,13 +118,13 @@ def get_duration(p_config, m_config):
             source_path, sr=p_config["preprocessing"]["audio"]["sampling_rate"])
         target_wav, _ = librosa.load(
             target_path, sr=p_config["preprocessing"]["audio"]["sampling_rate"])
-        source_mel, _ = Audio.tools.get_mel_from_wav(source_wav, STFT)
+        source_mel, energy = Audio.tools.get_mel_from_wav(source_wav, STFT)
         target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
 
         source_mel = reduction(source_mel, reduction_factor)
         target_mel = reduction(target_mel, reduction_factor)
 
-        duration = calc_duration([target_mel, source_mel], target_path)
+        duration = calc_duration([target_mel, source_mel], target_path, np.log(energy+1e-6) < -5.0)
         duration_filename = f"duration-{opth.basename(source_path).replace('.wav', '')}.npy"
         np.save(os.path.join(out_dir, "source", "duration", duration_filename), duration)
 
@@ -128,3 +149,25 @@ def reduction(x: np.ndarray, reduction_factor: int) -> np.ndarray:
     x = x.mean(-1)
 
     return x
+
+
+def get_s_e_index_from_bools(array):
+    """True, Falseのbool配列から, Trueがあるindexの最初と最後を見つけてindexの
+    配列として返す.
+    """
+    index_list = []
+    flg = 0
+    s_ind = 0
+    for i, v in enumerate(array):
+        if (flg == 0) and v:
+            s_ind = i
+            flg = 1
+        elif (flg == 1) and (not v):
+            index_list.append([s_ind, i])
+            flg = 0
+
+    if v:
+        # 最後がTrueで終わっていた場合.
+        index_list.append([s_ind, i+1])
+
+    return index_list
