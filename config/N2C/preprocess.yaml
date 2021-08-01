@@ -1,9 +1,9 @@
 dataset: "N2C"
 
 path:
-  source_raw_path: "./raw_data/N2C/source"
+  source_raw_path: "./raw_data/N2C_test/source"
   source_prevoice_path: "./pre_voice/N2C_3/source"
-  target_raw_path: "./raw_data/N2C/target"
+  target_raw_path: "./raw_data/N2C_test/target"
   target_prevoice_path: "./pre_voice/N2C_3/target"
   preprocessed_path: "./preprocessed_data/N2C_4"  # out_dir. こっちはsource, targetで自動で分ける.
   source_stats_path: null  # finetuningのみ利用
