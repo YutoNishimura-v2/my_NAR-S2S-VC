@@ -63,6 +63,9 @@ def devide_voice_from_path(s_wav_path, t_wav_path, preprocess_config):
             t_audio_cut.export(t_wav_path.replace(".wav", f"_{i+1}.wav"), format="wav")
             s_audio_cut.export(s_wav_path.replace(".wav", f"_{i+1}.wav"), format="wav")
 
+    os.remove(s_wav_path)
+    os.remove(t_wav_path)
+
 
 def voice_deviding(preprocess_config):
     """一定の長さ以上でvoiceを切りに行く. sourceとtargetで同じ内容で切れるように,
