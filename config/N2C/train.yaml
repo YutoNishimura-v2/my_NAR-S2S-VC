@@ -5,7 +5,7 @@ path:
   # vocoder_weight: "./hifigan/output/jsut_jsss_jvs_3/g_00015000"
   vocoder_weight: "./hifigan/output/N2C/g_00055000"
 optimizer:
-  batch_size: 16  # default: 32
+  batch_size: 32  # default: 32
   betas: [0.9, 0.98]
   eps: 0.000000001
   weight_decay: 0.0
@@ -18,7 +18,7 @@ optimizer:
   init_lr: 1  # 最初のlearning rateにinit_lr倍します.
 step:
   total_step: 100000  # default: 900000
-  log_step: 100  # default: 100
-  synth_step: 1000  # default: 1000
-  val_step: 1000  # default: 1000
-  save_step: 1000  # default: 10000
+  log_step: 50  # default: 100
+  synth_step: 500  # default: 1000
+  val_step: 500  # default: 1000
+  save_step: 500  # default: 10000

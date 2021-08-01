@@ -2,7 +2,6 @@
 from typing import List
 import os
 import os.path as opth
-from glob import glob
 
 import numpy as np
 from scipy.spatial.distance import cityblock
@@ -108,12 +107,19 @@ def get_duration(p_config, m_config):
 
     os.makedirs((os.path.join(out_dir, "source", "duration")), exist_ok=True)
 
-    # sortして, 対応関係が保たれるという仮定を立てている.
-    source_wav_paths = np.sort(glob(opth.join(source_in_dir, "*.wav")))
-    target_wav_paths = np.sort(glob(opth.join(target_in_dir, "*.wav")))
+    basenames = []
+    with open(opth.join(out_dir, "source", "train.txt")) as f:
+        for line in f.readlines():
+            name = line.strip("\n")
+            basenames.append(name)
+    with open(opth.join(out_dir, "source", "val.txt")) as f:
+        for line in f.readlines():
+            name = line.strip("\n")
+            basenames.append(name)
 
-    for source_path, target_path in tqdm(zip(source_wav_paths, target_wav_paths)):
-        assert opth.basename(source_path) == opth.basename(target_path), "対応関係が壊れています."
+    for basename in tqdm(basenames):
+        source_path = opth.join(source_in_dir, basename+".wav")
+        target_path = opth.join(target_in_dir, basename+".wav")
 
         source_wav, _ = librosa.load(
             source_path, sr=p_config["preprocessing"]["audio"]["sampling_rate"])

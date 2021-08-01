@@ -231,11 +231,15 @@ def process_utterance(input_dir, out_dir, basename,
     wav, _ = librosa.load(wav_path, sr=sampling_rate)
 
     # Compute fundamental frequency
-    pitch, t = pw.dio(
-        wav.astype(np.float64),
-        sampling_rate,
-        frame_period=hop_length / sampling_rate * 1000,
-    )
+    try:
+        pitch, t = pw.dio(
+            wav.astype(np.float64),
+            sampling_rate,
+            frame_period=hop_length / sampling_rate * 1000,
+        )
+    except IndexError:
+        print("skipped: ", input_dir, basename)
+        return None
     pitch = pw.stonemask(wav.astype(np.float64), pitch, t, sampling_rate)
 
     if np.sum(pitch != 0) <= 1:
