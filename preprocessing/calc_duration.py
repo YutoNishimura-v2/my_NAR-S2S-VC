@@ -67,9 +67,10 @@ def calc_duration(ts_src: List[np.ndarray], target_path: str, diagonal_index: np
             duration_part = duration[index_s_t[0]:index_s_t[1]]
             if np.sum(duration_part) > len(duration_part):
                 # targetの無音区間の方が長いケース.
-                delta = int(np.sum(duration_part)-len(duration_part))
-                duration_part[:delta] = 2
-                duration_part[delta:] = 1
+                mean_ = np.sum(duration_part) // len(duration_part)
+                rest_ = int(np.sum(duration_part) % (len(duration_part)*mean_))
+                duration_part[:] = mean_
+                duration_part[:rest_] += 1
             else:
                 # sourceの方が長いケース.
                 s_index = int(np.sum(duration_part))
@@ -122,11 +123,34 @@ def get_duration(p_config, m_config):
         target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
 
         source_mel = reduction(source_mel, reduction_factor)
+        energy = reduction(energy, reduction_factor)
         target_mel = reduction(target_mel, reduction_factor)
 
         duration = calc_duration([target_mel, source_mel], target_path, np.log(energy+1e-6) < -5.0)
         duration_filename = f"duration-{opth.basename(source_path).replace('.wav', '')}.npy"
         np.save(os.path.join(out_dir, "source", "duration", duration_filename), duration)
+
+
+def get_duration_for_deviding(s_wav_path, t_wav_path, p_config):
+    STFT = Audio.stft.TacotronSTFT(
+        p_config["preprocessing"]["stft"]["filter_length"],
+        p_config["preprocessing"]["stft"]["hop_length"],
+        p_config["preprocessing"]["stft"]["win_length"],
+        20,  # config["preprocessing"]["mel"]["n_mel_channels"]のところ.
+        p_config["preprocessing"]["audio"]["sampling_rate"],
+        p_config["preprocessing"]["mel"]["mel_fmin"],
+        p_config["preprocessing"]["mel"]["mel_fmax"],
+    )
+    source_wav, _ = librosa.load(
+        s_wav_path, sr=p_config["preprocessing"]["audio"]["sampling_rate"])
+    target_wav, _ = librosa.load(
+        t_wav_path, sr=p_config["preprocessing"]["audio"]["sampling_rate"])
+    source_mel, _ = Audio.tools.get_mel_from_wav(source_wav, STFT)
+    target_mel, _ = Audio.tools.get_mel_from_wav(target_wav, STFT)
+
+    duration = calc_duration([target_mel, source_mel], t_wav_path)
+
+    return duration
 
 
 def reduction(x: np.ndarray, reduction_factor: int) -> np.ndarray:

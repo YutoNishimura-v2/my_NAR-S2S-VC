@@ -1846,18 +1846,10 @@ make_dataset
     - output_folder_name: N2C_7
     - dataset: N2C_4
     - options
-        - 大分やり方を変えて, espnetと同じにしてみた. 果たして.
-        - model内でreduction factorを完結させた。
-        - それによって, postnetを広がってから通るようになった.
-        - pitchもちゃんと(B, time)でlossをとるようになった.
-    
+
     - memo 
         - `python train.py -p ./config/N2C/preprocess.yaml -t ./config/N2C/train.yaml -m ./config/N2C/model.yaml`
 
-        - 今回は割とloss通りの音声の結果になっている.
-        - pitchが多少マシになった. その一方で, 難しくなったのかenergyとmelのlossが上がった.
-        - その影響で, N2C_1に比べてイントネーションはよく, 発話自体はうんちという, まさにloss通りの結果に.
-        - これはmelやenergyの難易度上昇に依りそう. finetuningしてみる.
 
 - todo
     - return_complexの挙動確認

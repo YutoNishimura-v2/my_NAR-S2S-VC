@@ -5,15 +5,14 @@
 1. 音声のサンプリング数を24000へ変更.
 2. 無音区間の削除, 結合
 """
-from glob import glob
-import os.path as opth
 import os
+import os.path as opth
+from glob import glob
 
-from tqdm import tqdm
-import soundfile as sf
 import librosa
+import soundfile as sf
 from pydub import AudioSegment, silence
-from pydub.silence import split_on_silence
+from tqdm import tqdm
 
 
 def load_and_save(input_path, output_path, sr):
@@ -95,47 +94,6 @@ def delete_novoice_from_path(input_path, output_path, preprocess_config, chunk_s
     audio_cut.export(opth.join(output_path, opth.basename(input_path)), format="wav")
 
 
-def devide_voice_from_path(input_path, output_path, preprocess_config):
-    silence_thresh = preprocess_config["preprocessing"]["audio"]["silence_thresh"]
-    min_silence_len = preprocess_config["preprocessing"]["audio"]["min_silence_len"]
-    keep_silence = preprocess_config["preprocessing"]["audio"]["keep_silence"]
-
-    audio = AudioSegment.from_wav(input_path)
-
-    chunks = split_on_silence(audio, min_silence_len=min_silence_len,
-                              silence_thresh=silence_thresh,
-                              keep_silence=keep_silence)
-    for i, chunk in enumerate(chunks):
-        chunk.export(opth.join(output_path, opth.basename(input_path).replace(".wav", f"_{i}.wav")), format="wav")
-
-    return len(chunks)
-
-
-def devide_voice(config):
-    source_prevoice_path = config["path"]["source_prevoice_path"]
-    target_prevoice_path = config["path"]["target_prevoice_path"]
-
-    s_wav_paths = glob(os.path.join(source_prevoice_path, '*.wav'))
-    t_wav_paths = glob(os.path.join(target_prevoice_path, '*.wav'))
-
-    for s_wav_path, t_wav_path in tqdm(zip(s_wav_paths, t_wav_paths)):
-        s_num = devide_voice_from_path(s_wav_path, source_prevoice_path, config)
-        t_num = devide_voice_from_path(t_wav_path, target_prevoice_path, config)
-
-        if s_num != t_num:
-            print(f"{s_wav_path}と{t_wav_path}で分割数が一致しませんでした. 今一度閾値などを確認してください.")
-
-            for s_num_ in range(s_num):
-                s_wav_path_ = s_wav_path.replace(".wav", f"_{s_num_}.wav")
-                os.remove(s_wav_path_)
-            for t_num_ in range(t_num):
-                t_wav_path_ = t_wav_path.replace(".wav", f"_{t_num_}.wav")
-                os.remove(t_wav_path_)
-
-        os.remove(s_wav_path)
-        os.remove(t_wav_path)
-
-
 def delete_novoice(config):
     # 無音区間の削除
     source_prevoice_path = config["path"]["source_prevoice_path"]
@@ -153,10 +111,6 @@ def voice_preprocess(config):
     # まずはsrを変更して, prevoice_pathに保存.
     print("changing sampling_rate....")
     change_sr(config)
-
-    if config["preprocessing"]["audio"]["head_tail_only"] is not True:
-        print("deviding voices....")
-        devide_voice(config)
 
     # そして無音区間を削除
     print("delete no voice....")
