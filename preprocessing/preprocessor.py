@@ -36,6 +36,7 @@ class Preprocessor:
 
         self.finetuning = finetuning
         self.multi_speaker = config["preprocessing"]["multi_speaker"]
+        self.is_continuous_pitch = config["preprocessing"]["continuous_pitch"]
 
     def build_from_path(self):
         """
@@ -75,7 +76,7 @@ class Preprocessor:
                 basename = wav_name.split(".")[0]
                 # melとかenergyをここで計算.
                 ret = process_utterance(input_dir, os.path.join(self.out_dir, source_or_target), basename,
-                                        self.sampling_rate, self.hop_length, self.STFT)
+                                        self.sampling_rate, self.hop_length, self.STFT, self.is_continuous_pitch)
                 if ret is None:
                     none_list.append(wav_name)
                     continue
@@ -222,7 +223,7 @@ class Preprocessor:
 
 
 def process_utterance(input_dir, out_dir, basename,
-                      sampling_rate, hop_length, STFT):
+                      sampling_rate, hop_length, STFT, is_continuous_pitch):
     wav_path = os.path.join(input_dir, "{}.wav".format(basename))
 
     # Read and trim wav files
@@ -230,11 +231,15 @@ def process_utterance(input_dir, out_dir, basename,
     wav, _ = librosa.load(wav_path, sr=sampling_rate)
 
     # Compute fundamental frequency
-    pitch, t = pw.dio(
-        wav.astype(np.float64),
-        sampling_rate,
-        frame_period=hop_length / sampling_rate * 1000,
-    )
+    try:
+        pitch, t = pw.dio(
+            wav.astype(np.float64),
+            sampling_rate,
+            frame_period=hop_length / sampling_rate * 1000,
+        )
+    except IndexError:
+        print("skipped: ", input_dir, basename)
+        return None
     pitch = pw.stonemask(wav.astype(np.float64), pitch, t, sampling_rate)
 
     if np.sum(pitch != 0) <= 1:
@@ -247,12 +252,14 @@ def process_utterance(input_dir, out_dir, basename,
         # ここで一致していないと, 後でエラーになりますので.
         return None
 
-    # お試し実装, continuous pitcj
-    pitch = continuous_pitch(pitch)
-
-    # energyとpitchはここでlogをとる.
-    pitch = np.log(pitch+1e-6)
     energy = np.log(energy+1e-6)
+
+    if is_continuous_pitch is True:
+        no_voice_indexes = np.where(energy < -5.0)
+        pitch[no_voice_indexes] = np.min(pitch)
+        pitch = continuous_pitch(pitch)
+
+    pitch = np.log(pitch+1e-6)
 
     # Save files
     pitch_filename = "pitch-{}.npy".format(basename)

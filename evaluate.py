@@ -58,7 +58,6 @@ def evaluate(model, step, configs, logger=None, vocoder=None):
             batch,
             output,
             vocoder,
-            model_config,
             preprocess_config,
         )
 

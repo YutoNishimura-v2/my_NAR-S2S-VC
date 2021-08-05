@@ -1,7 +1,6 @@
 """
 Examples:
 >>> python preprocess.py config/JSUT_JSSS/preprocess.yaml
-
 """
 
 import argparse
@@ -13,6 +12,7 @@ import yaml
 from preprocessing.preprocessor import Preprocessor, wav_path_matching
 from preprocessing.n2c_voiceprocess import voice_preprocess
 from preprocessing.calc_duration import get_duration
+from preprocessing.voice_deviding import voice_deviding
 
 
 if __name__ == "__main__":
@@ -33,6 +33,10 @@ if __name__ == "__main__":
     assert os.path.exists(preprocess_config["path"]["source_prevoice_path"]) is False, \
         "すでに存在しているpre_voiceです. 再度実行すると事故が起こるので, 注意してください."
     voice_preprocess(preprocess_config)
+
+    if preprocess_config["preprocessing"]["audio"]["head_tail_only"] is not True:
+        # 無音区間で分割.
+        voice_deviding(preprocess_config)
 
     # melの用意とか
     assert os.path.exists(preprocess_config["path"]["preprocessed_path"]) is False, \

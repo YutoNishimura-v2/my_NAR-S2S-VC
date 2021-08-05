@@ -1,9 +1,9 @@
+from utils.tools import get_mask_from_lengths, pad
 import sys
 import torch
 import torch.nn as nn
 
 sys.path.append('.')
-from utils.tools import get_mask_from_lengths, pad
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -24,14 +24,12 @@ class VarianceAdaptor(nn.Module):
         self.duration_predictor = VariancePredictor(model_config, "duration")
         self.length_regulator = LengthRegulator()
         # self.pitch_predictor = VariancePredictor(model_config, "pitch")
-        self.pitch_predictor = VariancePredictor(model_config, "pitch", output_dim=self.reduction_factor)
-        self.energy_predictor = VariancePredictor(model_config, "energy")
-        # self.pitch_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])  # inputをhiddenに.
-        # self.pitch_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])  # predictをhiddenに.
-        self.pitch_conv1d_1 = Conv(self.reduction_factor, model_config["conformer"]["encoder_hidden"])  # inputをhiddenに.
-        self.pitch_conv1d_2 = Conv(self.reduction_factor, model_config["variance_predictor"]["filter_size"])
-        self.energy_conv1d_1 = Conv(1, model_config["conformer"]["encoder_hidden"])
-        self.energy_conv1d_2 = Conv(1, model_config["variance_predictor"]["filter_size"])
+        self.pitch_predictor = VariancePredictor(model_config, "pitch", self.reduction_factor)
+        self.energy_predictor = VariancePredictor(model_config, "energy", self.reduction_factor)
+        self.pitch_conv1d_1 = Conv_emb(self.reduction_factor, model_config["conformer"]["encoder_hidden"])
+        self.pitch_conv1d_2 = Conv_emb(self.reduction_factor, model_config["variance_predictor"]["filter_size"])
+        self.energy_conv1d_1 = Conv_emb(self.reduction_factor, model_config["conformer"]["encoder_hidden"])
+        self.energy_conv1d_2 = Conv_emb(self.reduction_factor, model_config["variance_predictor"]["filter_size"])
 
         self.pitch_stop_gradient_flow = model_config["variance_predictor"]["pitch"]["stop_gradient_flow"]
         self.energy_stop_gradient_flow = model_config["variance_predictor"]["energy"]["stop_gradient_flow"]
@@ -42,6 +40,7 @@ class VarianceAdaptor(nn.Module):
         self,
         x,
         src_mask,
+        src_max_len,
         src_pitch,
         src_energy,
         src_duration=None,
@@ -54,44 +53,42 @@ class VarianceAdaptor(nn.Module):
         d_control=1.0,
     ):
         # まずは, durationを計算する.
+
         if self.duration_stop_gradient_flow is True:
-            x_detached_d = x.detach()
-            log_duration_prediction = self.duration_predictor(x_detached_d, src_mask)
+            log_duration_prediction = self.duration_predictor(x.detach(), src_mask)
         else:
             log_duration_prediction = self.duration_predictor(x, src_mask)
 
         # convして, 次元を合わせる
+        if self.reduction_factor > 1:
+            src_pitch = self.reshape_with_reduction_factor(src_pitch, src_max_len)
+            src_energy = self.reshape_with_reduction_factor(src_energy, src_max_len)
+
         pitch_conv = self.pitch_conv1d_1(src_pitch)
         energy_conv = self.energy_conv1d_1(src_energy)
 
-        # durationの正解データがあるのであれば, targetとともにreguratorへ.
         if src_duration is not None:
-            x, mel_len = self.length_regulator(x, src_duration, max_len)
-            pitch, _ = self.length_regulator(pitch_conv, src_duration, max_len)
-            energy, _ = self.length_regulator(energy_conv, src_duration, max_len)
             duration_rounded = src_duration
         else:
-            # そうでないなら, predictionを利用.
             duration_rounded = torch.clamp(  # 最小値を0にする. マイナスは許さない.
                 (torch.round(torch.exp(log_duration_prediction) - 1) * d_control),
                 min=0,
             )
-            # そして, predictで作ったduration_roundedを使ってregulatorへ.
-            x, mel_len = self.length_regulator(x, duration_rounded, max_len)
-            pitch, _ = self.length_regulator(pitch_conv, duration_rounded, max_len)
-            energy, _ = self.length_regulator(energy_conv, duration_rounded, max_len)
-            # inferenceではmel_maskもないので, Noneとしてくる.
+
+        x, mel_len = self.length_regulator(x, duration_rounded, max_len)
+        pitch, _ = self.length_regulator(pitch_conv, duration_rounded, max_len)
+        energy, _ = self.length_regulator(energy_conv, duration_rounded, max_len)
+
+        if mel_mask is None:
             mel_mask = get_mask_from_lengths(mel_len)
 
         if self.pitch_stop_gradient_flow is True:
-            x_detached_p = x.detach()
-            pitch += x_detached_p
+            pitch += x.detach()
         else:
             pitch += x
 
         if self.energy_stop_gradient_flow is True:
-            x_detached_e = x.detach()
-            pitch += x_detached_e
+            pitch += x.detach()
         else:
             energy += x
 
@@ -101,18 +98,16 @@ class VarianceAdaptor(nn.Module):
 
         # pitchを, また次元増やしてhiddenに足す.
         if (pitch_target is not None) and (self.teacher_forcing is not False):
-            # 正解データがある場合はそちらを利用してあげる.
-            # slice = torch.arange(0, pitch_target.size(1), self.reduction_factor)
-            # pitch = self.pitch_conv1d_2(pitch_target[:, slice])
-            pitch = self.pitch_conv1d_2(pitch_target)
-            # energy = self.energy_conv1d_2(energy_target[:, slice])
-            energy = self.energy_conv1d_2(energy_target)
+            pitch = self.reshape_with_reduction_factor(pitch_target, max_len)
+            energy = self.reshape_with_reduction_factor(energy_target, max_len)
         else:
-            pitch = self.pitch_conv1d_2(pitch_prediction)
-            energy = self.energy_conv1d_2(energy_prediction)
+            pitch = self.reshape_with_reduction_factor(pitch_prediction, max_len)
+            energy = self.reshape_with_reduction_factor(energy_prediction, max_len)
+
+        pitch = self.pitch_conv1d_2(pitch)
+        energy = self.energy_conv1d_2(energy)
 
         x = x + pitch + energy
-
         return (
             x,
             pitch_prediction,
@@ -122,6 +117,12 @@ class VarianceAdaptor(nn.Module):
             mel_len,
             mel_mask,
         )
+
+    def reshape_with_reduction_factor(self, x, max_len):
+        assert len(x.size()) == 2
+        x = x[:, :max_len*self.reduction_factor]
+        x = x.unsqueeze(-1).contiguous().view(x.size(0), -1, self.reduction_factor)
+        return x
 
 
 class LengthRegulator(nn.Module):
@@ -145,17 +146,11 @@ class LengthRegulator(nn.Module):
         for batch, expand_target in zip(x, duration):
             expanded = self.expand(batch, expand_target)
             output.append(expanded)
-            # expandedのlenがまさに出力したいmelの幅になる.
             mel_len.append(expanded.shape[0])
 
-        # ここでは, まだoutputは長さバラバラのlistであることに注意.
-        # 長さを揃えなきゃ.
         if max_len is not None:
-            # max_lenがあるなら, それでpad.
             output = pad(output, max_len)
         else:
-            # targetがないならmax_lenもないですね.
-            # その場合は自動で一番長い部分を探してくれる.
             output = pad(output)
 
         return output, torch.LongTensor(mel_len).to(device)
@@ -208,10 +203,10 @@ class VariancePredictor(nn.Module):
     durationに関してはもっといい奴が必要そうな気はする.
     """
 
-    def __init__(self, model_config, mode="duration", output_dim=1):
+    def __init__(self, model_config, mode="duration", reduction_factor=1):
         super(VariancePredictor, self).__init__()
 
-        self.output_dim = output_dim
+        self.reduction_factor = reduction_factor
 
         assert mode in ["duration", "pitch", "energy"]
         self.input_size = model_config["conformer"]["encoder_hidden"]
@@ -244,19 +239,21 @@ class VariancePredictor(nn.Module):
 
         self.conv_layer = nn.Sequential(*conv_layers)
 
-        self.linear_layer = nn.Linear(self.conv_output_size, output_dim)
+        self.linear_layer = nn.Linear(self.conv_output_size, reduction_factor)
 
     def forward(self, encoder_output, mask):
         out = self.conv_layer(encoder_output)
         out = self.linear_layer(out)
-        if self.output_dim == 1:
-            out = out.squeeze(-1)
 
         if mask is not None:
-            if self.output_dim == 1:
-                out = out.masked_fill(mask, 0.0)
+            if self.reduction_factor > 1:
+                out = out.masked_fill(mask.unsqueeze(-1).expand(mask.size(0), mask.size(1), self.reduction_factor), 0.0)
+                out = out.contiguous().view(out.size(0), -1, 1)
+                out = out.squeeze(-1)
+
             else:
-                out = out.masked_fill(mask.unsqueeze(-1).expand(mask.size(0), mask.size(1), self.output_dim), 0.0)
+                out = out.squeeze(-1)
+                out = out.masked_fill(mask, 0.0)
 
         return out
 
@@ -305,6 +302,36 @@ class Conv(nn.Module):
         x = self.conv(x)
         x = x.contiguous().transpose(1, 2)
 
+        return x
+
+
+class Conv_emb(nn.Module):
+    def __init__(
+        self,
+        in_channels,
+        out_channels,
+        kernel_size=1,
+        stride=1,
+        padding=0,
+        dilation=1,
+        bias=True,
+        dropout=0.2
+    ):
+        super().__init__()
+        self.conv = Conv(
+            in_channels,
+            out_channels,
+            kernel_size,
+            stride,
+            padding,
+            dilation,
+            bias
+        )
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x):
+        x = self.conv(x)
+        x = self.dropout(x)
         return x
 
 
