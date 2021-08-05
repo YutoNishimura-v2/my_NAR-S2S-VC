@@ -23,15 +23,15 @@ variance_predictor:
   duration:
     kernel_size: 3
     layer_num: 2
-    stop_gradient_flow: False
+    stop_gradient_flow: False  # True: durationからencoderへの勾配の流れを止めます.
   energy:
     kernel_size: 3
     layer_num: 2
-    stop_gradient_flow: False
+    stop_gradient_flow: False  # True: energyからencoderへの勾配の流れを止めます.
   pitch:
     kernel_size: 5
     layer_num: 5
-    stop_gradient_flow: True
-  teacher_forcing: True
+    stop_gradient_flow: True  # True: pitchからencoderへの勾配の流れを止めます.
+  teacher_forcing: True  # True: train時に, 正解のpitch, energyを利用します.
 
-reduction_factor: 3
+reduction_factor: 3  # int = 3: Tacotron2準拠のreduction_factorです. 指定フレームごとに学習を行います.

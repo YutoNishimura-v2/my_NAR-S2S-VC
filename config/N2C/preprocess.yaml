@@ -1,32 +1,30 @@
 dataset: "N2C"
 
 path:
-  source_raw_path: "./raw_data/N2C/source"
-  source_prevoice_path: "./pre_voice/N2C_3/source"
+  source_raw_path: "./raw_data/N2C/source"  # raw_dataの, source音声を配置したフォルダを指定してください.
+  source_prevoice_path: "./pre_voice/N2C_3/source"  # source音声を加工した音声を出力するフォルダを指定します.
   target_raw_path: "./raw_data/N2C/target"
   target_prevoice_path: "./pre_voice/N2C_3/target"
-  preprocessed_path: "./preprocessed_data/N2C_4"  # out_dir. こっちはsource, targetで自動で分ける.
-  source_stats_path: null  # finetuningのみ利用
-  target_stats_path: null # finetuningのみ利用
+  preprocessed_path: "./preprocessed_data/N2C_4"  # source, targetのmelなどを計算した結果を出力するフォルダを指定します.
+  source_stats_path: null  # finetuning時のみ利用. 指定のstats.jsonファイルを利用して正規化を行います.
+  target_stats_path: null # finetuning時のみ利用. 指定のstats.jsonファイルを利用して正規化を行います.
 
 preprocessing:
-  val_size: 100 # 元は512  # 全データが3229個.
+  val_size: 100  # 元は512  # 全データが3229個.
   multi_speaker: False
-  continuous_pitch: True
+  continuous_pitch: True  # True: 連続pitchを計算します.
   audio:
     sampling_rate: 22050
     max_wav_value: 32768.0  # 16bitだと, -32768.0 ~ 32767.0 こうなる.
     min_silence_len: 800
     silence_thresh: -120
     silence_thresh_head: -60
-    head_tail_only: False  # Falseにすると, 音声を分割したりもする.
-  stft:  # NARS2Sのpaperの値.
+    head_tail_only: False  # False: min_silence_lenより長い無音部分で音声を分割します. True: 分割を行わず, 前後の無音部分を切り取ります.
+  stft:
     filter_length: 1024  # number of FFT components
     hop_length: 256
     win_length: 1024
   mel:
     n_mel_channels: 80
     mel_fmin: 0
-    mel_fmax: 8000 # please set to 8000 for HiFi-GAN vocoder, set to null for MelGAN vocoder
-                   # hifi-ganも, 1からtrainingするので, nullに設定してヨシ. nullとすれば, librosa.filters.melにおいて, 
-                   # sampling_rate/2 をf_maxとしてmelを計算してくれる. そうじゃないとsr=24,000でやってる意味ない.
+    mel_fmax: 8000 # デフォルトのhifiganを利用する場合は8000で固定です.
